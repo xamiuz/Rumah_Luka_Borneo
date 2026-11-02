@@ -181,23 +181,23 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Full-Width Table with Balanced Column Layout */}
-        <div className="overflow-x-auto w-full">
+        {/* Full-Width Table - Exactly 100% width with Zero Horizontal Scrollbar */}
+        <div className="w-full overflow-hidden">
           <table className="w-full text-left text-xs table-fixed">
             <thead className="bg-slate-50/90 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
-                <th className="w-[20%] min-w-[200px] px-6 py-3.5">No. RM & Nama Pasien</th>
-                <th className="w-[32%] min-w-[280px] px-6 py-3.5">Diagnosa Klinis & Riwayat Alergi</th>
-                <th className="w-[20%] min-w-[210px] px-6 py-3.5">Komposisi TIME</th>
-                <th className="w-[8%] min-w-[85px] px-3 py-3.5 text-center">Nyeri</th>
-                <th className="w-[10%] min-w-[120px] px-4 py-3.5 text-center">Status</th>
-                <th className="w-[10%] min-w-[170px] px-6 py-3.5 text-right">Tindakan Klinis</th>
+                <th className="w-[22%] px-4 py-3">No. RM & Nama Pasien</th>
+                <th className="w-[32%] px-4 py-3">Diagnosa Klinis & Riwayat Alergi</th>
+                <th className="w-[18%] px-3 py-3">Komposisi TIME</th>
+                <th className="w-[8%] px-2 py-3 text-center">Nyeri</th>
+                <th className="w-[9%] px-2 py-3 text-center">Status</th>
+                <th className="w-[11%] px-4 py-3 text-right">Tindakan</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredPatients.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                  <td colSpan={6} className="px-4 py-12 text-center text-slate-400">
                     Tidak ada pasien yang sesuai filter pencarian.
                   </td>
                 </tr>
@@ -212,37 +212,37 @@ export default function DashboardPage() {
 
                   return (
                     <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="px-6 py-3.5 align-middle">
+                      <td className="px-4 py-3.5 align-middle">
                         <div className="font-bold text-sm text-slate-900 truncate" title={p.nama}>
                           {p.nama}
                         </div>
-                        <div className="text-[11px] text-slate-500 font-mono mt-0.5 whitespace-nowrap">
+                        <div className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
                           {p.noRm} • {p.jenisKelamin === 'Laki-laki' ? 'L' : 'P'}, {p.tanggalLahir}
                         </div>
                       </td>
 
-                      <td className="px-6 py-3.5 align-middle">
-                        <div className="font-semibold text-slate-800 leading-snug" title={p.diagnosisMedisUtama}>
+                      <td className="px-4 py-3.5 align-middle">
+                        <div className="font-semibold text-slate-800 leading-snug truncate" title={p.diagnosisMedisUtama}>
                           {p.diagnosisMedisUtama}
                         </div>
                         {p.riwayatAlergi && p.riwayatAlergi !== 'Tidak Ada' ? (
                           <div className="mt-1">
                             <span 
                               title={`Alergi: ${p.riwayatAlergi}`}
-                              className="inline-flex items-center gap-1 text-[10px] text-rose-700 font-medium bg-rose-50 px-2 py-0.5 rounded border border-rose-200 max-w-full"
+                              className="inline-flex items-center gap-1 text-[10px] text-rose-700 font-medium bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 max-w-full"
                             >
                               <span className="font-bold shrink-0">Alergi:</span>
                               <span className="truncate">{p.riwayatAlergi}</span>
                             </span>
                           </div>
                         ) : (
-                          <span className="text-[11px] text-slate-400 mt-0.5 block">Tidak ada alergi</span>
+                          <span className="text-[10px] text-slate-400 mt-0.5 block">Tidak ada alergi</span>
                         )}
                       </td>
 
-                      <td className="px-6 py-3.5 align-middle">
+                      <td className="px-3 py-3.5 align-middle">
                         {p.asesmenTerakhir ? (
-                          <div className="space-y-1.5 max-w-[240px]">
+                          <div className="space-y-1">
                             {/* TIME Tissue Bar */}
                             <div className="h-2 rounded-full overflow-hidden flex bg-slate-200 shadow-inner">
                               <div
@@ -266,7 +266,7 @@ export default function DashboardPage() {
                                 title={`Epitel (Pink): ${p.asesmenTerakhir.dasarLuka.persenEpitelisasi}%`}
                               />
                             </div>
-                            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <div className="flex justify-between text-[9px] text-slate-500 font-mono">
                               <span>G: <strong className="text-red-700">{p.asesmenTerakhir.dasarLuka.persenGranulasi}%</strong></span>
                               <span>S: <strong className="text-amber-700">{p.asesmenTerakhir.dasarLuka.persenSlough}%</strong></span>
                               <span>N: <strong className="text-slate-900">{p.asesmenTerakhir.dasarLuka.persenNekrotik}%</strong></span>
@@ -274,42 +274,44 @@ export default function DashboardPage() {
                             </div>
                           </div>
                         ) : (
-                          <span className="text-[11px] text-slate-400 italic">
-                            Belum ada asesmen
+                          <span className="text-[10px] text-slate-400 italic">
+                            Belum asesmen
                           </span>
                         )}
                       </td>
 
-                      <td className="px-3 py-3.5 align-middle text-center whitespace-nowrap">
+                      <td className="px-2 py-3.5 align-middle text-center whitespace-nowrap">
                         {p.asesmenTerakhir ? (
-                          <span className="font-mono font-bold text-xs bg-slate-100 px-2 py-1 rounded text-slate-800 border border-slate-200">
-                            VAS {p.asesmenTerakhir.skorNyeri} / 10
+                          <span className="font-mono font-bold text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 border border-slate-200">
+                            VAS {p.asesmenTerakhir.skorNyeri}/10
                           </span>
                         ) : (
                           <span className="text-slate-400 text-xs">-</span>
                         )}
                       </td>
 
-                      <td className="px-4 py-3.5 align-middle text-center whitespace-nowrap">
-                        <span className={`px-2.5 py-1 text-[11px] font-semibold rounded-md border inline-block ${statusBadge}`}>
+                      <td className="px-2 py-3.5 align-middle text-center whitespace-nowrap">
+                        <span className={`px-2 py-0.5 text-[10px] font-semibold rounded border inline-block ${statusBadge}`}>
                           {p.statusKunjungan}
                         </span>
                       </td>
 
-                      <td className="px-6 py-3.5 align-middle text-right whitespace-nowrap">
-                        <div className="inline-flex items-center gap-1.5 justify-end">
+                      <td className="px-4 py-3.5 align-middle text-right whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1 justify-end">
                           <Link
                             href={`/asesmen?pasienId=${p.id}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition shadow-xs"
+                            title="Mulai Asesmen Luka & Peta Tubuh"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold rounded-md transition shadow-xs"
                           >
-                            <Bandage className="w-3.5 h-3.5" />
-                            <span>Asesmen Luka</span>
+                            <Bandage className="w-3 h-3" />
+                            <span>Asesmen</span>
                           </Link>
                           <Link
                             href={`/rekam-medis?pasienId=${p.id}`}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-100 transition shadow-xs"
+                            title="Buka Lembar Catatan Perkembangan Pasien (CPPT)"
+                            className="inline-flex items-center gap-1 px-2 py-1.5 bg-white border border-slate-300 text-slate-700 text-[11px] font-medium rounded-md hover:bg-slate-50 transition shadow-xs"
                           >
-                            <FileText className="w-3.5 h-3.5 text-slate-500" />
+                            <FileText className="w-3 h-3 text-slate-500" />
                             <span>CPPT</span>
                           </Link>
                         </div>
