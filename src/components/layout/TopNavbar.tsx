@@ -68,13 +68,13 @@ export function TopNavbar() {
           <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center justify-center text-xs font-bold font-mono">
             {currentUser.nama.charAt(currentUser.nama.startsWith('Ns.') || currentUser.nama.startsWith('dr.') ? 4 : 0)}
           </div>
-          <div className="hidden lg:block text-left text-xs">
-            <p className="font-bold text-slate-900 leading-none truncate max-w-[130px]">
+          <div className="hidden sm:block text-left text-xs">
+            <p className="font-bold text-slate-900 leading-none whitespace-nowrap">
               {currentUser.nama}
             </p>
-            <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1 font-medium">
+            <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1.5 font-medium whitespace-nowrap">
               <span className="text-blue-700 font-bold">{currentUser.role}</span>
-              {currentUser.strNip && <span>• {currentUser.strNip.split(' ')[0]}</span>}
+              {currentUser.strNip && <span>• NIP/STR: {currentUser.strNip}</span>}
             </p>
           </div>
         </div>
