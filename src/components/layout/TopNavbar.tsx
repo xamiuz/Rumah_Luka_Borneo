@@ -63,15 +63,6 @@ export function TopNavbar() {
           <RotateCcw className="w-4 h-4" />
         </button>
 
-        {/* Quick Add Patient */}
-        <Link
-          href="/pendaftaran"
-          className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-xs"
-        >
-          <UserPlus className="w-3.5 h-3.5" />
-          <span>+ Pasien Baru</span>
-        </Link>
-
         {/* Staff Profile Capsule (Clean Light Blue theme) */}
         <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
           <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center justify-center text-xs font-bold font-mono">

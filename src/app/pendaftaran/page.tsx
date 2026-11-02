@@ -100,7 +100,7 @@ export default function PendaftaranPage() {
   });
 
   return (
-    <div className="p-8 space-y-8 max-w-6xl mx-auto">
+    <div className="w-full px-8 py-6 space-y-6">
       {/* Top Header & View Toggle */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>

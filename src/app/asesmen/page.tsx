@@ -136,7 +136,7 @@ function AsesmenContent() {
   };
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="w-full px-8 py-6 space-y-6">
       {/* Patient Selector Bar */}
       <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
