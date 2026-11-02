@@ -1,30 +1,53 @@
-@import "./erm.css";
+@import "tailwindcss";
 
-html, body {
-  background-color: #f4f7fb !important;
-  color: #1e293b !important;
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+@layer base {
+  :root {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --primary: #1e3a8a;
+    --primary-foreground: #ffffff;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --border: #e2e8f0;
+    --ring: #1e3a8a;
+  }
+
+  html, body {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    font-family: var(--font-inter, system-ui, -apple-system, sans-serif);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
 }
 
-* {
-  box-sizing: border-box;
+/* Custom scrollbar for dense clinical data */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-
-/* Ensure next.js root container fills screen */
-#__next, body > div:first-child {
-  min-height: 100vh;
-  background-color: #f4f7fb;
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 @media print {
-  .sidebar, .header-actions, button, .no-print {
+  .no-print, aside, header, nav, button {
     display: none !important;
   }
-  .main-content {
-    margin-left: 0 !important;
+  main {
+    margin: 0 !important;
     padding: 0 !important;
     max-width: 100% !important;
   }

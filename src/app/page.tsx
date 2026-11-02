@@ -2,371 +2,395 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { 
+  Activity, 
+  Users, 
+  Clock, 
+  CalendarCheck, 
+  AlertTriangle, 
+  ChevronRight, 
+  CheckCircle2, 
+  Bandage, 
+  FileText,
+  UserPlus,
+  HeartPulse,
+  TrendingUp,
+  Stethoscope
+} from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 
 export default function DashboardPage() {
-  const { patients, schedules, searchTerm, setSearchTerm, resetAllData, currentUser } = useClinic();
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const { patients, schedules, searchTerm, updateScheduleStatus } = useClinic();
+  const [activeTab, setActiveTab] = useState<'semua' | 'antrean' | 'perlu-asesmen'>('semua');
 
-  const handleReset = () => {
-    if (window.confirm('Hapus/Reset semua data pasien ke data awal?')) {
-      resetAllData();
+  // Filtered by search and tabs
+  const filteredPatients = patients.filter((p) => {
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      const match = p.nama.toLowerCase().includes(q) || p.noRm.toLowerCase().includes(q) || p.nik.includes(q);
+      if (!match) return false;
     }
-  };
+    if (activeTab === 'antrean') {
+      return p.statusKunjungan === 'Antrean' || p.statusKunjungan === 'Sedang Diperiksa';
+    }
+    if (activeTab === 'perlu-asesmen') {
+      return !p.asesmenTerakhir;
+    }
+    return true;
+  });
 
-  const todayStr = 'Kamis, 17 September 2026';
-
-  // Counts
-  const pasienDirawatHariIni = patients.length;
-  const homecareCount = schedules.filter((s) => s.jenisLayanan === 'Home Care').length || 5;
-  const khitanCount = schedules.filter((s) => s.jenisLayanan === 'Khitan').length || 6;
-  const perluAsesmenCount = patients.filter((p) => !p.asesmenTerakhir).length || 5;
+  const antreanCount = patients.filter((p) => p.statusKunjungan === 'Antrean' || p.statusKunjungan === 'Sedang Diperiksa').length;
+  const homecareCount = schedules.filter((s) => s.jenisLayanan === 'Home Care').length;
+  const perluAsesmenCount = patients.filter((p) => !p.asesmenTerakhir).length;
 
   return (
-    <main className="main-content">
-      {/* Headerbar */}
-      <header className="header">
-        <div className="header-title">
-          <h1>Dashboard</h1>
-          <p>Selamat datang kembali di Rumah Luka Borneo</p>
+    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+      {/* Top Banner / Clinical Summary */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+              Pelayanan Rekam Medis Terintegrasi
+            </span>
+            <span className="text-xs text-slate-400">•</span>
+            <span className="text-xs text-slate-500 font-medium">Bontang, Kalimantan Timur</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Dashboard Perawatan Luka & Stoma (Wound Care)
+          </h1>
+          <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+            Monitoring klinis pasien ulkus diabetik, luka tekan (dekubitus), dan luka kronis. Kelola rekam medis SOAP, rencana modern dressing, dan jadwal kunjungan secara terpadu.
+          </p>
         </div>
 
-        <div className="header-actions">
-          <button
-            id="btnHapusSemuaData"
-            type="button"
-            onClick={handleReset}
-            style={{
-              backgroundColor: '#ef4444',
-              color: 'white',
-              border: 'none',
-              padding: '10px 16px',
-              borderRadius: '8px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '13px',
-            }}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Link
+            href="/pendaftaran"
+            className="px-4 py-2.5 bg-blue-900 hover:bg-blue-950 text-white text-xs font-semibold rounded-lg transition shadow-xs flex items-center gap-2"
           >
-            <i className="ph ph-trash"></i> Hapus Semua Data Pasien
-          </button>
+            <UserPlus className="w-4 h-4" />
+            <span>+ Registrasi Pasien</span>
+          </Link>
+          <Link
+            href="/asesmen"
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition border border-slate-300 flex items-center gap-2"
+          >
+            <Activity className="w-4 h-4 text-blue-700" />
+            <span>Asesmen Baru</span>
+          </Link>
+        </div>
+      </div>
 
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Cari pasien, No. RM, atau NIK..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <i className="ph ph-magnifying-glass"></i>
+      {/* 4 Clinical KPI Metrics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-start justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Antrean Rawat Hari Ini</p>
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-3xl font-extrabold text-slate-900">{antreanCount}</span>
+              <span className="text-xs text-slate-500 font-medium">pasien aktif</span>
+            </div>
+            <p className="text-[11px] text-blue-700 font-medium mt-1">Siap tindakan di ruang rawat</p>
           </div>
+          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-800 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
 
-          <div style={{ position: 'relative' }}>
-            <div
-              className="user-avatar"
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-            >
-              {currentUser.nama.charAt(0)}
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-start justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Pasien Terdaftar</p>
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-3xl font-extrabold text-slate-900">{patients.length}</span>
+              <span className="text-xs text-slate-500 font-medium">rekam medis</span>
+            </div>
+            <p className="text-[11px] text-emerald-700 font-medium mt-1">Tersimpan dalam database</p>
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0">
+            <Users className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-start justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Jadwal Home Care</p>
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-3xl font-extrabold text-slate-900">{homecareCount}</span>
+              <span className="text-xs text-slate-500 font-medium">kunjungan</span>
+            </div>
+            <p className="text-[11px] text-amber-700 font-medium mt-1">Layanan perawatan di rumah</p>
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center shrink-0">
+            <CalendarCheck className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-start justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Belum Asesmen Luka</p>
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-3xl font-extrabold text-rose-700">{perluAsesmenCount}</span>
+              <span className="text-xs text-slate-500 font-medium">pasien</span>
+            </div>
+            <p className="text-[11px] text-rose-600 font-medium mt-1">Memerlukan evaluasi luka awal</p>
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid: Clinical Worklist (8 Cols) & Today's Schedule (4 Cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left: Patient Worklist Table (8 Cols) */}
+        <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+          {/* Header & Tabs */}
+          <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Daftar Pasien & Status Perkembangan Luka</h2>
+              <p className="text-xs text-slate-500">Pilih pasien untuk memulai asesmen luka TIME atau tinjau catatan CPPT</p>
             </div>
 
-            {profileDropdownOpen && (
-              <div
-                className="profile-dropdown"
-                style={{
-                  display: 'block',
-                  position: 'absolute',
-                  top: '120%',
-                  right: 0,
-                  background: 'white',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-                  width: '180px',
-                  zIndex: 100,
-                  overflow: 'hidden',
-                }}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-medium self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setActiveTab('semua')}
+                className={`px-3 py-1 rounded-md transition ${
+                  activeTab === 'semua'
+                    ? 'bg-white text-slate-900 shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
-                <div style={{ padding: '10px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
-                  <strong style={{ display: 'block', color: '#1e293b' }}>{currentUser.nama}</strong>
-                  <span style={{ color: '#64748b' }}>{currentUser.role}</span>
+                Semua ({patients.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('antrean')}
+                className={`px-3 py-1 rounded-md transition ${
+                  activeTab === 'antrean'
+                    ? 'bg-white text-slate-900 shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Antrean ({antreanCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('perlu-asesmen')}
+                className={`px-3 py-1 rounded-md transition ${
+                  activeTab === 'perlu-asesmen'
+                    ? 'bg-white text-slate-900 shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Belum Asesmen ({perluAsesmenCount})
+              </button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/80 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th className="px-5 py-3">No. RM & Pasien</th>
+                  <th className="px-4 py-3">Diagnosa / Etiologi</th>
+                  <th className="px-4 py-3">Komposisi Dasar Jaringan (TIME)</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-5 py-3 text-right">Aksi Klinis</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredPatients.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-12 text-center text-slate-400">
+                      Tidak ada pasien yang sesuai filter.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredPatients.map((p) => {
+                    const statusBadge = {
+                      'Antrean': 'bg-amber-50 text-amber-800 border-amber-200',
+                      'Sedang Diperiksa': 'bg-blue-50 text-blue-800 border-blue-200',
+                      'Selesai': 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                      'Jadwal Kontrol': 'bg-slate-100 text-slate-700 border-slate-200',
+                    }[p.statusKunjungan];
+
+                    return (
+                      <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-5 py-3.5">
+                          <div className="font-bold text-slate-900">{p.nama}</div>
+                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                            {p.noRm} • {p.jenisKelamin === 'Laki-laki' ? 'L' : 'P'}, {p.tanggalLahir}
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3.5">
+                          <div className="font-medium text-slate-800 max-w-[200px] truncate" title={p.diagnosisMedisUtama}>
+                            {p.diagnosisMedisUtama}
+                          </div>
+                          {p.riwayatAlergi && p.riwayatAlergi !== 'Tidak Ada' && (
+                            <span className="text-[10px] text-rose-700 font-semibold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 mt-0.5 inline-block">
+                              Alergi: {p.riwayatAlergi}
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3.5">
+                          {p.asesmenTerakhir ? (
+                            <div className="space-y-1.5 min-w-[140px]">
+                              {/* Tissue Proportion Bar */}
+                              <div className="h-2 rounded-full overflow-hidden flex bg-slate-200">
+                                <div
+                                  style={{ width: `${p.asesmenTerakhir.dasarLuka.persenGranulasi}%` }}
+                                  className="bg-red-600"
+                                  title={`Granulasi: ${p.asesmenTerakhir.dasarLuka.persenGranulasi}%`}
+                                />
+                                <div
+                                  style={{ width: `${p.asesmenTerakhir.dasarLuka.persenSlough}%` }}
+                                  className="bg-amber-400"
+                                  title={`Slough: ${p.asesmenTerakhir.dasarLuka.persenSlough}%`}
+                                />
+                                <div
+                                  style={{ width: `${p.asesmenTerakhir.dasarLuka.persenNekrotik}%` }}
+                                  className="bg-slate-900"
+                                  title={`Nekrotik: ${p.asesmenTerakhir.dasarLuka.persenNekrotik}%`}
+                                />
+                                <div
+                                  style={{ width: `${p.asesmenTerakhir.dasarLuka.persenEpitelisasi}%` }}
+                                  className="bg-pink-400"
+                                  title={`Epitel: ${p.asesmenTerakhir.dasarLuka.persenEpitelisasi}%`}
+                                />
+                              </div>
+                              <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                                <span>G: {p.asesmenTerakhir.dasarLuka.persenGranulasi}%</span>
+                                <span>S: {p.asesmenTerakhir.dasarLuka.persenSlough}%</span>
+                                <span>N: {p.asesmenTerakhir.dasarLuka.persenNekrotik}%</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">
+                              Belum ada asesmen
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 text-[11px] font-semibold rounded border ${statusBadge}`}>
+                            {p.statusKunjungan}
+                          </span>
+                        </td>
+
+                        <td className="px-5 py-3.5 text-right whitespace-nowrap space-x-1.5">
+                          <Link
+                            href={`/asesmen?pasienId=${p.id}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-900 hover:bg-blue-950 text-white text-[11px] font-semibold rounded-md transition shadow-xs"
+                          >
+                            <Bandage className="w-3.5 h-3.5" />
+                            <span>Asesmen</span>
+                          </Link>
+                          <Link
+                            href={`/rekam-medis?pasienId=${p.id}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white border border-slate-300 text-slate-700 text-[11px] font-semibold rounded-md hover:bg-slate-100 transition"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-slate-500" />
+                            <span>CPPT</span>
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Right: Today's Clinical Schedule & Triage Alert (4 Cols) */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Schedule Card */}
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Jadwal Perawatan Hari Ini</h3>
+                <p className="text-xs text-slate-500">Antrean ganti balutan & homecare</p>
+              </div>
+              <Link href="/jadwal" className="text-xs text-blue-700 font-semibold hover:underline">
+                Lihat Semua
+              </Link>
+            </div>
+
+            <div className="space-y-3">
+              {schedules.map((s) => (
+                <div
+                  key={s.id}
+                  className="p-3 rounded-lg border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-mono font-bold bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+                          {s.jam} WITA
+                        </span>
+                        <span className="text-xs font-bold text-slate-900">{s.namaPasien}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">{s.noRm}</p>
+                    </div>
+
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                      s.status === 'Selesai'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-amber-50 text-amber-800 border-amber-200'
+                    }`}>
+                      {s.status}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-200/70">
+                    <strong className="text-slate-800">{s.jenisLayanan}:</strong> {s.catatan}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[10px] text-slate-500">PIC: {s.namaPerawat}</span>
+                    {s.status !== 'Selesai' && (
+                      <button
+                        type="button"
+                        onClick={() => updateScheduleStatus(s.id, 'Selesai')}
+                        className="text-[10px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 font-semibold px-2 py-0.5 rounded transition flex items-center gap-1"
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>Selesai</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <Link
-                  href="/kelola-pengguna"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    color: '#1e293b',
-                    textDecoration: 'none',
-                    fontSize: '13px',
-                    borderBottom: '1px solid #e2e8f0',
-                  }}
-                  onClick={() => setProfileDropdownOpen(false)}
-                >
-                  <i className="ph ph-user"></i> Lihat Profil
-                </Link>
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setProfileDropdownOpen(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 16px',
-                    color: '#ef4444',
-                    textDecoration: 'none',
-                    fontSize: '13px',
-                  }}
-                >
-                  <i className="ph ph-sign-out"></i> Log Out
-                </a>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-        </div>
-      </header>
 
-      {/* Banner */}
-      <section className="banner">
-        <div className="banner-content">
-          <p className="banner-date">{todayStr}</p>
-          <h2>Agenda Pelayanan Hari Ini</h2>
-          <p className="banner-desc">Pantau perawatan wound care, kunjungan homecare, dan jadwal khitan.</p>
-        </div>
-        <div className="banner-stat">
-          <h3>{pasienDirawatHariIni || 12}</h3>
-          <p>Pasien dijadwalkan</p>
-        </div>
-      </section>
-
-      {/* Summary Cards */}
-      <section className="summary-cards">
-        <div className="card">
-          <h4>Pasien Dirawat Hari Ini</h4>
-          <h2>{pasienDirawatHariIni || 12}</h2>
-          <p className="text-blue">Pasien aktif hari ini</p>
-        </div>
-        <div className="card">
-          <h4>Jadwal Homecare</h4>
-          <h2>{homecareCount}</h2>
-          <p className="text-green">Kunjungan terjadwal</p>
-        </div>
-        <div className="card">
-          <h4>Khitan Mendatang</h4>
-          <h2>{khitanCount}</h2>
-          <p className="text-purple">Reservasi berikutnya</p>
-        </div>
-        <div className="card">
-          <h4>Perlu Asesmen</h4>
-          <h2>{perluAsesmenCount}</h2>
-          <p className="text-orange">Perlu diperbarui</p>
-        </div>
-      </section>
-
-      {/* Data Lists */}
-      <section className="data-lists">
-        {/* List 1 */}
-        <div className="list-card">
-          <div className="list-header">
-            <h3>Pasien yang Hari Ini Dirawat</h3>
-            <p>Daftar pasien aktif berdasarkan jadwal</p>
-          </div>
-          <div className="list-content">
-            <div className="list-item">
-              <div className="time">08.00</div>
-              <div className="details">
-                <strong>Siti Rahmawati</strong>
-                <i className="ph ph-bandaids" style={{ color: 'var(--primary-blue)', marginLeft: '4px', marginRight: '4px' }}></i>
-                <span>Wound Care</span>
-              </div>
-              <div className="status status-aktif">Aktif</div>
+          {/* Quick Access Protocol Box */}
+          <div className="bg-slate-900 text-white rounded-xl p-5 shadow-xs space-y-3">
+            <div className="flex items-center gap-2">
+              <Stethoscope className="w-4 h-4 text-blue-400" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                Prosedur & Panduan Klinis (SOP)
+              </h4>
             </div>
-            <div className="list-item">
-              <div className="time">09.30</div>
-              <div className="details">
-                <strong>Budi Santoso</strong>
-                <span>Rawat Inap</span>
-              </div>
-              <div className="status status-aktif">Aktif</div>
-            </div>
-            <div className="list-item">
-              <div className="time">11.00</div>
-              <div className="details">
-                <strong>Nur Aisyah</strong>
-                <i className="ph ph-bandaids" style={{ color: 'var(--primary-blue)', marginLeft: '4px', marginRight: '4px' }}></i>
-                <span>Wound Care</span>
-              </div>
-              <div className="status status-menunggu">Menunggu</div>
-            </div>
-            <div className="list-item">
-              <div className="time">13.30</div>
-              <div className="details">
-                <strong>Dewi Lestari</strong>
-                <span>Rawat Inap</span>
-              </div>
-              <div className="status status-aktif">Aktif</div>
-            </div>
-            <div className="list-item">
-              <div className="time">15.00</div>
-              <div className="details">
-                <strong>Rizky Maulana</strong>
-                <i className="ph ph-bandaids" style={{ color: 'var(--primary-blue)', marginLeft: '4px', marginRight: '4px' }}></i>
-                <span>Wound Care</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Pastikan selalu melakukan dokumentasi fotografi luka sebelum dan sesudah tindakan *sharp debridement*, serta evaluasi kondisi eksudat dan maserasi tepi luka.
+            </p>
+            <div className="pt-2">
+              <Link
+                href="/asesmen"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-300 hover:text-white transition"
+              >
+                <span>Buka Formulir Asesmen Wound Care</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
-          <Link href="/pendaftaran" className="view-all">
-            Lihat semua pasien &rarr;
-          </Link>
         </div>
-
-        {/* List 2 */}
-        <div className="list-card">
-          <div className="list-header">
-            <h3>Pasien Homecare Akan Dirawat</h3>
-            <p>Kunjungan rumah mendatang</p>
-          </div>
-          <div className="list-content">
-            <div className="list-item">
-              <div className="time">08.00</div>
-              <div className="details">
-                <strong>Ibu Sulastri</strong>
-                <span>Samarinda Ulu</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-            <div className="list-item">
-              <div className="time">10.00</div>
-              <div className="details">
-                <strong>Bapak Karno</strong>
-                <span>Sungai Kunjang</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-            <div className="list-item">
-              <div className="time">13.00</div>
-              <div className="details">
-                <strong>Ibu Ratna</strong>
-                <span>Loa Janan</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-            <div className="list-item">
-              <div className="time">15.00</div>
-              <div className="details">
-                <strong>Bapak Yusuf</strong>
-                <span>Samarinda Ilir</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-            <div className="list-item">
-              <div className="time">16.00</div>
-              <div className="details">
-                <strong>Ibu Nurhayati</strong>
-                <span>Samarinda Ulu</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-          </div>
-          <Link href="/jadwal" className="view-all">
-            Lihat jadwal homecare &rarr;
-          </Link>
-        </div>
-
-        {/* List 3 */}
-        <div className="list-card">
-          <div className="list-header">
-            <h3>Jadwal Khitan Mendatang</h3>
-            <p>Pasien sekali perawatan</p>
-          </div>
-          <div className="list-content">
-            <div className="list-item">
-              <div className="date-col">18 Sep</div>
-              <div className="details">
-                <strong>Raka Pratama</strong>
-                <span>Jam 09.00</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-            <div className="list-item">
-              <div className="date-col">19 Sep</div>
-              <div className="details">
-                <strong>Fajar Setiawan</strong>
-                <span>Jam 10.00</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-            <div className="list-item">
-              <div className="date-col">20 Sep</div>
-              <div className="details">
-                <strong>Muhammad Ali</strong>
-                <span>Jam 08.30</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-            <div className="list-item">
-              <div className="date-col">21 Sep</div>
-              <div className="details">
-                <strong>Rizky Maulana</strong>
-                <span>Jam 13.00</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-            <div className="list-item">
-              <div className="date-col">22 Sep</div>
-              <div className="details">
-                <strong>Ahmad Dani</strong>
-                <span>Jam 09.30</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-            <div className="list-item">
-              <div className="date-col">23 Sep</div>
-              <div className="details">
-                <strong>Aditia Putra</strong>
-                <span>Jam 11.00</span>
-              </div>
-              <div className="status status-terjadwal">Terjadwal</div>
-            </div>
-          </div>
-          <Link href="/jadwal" className="view-all">
-            Lihat seluruh jadwal &rarr;
-          </Link>
-        </div>
-      </section>
-
-      {/* Quick Actions */}
-      <section className="quick-actions-section">
-        <div className="quick-header">
-          <h3>Akses Cepat</h3>
-          <p>Mulai aktivitas baru</p>
-        </div>
-        <div className="quick-buttons">
-          <Link href="/pendaftaran" className="quick-btn" style={{ textDecoration: 'none' }}>
-            <i className="ph ph-plus"></i>
-            Pendaftaran Pasien
-          </Link>
-          <Link href="/asesmen" className="quick-btn" style={{ textDecoration: 'none' }}>
-            <i className="ph ph-file-text"></i>
-            Update Asesmen
-          </Link>
-          <Link href="/jadwal" className="quick-btn" style={{ textDecoration: 'none' }}>
-            <i className="ph ph-house-line"></i>
-            Pendaftaran Homecare
-          </Link>
-          <Link href="/jadwal" className="quick-btn" style={{ textDecoration: 'none' }}>
-            <i className="ph ph-scissors"></i>
-            Jadwal Khitan
-          </Link>
-        </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }

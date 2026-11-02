@@ -1,265 +1,226 @@
 'use client';
 
 import React, { useState } from 'react';
-
-interface StaffUser {
-  id: number;
-  username: string;
-  role: 'Admin' | 'User';
-}
+import { 
+  Users, 
+  ShieldCheck, 
+  UserPlus, 
+  Check, 
+  BadgeCheck, 
+  KeyRound,
+  Stethoscope
+} from 'lucide-react';
+import { useClinic } from '@/context/ClinicContext';
+import { User, Role } from '@/types';
 
 export default function KelolaPenggunaPage() {
-  const [users, setUsers] = useState<StaffUser[]>([
-    { id: 1, username: 'admin', role: 'Admin' },
-    { id: 2, username: 'azhari', role: 'User' },
-    { id: 3, username: 'intan', role: 'User' },
-    { id: 4, username: 'oktabilla', role: 'User' },
-  ]);
+  const { users, currentUser, setCurrentUser } = useClinic();
+  const [localUsers, setLocalUsers] = useState<User[]>(users);
+  const [showAddForm, setShowAddForm] = useState(false);
 
+  // Form State
+  const [nama, setNama] = useState('');
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<Role>('Perawat');
+  const [strNip, setStrNip] = useState('');
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username) return;
-
-    setUsers([
-      ...users,
-      {
-        id: users.length + 1,
-        username,
-        role: isAdmin ? 'Admin' : 'User',
-      },
-    ]);
-
-    setUsername('');
-    setPassword('');
-    setIsAdmin(false);
-  };
-
-  const handleDelete = (id: number) => {
-    if (confirm('Hapus pengguna ini?')) {
-      setUsers(users.filter((u) => u.id !== id));
+    if (!nama || !username) {
+      alert('Nama dan username wajib diisi');
+      return;
     }
-  };
 
-  const handleToggleRole = (id: number) => {
-    setUsers(
-      users.map((u) =>
-        u.id === id ? { ...u, role: u.role === 'Admin' ? 'User' : 'Admin' } : u
-      )
-    );
+    const newUser: User = {
+      id: `USR-${Date.now()}`,
+      nama,
+      username,
+      role,
+      strNip: strNip || '-',
+      status: 'Aktif',
+    };
+
+    setLocalUsers([...localUsers, newUser]);
+    setNama('');
+    setUsername('');
+    setStrNip('');
+    setShowAddForm(false);
   };
 
   return (
-    <main className="main-content">
-      {/* Headerbar */}
-      <header className="header" style={{ background: 'transparent', border: 'none' }}>
-        <div className="header-title">
-          <h1 style={{ color: '#1e293b', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>
-            Kelola Pengguna
+    <div className="p-8 space-y-8 max-w-6xl mx-auto">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Manajemen Tenaga Medis & Hak Akses
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '14px' }}>
-            Menu khusus admin untuk manajemen akun pengguna
+          <p className="text-xs text-slate-500 mt-1">
+            Pengaturan kredensial perawat spesialis luka CWCCA, dokter bedah, dan administrator klinik.
           </p>
         </div>
 
-        <div className="header-actions">
-          <div className="user-avatar">A</div>
-        </div>
-      </header>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
-        {/* Tambah Pengguna Baru */}
-        <div
-          style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '32px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.02)',
-            height: 'fit-content',
-          }}
+        <button
+          type="button"
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="px-4 py-2 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 self-start sm:self-auto"
         >
-          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b', marginBottom: '24px' }}>
-            Tambah Pengguna Baru
-          </h2>
+          <UserPlus className="w-4 h-4" />
+          <span>+ Tambah Tenaga Medis</span>
+        </button>
+      </div>
 
-          <form onSubmit={handleAdd}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
-                Username
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="admin / username..."
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  backgroundColor: '#f1f5f9',
-                  fontFamily: 'inherit',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                  outline: 'none',
-                }}
-              />
+      {/* Form Tambah Petugas */}
+      {showAddForm && (
+        <div className="bg-white rounded-xl border border-blue-200 p-6 shadow-sm space-y-4">
+          <div className="border-b border-slate-100 pb-3">
+            <h2 className="text-sm font-bold text-slate-900">Registrasi Tenaga Medis / Staf Baru</h2>
+            <p className="text-xs text-slate-500">Kredensial login dan nomor STR/NIP resmi</p>
+          </div>
+
+          <form onSubmit={handleAddUser} className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Nama Lengkap & Gelar *</label>
+                <input
+                  type="text"
+                  required
+                  value={nama}
+                  onChange={(e) => setNama(e.target.value)}
+                  placeholder="Contoh: Ns. Ahmad Ridwan, S.Kep., CWCCA"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Username Login *</label>
+                <input
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Contoh: ahmad_nurse"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Peran / Profesi Medis</label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as Role)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800"
+                >
+                  <option value="Perawat">Perawat (Wound Care Specialist / Nurse)</option>
+                  <option value="Dokter">Dokter (Dokter Umum / Spesialis Bedah)</option>
+                  <option value="Admin">Administrator Rekam Medis</option>
+                  <option value="Petugas Administrasi">Petugas Administrasi</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Nomor STR / NIP</label>
+                <input
+                  type="text"
+                  value={strNip}
+                  onChange={(e) => setStrNip(e.target.value)}
+                  placeholder="Nomor Surat Tanda Registrasi"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 font-mono"
+                />
+              </div>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                placeholder="•••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  backgroundColor: '#f1f5f9',
-                  fontFamily: 'inherit',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                  outline: 'none',
-                }}
-              />
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAddForm(false)}
+                className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-950 shadow-xs"
+              >
+                Simpan Tenaga Medis
+              </button>
             </div>
-
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                marginBottom: '24px',
-                fontSize: '14px',
-                color: '#334155',
-                fontWeight: 500,
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={isAdmin}
-                onChange={(e) => setIsAdmin(e.target.checked)}
-                style={{ width: '18px', height: '18px', borderRadius: '4px', border: '1px solid #cbd5e1', accentColor: '#1e1b4b' }}
-              />
-              Beri Akses Admin
-            </label>
-
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: '14px',
-                backgroundColor: '#23223b',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontFamily: 'inherit',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Tambah Pengguna
-            </button>
           </form>
         </div>
+      )}
 
-        {/* Daftar Pengguna */}
-        <div
-          style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '32px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.02)',
-          }}
-        >
-          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b', marginBottom: '24px' }}>
-            Daftar Pengguna
-          </h2>
+      {/* Staff Table */}
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-900">Daftar Akun Tenaga Medis Terdaftar</h2>
+          <span className="text-xs font-mono font-bold text-slate-500">{localUsers.length} Pengguna</span>
+        </div>
 
-          <div style={{ border: '1px solid #f1f5f9', borderRadius: '12px', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
-                  <th style={{ padding: '16px 24px', color: '#94a3b8', fontWeight: 600, fontSize: '12px' }}>ID</th>
-                  <th style={{ padding: '16px 24px', color: '#94a3b8', fontWeight: 600, fontSize: '12px' }}>USERNAME</th>
-                  <th style={{ padding: '16px 24px', color: '#94a3b8', fontWeight: 600, fontSize: '12px' }}>ROLE</th>
-                  <th style={{ padding: '16px 24px', color: '#94a3b8', fontWeight: 600, fontSize: '12px', textAlign: 'right' }}>AKSI</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '20px 24px', color: '#334155' }}>{u.id}</td>
-                    <td style={{ padding: '20px 24px', fontWeight: 600, color: '#1e293b' }}>{u.username}</td>
-                    <td style={{ padding: '20px 24px' }}>
-                      <span
-                        style={{
-                          backgroundColor: u.role === 'Admin' ? '#e0e7ff' : '#f1f5f9',
-                          color: u.role === 'Admin' ? '#3730a3' : '#64748b',
-                          padding: '6px 16px',
-                          borderRadius: '20px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                        }}
-                      >
+        <div className="divide-y divide-slate-100 overflow-x-auto">
+          <table className="w-full text-left text-xs text-slate-700">
+            <thead className="bg-slate-50/80 text-slate-600 font-semibold border-b border-slate-200">
+              <tr>
+                <th className="px-5 py-3">Nama Tenaga Medis</th>
+                <th className="px-4 py-3">Username</th>
+                <th className="px-4 py-3">Profesi / Hak Akses</th>
+                <th className="px-5 py-3">Nomor STR / NIP</th>
+                <th className="px-4 py-3">Status Akun</th>
+                <th className="px-5 py-3 text-right">Simulasi Sesi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {localUsers.map((u) => {
+                const isCurrent = currentUser.id === u.id || currentUser.username === u.username;
+
+                return (
+                  <tr key={u.id} className="hover:bg-slate-50/80 transition">
+                    <td className="px-5 py-4">
+                      <div className="font-bold text-slate-900 text-xs">{u.nama}</div>
+                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">{u.id}</div>
+                    </td>
+                    <td className="px-4 py-4 font-mono text-slate-600">{u.username}</td>
+                    <td className="px-4 py-4">
+                      <span className={`px-2.5 py-1 text-[11px] font-semibold rounded-md border ${
+                        u.role === 'Dokter'
+                          ? 'bg-purple-50 text-purple-900 border-purple-200'
+                          : u.role === 'Perawat'
+                          ? 'bg-blue-50 text-blue-900 border-blue-200'
+                          : 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                      }`}>
                         {u.role}
                       </span>
                     </td>
-                    <td style={{ padding: '20px 24px', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <td className="px-5 py-4 font-mono text-[11px] text-slate-600">
+                      {u.strNip || '-'}
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {u.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right whitespace-nowrap">
+                      {isCurrent ? (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-900 rounded-md text-[11px] font-bold border border-emerald-300">
+                          <BadgeCheck className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>Sesi Aktif</span>
+                        </span>
+                      ) : (
                         <button
                           type="button"
-                          onClick={() => handleDelete(u.id)}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#fee2e2',
-                            color: '#ef4444',
-                            border: 'none',
-                            borderRadius: '6px',
-                            fontWeight: 600,
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                          }}
+                          onClick={() => setCurrentUser(u)}
+                          className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-md text-[11px] font-semibold border border-slate-300 transition"
                         >
-                          Hapus
+                          Ganti ke Akun Ini
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleRole(u.id)}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#d1fae5',
-                            color: '#059669',
-                            border: 'none',
-                            borderRadius: '6px',
-                            fontWeight: 600,
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Ubah Role
-                        </button>
-                      </div>
+                      )}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

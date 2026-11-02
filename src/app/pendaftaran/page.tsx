@@ -2,703 +2,496 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { 
+  UserPlus, 
+  Users, 
+  Search, 
+  Check, 
+  AlertCircle, 
+  HeartPulse, 
+  ShieldAlert, 
+  ArrowRight,
+  Trash2,
+  Calendar,
+  Phone,
+  MapPin,
+  Bandage,
+  FileText
+} from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
+import { Pasien } from '@/types';
 
 export default function PendaftaranPage() {
   const { patients, addPatient, deletePatient } = useClinic();
+  const [activeView, setActiveView] = useState<'form' | 'direktori'>('form');
 
-  const [nama, setNama] = useState('');
-  const [noRm, setNoRm] = useState('');
+  // Form State
   const [nik, setNik] = useState('');
+  const [nama, setNama] = useState('');
   const [tanggalLahir, setTanggalLahir] = useState('');
   const [jenisKelamin, setJenisKelamin] = useState<'Laki-laki' | 'Perempuan'>('Laki-laki');
-  const [agama, setAgama] = useState('Islam');
-  const [noHp, setNoHp] = useState('');
-  const [statusNikah, setStatusNikah] = useState('Menikah');
-  const [pendidikan, setPendidikan] = useState('SMA');
-  const [pekerjaan, setPekerjaan] = useState('');
-  const [suku, setSuku] = useState('');
+  const [golonganDarah, setGolonganDarah] = useState<Pasien['golonganDarah']>('O');
   const [alamat, setAlamat] = useState('');
-  const [kontakDarurat, setKontakDarurat] = useState('');
-  const [hubungan, setHubungan] = useState('');
+  const [noHp, setNoHp] = useState('');
+  const [pekerjaan, setPekerjaan] = useState('');
+  const [riwayatAlergi, setRiwayatAlergi] = useState('');
+  const [diagnosisMedisUtama, setDiagnosisMedisUtama] = useState('');
+  const [selectedPenyakit, setSelectedPenyakit] = useState<string[]>(['Diabetes Melitus']);
+  const [jenisLayanan, setJenisLayanan] = useState<'Wound Care' | 'Home Care' | 'Khitan' | 'Rawat Jalan'>('Wound Care');
 
-  // Service selection
-  const [selectedService, setSelectedService] = useState<'rawat-jalan' | 'wound-care' | 'home-care' | 'khitan'>('wound-care');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [registeredPatient, setRegisteredPatient] = useState<Pasien | null>(null);
 
-  // General Wound Assessment
-  const [keluhan, setKeluhan] = useState('');
-  const [riwayatPenyakitDahulu, setRiwayatPenyakitDahulu] = useState('');
-  const [lamanyaMenderita, setLamanyaMenderita] = useState('');
-  const [alasanTerdiagnosa, setAlasanTerdiagnosa] = useState('');
-  const [terapiDidapat, setTerapiDidapat] = useState('');
-  const [statusGlycemic, setStatusGlycemic] = useState('Terkontrol');
-  const [riwayatKeluarga, setRiwayatKeluarga] = useState('');
-  const [riwayatLuka, setRiwayatLuka] = useState('');
+  const komorbidList = [
+    'Diabetes Melitus Tipe 1/2',
+    'Hipertensi',
+    'Insufisiensi Vena Kronik',
+    'Penyakit Arteri Perifer (PAD)',
+    'Gagal Ginjal Kronik (CKD)',
+    'Stroke / Imobilisasi Tirah Baring',
+    'Neuropati Perifer',
+    'Penyakit Jantung Koroner',
+  ];
 
-  // Body map markers
-  const [markers, setMarkers] = useState<{ id: number; x: number; y: number }[]>([
-    { id: 1, x: 55, y: 88 },
-  ]);
-
-  // Inhibiting factors (Faktor Penghambat)
-  const [inhibitors, setInhibitors] = useState<string[]>(['Diabetes']);
-
-  const [saveSuccess, setSaveSuccess] = useState(false);
-
-  const toggleInhibitor = (item: string) => {
-    if (inhibitors.includes(item)) {
-      setInhibitors(inhibitors.filter((i) => i !== item));
+  const handleToggleKomorbid = (k: string) => {
+    if (selectedPenyakit.includes(k)) {
+      setSelectedPenyakit(selectedPenyakit.filter((item) => item !== k));
     } else {
-      setInhibitors([...inhibitors, item]);
+      setSelectedPenyakit([...selectedPenyakit, k]);
     }
-  };
-
-  const handleBodyMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
-    const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
-    setMarkers([...markers, { id: Date.now(), x, y }]);
-  };
-
-  const removeMarker = (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMarkers(markers.filter((m) => m.id !== id));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nama || !nik) {
-      alert('Nama dan NIK wajib diisi.');
+    if (!nama || !nik || !tanggalLahir) {
+      alert('Mohon lengkapi NIK, Nama Lengkap, dan Tanggal Lahir.');
       return;
     }
 
     const created = addPatient({
       nik,
       nama,
-      tanggalLahir: tanggalLahir || '1980-01-01',
+      tanggalLahir,
       jenisKelamin,
-      alamat: alamat || 'Kota Bontang',
+      alamat: alamat || 'Kota Bontang, Kalimantan Timur',
       noHp: noHp || '-',
-      pekerjaan: pekerjaan || '-',
-      golonganDarah: 'O',
-      riwayatAlergi: 'Tidak Ada',
-      riwayatPenyakit: inhibitors,
+      pekerjaan: pekerjaan || 'Karyawan / Pensiunan',
+      golonganDarah,
+      riwayatAlergi: riwayatAlergi || 'Tidak Ada',
+      riwayatPenyakit: selectedPenyakit,
       statusKunjungan: 'Antrean',
-      diagnosisMedisUtama: keluhan || `${selectedService === 'wound-care' ? 'Wound Care Pasien Baru' : 'Pemeriksaan Klinis'}`,
+      diagnosisMedisUtama: diagnosisMedisUtama || `Pelayanan ${jenisLayanan}`,
     });
 
-    setSaveSuccess(true);
-    setNama('');
+    setRegisteredPatient(created);
     setNik('');
+    setNama('');
+    setTanggalLahir('');
     setAlamat('');
     setNoHp('');
-    setKeluhan('');
-
-    setTimeout(() => setSaveSuccess(false), 5000);
+    setRiwayatAlergi('');
+    setDiagnosisMedisUtama('');
   };
 
-  return (
-    <main className="main-content">
-      {/* Headerbar */}
-      <header className="header" style={{ justifyContent: 'space-between', alignItems: 'center', display: 'flex' }}>
-        <div className="header-title">
-          <h1 style={{ color: 'var(--text-main)', fontSize: '24px', fontWeight: 700 }}>Pendaftaran Pasien</h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Registrasi pasien baru & asesmen klinis awal</p>
-        </div>
-        <div className="header-actions">
-          <div
-            className="draft-badge"
-            style={{
-              backgroundColor: 'var(--white)',
-              border: '1px solid #e2e8f0',
-              padding: '10px 16px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: 600,
-              color: 'var(--text-muted)',
-              boxShadow: 'var(--shadow-sm)',
-            }}
-          >
-            {saveSuccess ? 'Data Pasien Berhasil Disimpan!' : 'Draft • Formulir Aktif'}
-          </div>
-        </div>
-      </header>
+  const filteredPatients = patients.filter((p) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return p.nama.toLowerCase().includes(q) || p.noRm.toLowerCase().includes(q) || p.nik.includes(q);
+  });
 
-      {saveSuccess && (
-        <div
-          style={{
-            backgroundColor: '#d1fae5',
-            border: '1px solid #10b981',
-            color: '#065f46',
-            padding: '14px 20px',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <span>Pasien baru berhasil didaftarkan ke sistem rekam medis Rumah Luka Borneo!</span>
-          <Link
-            href="/asesmen"
-            style={{
-              backgroundColor: '#059669',
-              color: 'white',
-              padding: '6px 14px',
-              borderRadius: '6px',
-              textDecoration: 'none',
-              fontSize: '12px',
+  return (
+    <div className="p-8 space-y-8 max-w-6xl mx-auto">
+      {/* Top Header & View Toggle */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Pendaftaran & Registrasi Pasien (e-RM)
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Penerbitan No. Rekam Medis otomatis, pencatatan identitas demografi, dan riwayat klinis awal.
+          </p>
+        </div>
+
+        {/* View Switcher Tabs */}
+        <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-lg text-xs font-semibold self-start md:self-auto">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveView('form');
+              setRegisteredPatient(null);
             }}
+            className={`px-4 py-1.5 rounded-md transition flex items-center gap-2 ${
+              activeView === 'form'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
-            Buka Asesmen Luka &rarr;
-          </Link>
+            <UserPlus className="w-4 h-4" />
+            <span>Formulir Pasien Baru</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveView('direktori')}
+            className={`px-4 py-1.5 rounded-md transition flex items-center gap-2 ${
+              activeView === 'direktori'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Direktori Pasien ({patients.length})</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Success Notification Bar */}
+      {registeredPatient && (
+        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 p-5 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              <Check className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
+                Registrasi Berhasil
+              </p>
+              <h3 className="text-sm font-bold text-slate-900 mt-0.5">
+                {registeredPatient.nama} • <span className="font-mono text-emerald-800">{registeredPatient.noRm}</span>
+              </h3>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Pasien telah masuk ke antrean klinis hari ini dan siap dilakukan asesmen luka.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/asesmen?pasienId=${registeredPatient.id}`}
+              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition shadow-xs flex items-center gap-1.5"
+            >
+              <span>Mulai Asesmen Luka</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {/* Registration Form Card 1 */}
-        <section className="registration-form-card">
-          <div className="form-header">
-            <h2>1. Data Identitas Pasien</h2>
-            <p>Lengkapi identitas utama sebelum memilih jenis layanan.</p>
-          </div>
-
-          <div className="form-body">
-            {/* Row 1 */}
-            <div className="form-row">
-              <div className="form-group-reg form-col">
-                <label>Nama Lengkap *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Masukkan nama lengkap"
-                  value={nama}
-                  onChange={(e) => setNama(e.target.value)}
-                />
-              </div>
-              <div className="form-group-reg form-col">
-                <label>Nomor Rekam Medis (No. RM)</label>
-                <input
-                  type="text"
-                  placeholder="Otomatis diterbitkan sistem"
-                  value={noRm}
-                  onChange={(e) => setNoRm(e.target.value)}
-                />
-              </div>
+      {/* View 1: Formulir Pasien Baru */}
+      {activeView === 'form' && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Card 1: Data Identitas Demografi */}
+          <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs space-y-5">
+            <div className="border-b border-slate-100 pb-3">
+              <h2 className="text-sm font-bold text-slate-900">1. Data Identitas Demografi Pasien</h2>
+              <p className="text-xs text-slate-500">Informasi identitas kependudukan sesuai kartu identitas (KTP/KK)</p>
             </div>
 
-            {/* Row 2 */}
-            <div className="form-row">
-              <div className="form-group-reg form-col">
-                <label>NIK *</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">
+                  Nomor Induk Kependudukan (NIK) *
+                </label>
                 <input
                   type="text"
                   required
                   maxLength={16}
-                  placeholder="16 digit NIK KTP"
                   value={nik}
                   onChange={(e) => setNik(e.target.value)}
+                  placeholder="16 digit NIK..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800 font-mono"
                 />
               </div>
-              <div className="form-group-reg form-col">
-                <label>Tanggal Lahir</label>
+
+              <div className="md:col-span-2">
+                <label className="block font-semibold text-slate-700 mb-1.5">
+                  Nama Lengkap Pasien *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={nama}
+                  onChange={(e) => setNama(e.target.value)}
+                  placeholder="Contoh: Bpk. Sugeng Wibowo"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">Tanggal Lahir *</label>
                 <input
                   type="date"
+                  required
                   value={tanggalLahir}
                   onChange={(e) => setTanggalLahir(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800"
                 />
               </div>
-            </div>
 
-            {/* Row 3 */}
-            <div className="form-row">
-              <div className="form-group-reg form-col">
-                <label>Jenis Kelamin</label>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">Jenis Kelamin *</label>
                 <select
                   value={jenisKelamin}
                   onChange={(e) => setJenisKelamin(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800"
                 >
                   <option value="Laki-laki">Laki-laki</option>
                   <option value="Perempuan">Perempuan</option>
                 </select>
               </div>
-              <div className="form-group-reg form-col">
-                <label>Agama</label>
-                <select value={agama} onChange={(e) => setAgama(e.target.value)}>
-                  <option value="Islam">Islam</option>
-                  <option value="Kristen">Kristen</option>
-                  <option value="Katolik">Katolik</option>
-                  <option value="Hindu">Hindu</option>
-                  <option value="Buddha">Buddha</option>
-                  <option value="Konghucu">Konghucu</option>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">Golongan Darah</label>
+                <select
+                  value={golonganDarah}
+                  onChange={(e) => setGolonganDarah(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800"
+                >
+                  <option value="O">O</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="AB">AB</option>
+                  <option value="-">- (Belum Diketahui)</option>
                 </select>
               </div>
-              <div className="form-group-reg form-col">
-                <label>Nomor Telepon / WhatsApp</label>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">No. Telepon / WhatsApp</label>
                 <input
                   type="text"
-                  placeholder="08xxxxxxxxxxx"
                   value={noHp}
                   onChange={(e) => setNoHp(e.target.value)}
+                  placeholder="08xxxxxxxxxx"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800 font-mono"
                 />
               </div>
-              <div className="form-group-reg form-col">
-                <label>Status Pernikahan</label>
-                <select value={statusNikah} onChange={(e) => setStatusNikah(e.target.value)}>
-                  <option value="Lajang">Lajang</option>
-                  <option value="Menikah">Menikah</option>
-                  <option value="Cerai">Cerai</option>
-                </select>
-              </div>
-            </div>
 
-            {/* Row 4 */}
-            <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr 1fr', display: 'grid', gap: '20px' }}>
-              <div className="form-group-reg form-col">
-                <label>Pendidikan Terakhir</label>
-                <select value={pendidikan} onChange={(e) => setPendidikan(e.target.value)}>
-                  <option value="SD">SD</option>
-                  <option value="SMP">SMP</option>
-                  <option value="SMA">SMA</option>
-                  <option value="D3/S1">D3/S1</option>
-                </select>
-              </div>
-              <div className="form-group-reg form-col">
-                <label>Pekerjaan</label>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">Pekerjaan</label>
                 <input
                   type="text"
-                  placeholder="Masukkan pekerjaan"
                   value={pekerjaan}
                   onChange={(e) => setPekerjaan(e.target.value)}
+                  placeholder="Pensiunan / Swasta / ASN..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800"
                 />
               </div>
-              <div className="form-group-reg form-col">
-                <label>Suku</label>
-                <input
-                  type="text"
-                  placeholder="Masukkan suku bangsa"
-                  value={suku}
-                  onChange={(e) => setSuku(e.target.value)}
-                />
-              </div>
-            </div>
 
-            {/* Row 5 */}
-            <div className="form-row">
-              <div className="form-group-reg form-col">
-                <label>Alamat Lengkap</label>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">Alamat Tempat Tinggal</label>
                 <input
                   type="text"
-                  placeholder="Alamat lengkap tempat tinggal pasien"
                   value={alamat}
                   onChange={(e) => setAlamat(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Row 6 */}
-            <div className="form-row">
-              <div className="form-group-reg form-col">
-                <label>Kontak Darurat</label>
-                <input
-                  type="text"
-                  placeholder="Nama dan nomor kontak darurat"
-                  value={kontakDarurat}
-                  onChange={(e) => setKontakDarurat(e.target.value)}
-                />
-              </div>
-              <div className="form-group-reg form-col">
-                <label>Hubungan</label>
-                <input
-                  type="text"
-                  placeholder="Hubungan dengan pasien (Keluarga/Kerabat)"
-                  value={hubungan}
-                  onChange={(e) => setHubungan(e.target.value)}
+                  placeholder="Jl. / RT / Kelurahan, Kota Bontang..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800"
                 />
               </div>
             </div>
           </div>
-        </section>
 
-        {/* Service Category Card 2 */}
-        <section className="registration-form-card">
-          <div className="form-header">
-            <h2>2. Kategori Pelayanan</h2>
-            <p>Pilih satu layanan sesuai kebutuhan pasien.</p>
-          </div>
+          {/* Card 2: Kategori Layanan & Riwayat Medis / Alergi */}
+          <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs space-y-5">
+            <div className="border-b border-slate-100 pb-3">
+              <h2 className="text-sm font-bold text-slate-900">2. Kategori Layanan & Profil Medis Awal</h2>
+              <p className="text-xs text-slate-500">Tentukan jenis kunjungan dan skrining faktor resiko penyembuhan</p>
+            </div>
 
-          <div className="service-cards-container">
-            {[
-              { id: 'rawat-jalan', title: 'Rawat Jalan', desc: 'Kunjungan klinik umum' },
-              { id: 'wound-care', title: 'Wound Care', desc: 'Perawatan dan monitoring luka' },
-              { id: 'home-care', title: 'Home Care', desc: 'Perawatan di rumah pasien' },
-              { id: 'khitan', title: 'Khitan', desc: 'Layanan khitan' },
-            ].map((srv) => {
-              const isSelected = selectedService === srv.id;
-              return (
-                <div
-                  key={srv.id}
-                  className={`service-card ${isSelected ? 'selected' : ''}`}
-                  onClick={() => setSelectedService(srv.id as any)}
-                  style={{
-                    border: isSelected ? '2px solid var(--primary-blue)' : '1px solid #e2e8f0',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div className="service-card-header">
-                    <div
-                      className="checkbox-square"
-                      style={{
-                        backgroundColor: isSelected ? 'var(--primary-blue)' : 'transparent',
-                        borderColor: isSelected ? 'var(--primary-blue)' : '#cbd5e1',
-                        color: 'white',
-                      }}
-                    >
-                      {isSelected && <i className="ph ph-check"></i>}
-                    </div>
-                    <h4>{srv.title}</h4>
-                  </div>
-                  <p>{srv.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* General Wound Assessment (Shown for Wound Care / Home Care) */}
-        {(selectedService === 'wound-care' || selectedService === 'home-care') && (
-          <>
-            <section className="registration-form-card" style={{ border: '2px solid #3b82f6' }}>
-              <div className="form-header">
-                <h2>3. General Wound Assessment</h2>
-                <p>Pengkajian riwayat keluhan luka pasien.</p>
+            {/* Service Type Selection */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-2">Pilih Jenis Layanan:</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                {[
+                  { id: 'Wound Care', desc: 'Perawatan modern luka kronik / ulkus' },
+                  { id: 'Home Care', desc: 'Kunjungan ganti balutan di rumah' },
+                  { id: 'Khitan', desc: 'Layanan sirkumsisi modern' },
+                  { id: 'Rawat Jalan', desc: 'Konsultasi dan ganti verban ringan' },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setJenisLayanan(s.id as any)}
+                    className={`p-3 rounded-lg border text-left transition ${
+                      jenisLayanan === s.id
+                        ? 'border-blue-800 bg-blue-50/60 ring-2 ring-blue-800/20'
+                        : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="font-bold text-slate-900">{s.id}</div>
+                    <div className="text-[11px] text-slate-500 mt-1">{s.desc}</div>
+                  </button>
+                ))}
               </div>
+            </div>
 
-              <div className="form-body">
-                <div className="form-row">
-                  <div className="form-group-reg form-col">
-                    <label>Keluhan Utama Terkait Luka</label>
-                    <textarea
-                      placeholder="Keluhan utama terkait luka..."
-                      rows={3}
-                      value={keluhan}
-                      onChange={(e) => setKeluhan(e.target.value)}
-                    ></textarea>
-                  </div>
-                  <div className="form-group-reg form-col">
-                    <label>Riwayat Penyakit Dahulu & Alergi</label>
-                    <textarea
-                      placeholder="DM, hipertensi, penyakit lain, alergi plester..."
-                      rows={3}
-                      value={riwayatPenyakitDahulu}
-                      onChange={(e) => setRiwayatPenyakitDahulu(e.target.value)}
-                    ></textarea>
-                  </div>
-                </div>
+            {/* Riwayat Alergi (CRITICAL WARNING FIELD) */}
+            <div className="bg-rose-50/50 border border-rose-200 p-4 rounded-xl text-xs space-y-1.5">
+              <label className="block font-bold text-rose-800 flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-rose-600" />
+                <span>Riwayat Alergi Pasien (Plester, Kasa, Lateks, Antiseptik, Obat)</span>
+              </label>
+              <input
+                type="text"
+                value={riwayatAlergi}
+                onChange={(e) => setRiwayatAlergi(e.target.value)}
+                placeholder="Contoh: Alergi plester karet / penisilin / Tidak ada"
+                className="w-full px-3 py-2 bg-white border border-rose-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-800"
+              />
+            </div>
 
-                <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr 1.5fr', display: 'grid', gap: '20px' }}>
-                  <div className="form-group-reg form-col">
-                    <label>Lamanya Menderita</label>
-                    <input
-                      type="text"
-                      placeholder="Contoh: 3 bulan"
-                      value={lamanyaMenderita}
-                      onChange={(e) => setLamanyaMenderita(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group-reg form-col">
-                    <label>Alasan Terdiagnosa</label>
-                    <input
-                      type="text"
-                      placeholder="Masukkan keterangan"
-                      value={alasanTerdiagnosa}
-                      onChange={(e) => setAlasanTerdiagnosa(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group-reg form-col">
-                    <label>Terapi yang Didapat</label>
-                    <input
-                      type="text"
-                      placeholder="Obat/perawatan sebelumnya..."
-                      value={terapiDidapat}
-                      onChange={(e) => setTerapiDidapat(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr 1.5fr', display: 'grid', gap: '20px' }}>
-                  <div className="form-group-reg form-col">
-                    <label>Status Glycemic</label>
-                    <input
-                      type="text"
-                      placeholder="Terkontrol / tidak"
-                      value={statusGlycemic}
-                      onChange={(e) => setStatusGlycemic(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group-reg form-col">
-                    <label>Riwayat Penyakit Keluarga</label>
-                    <input
-                      type="text"
-                      placeholder="Ada / tidak"
-                      value={riwayatKeluarga}
-                      onChange={(e) => setRiwayatKeluarga(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group-reg form-col">
-                    <label>Riwayat Luka</label>
-                    <input
-                      type="text"
-                      placeholder="Luka sebelumnya / berulang..."
-                      value={riwayatLuka}
-                      onChange={(e) => setRiwayatLuka(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Lokasi Luka Card (Peta Tubuh Interaktif) */}
-            <section className="registration-form-card">
-              <div className="form-header">
-                <h2>4. Lokasi Luka – Peta Tubuh Interaktif</h2>
-                <p>Sentuh titik pada gambar tubuh di bawah ini untuk menandai lokasi luka. Titik terpilih akan ditandai dengan bulatan biru.</p>
-              </div>
-
-              <div className="form-body">
-                <div
-                  className="body-map-container"
-                  id="bodyMapContainer"
-                  onClick={handleBodyMapClick}
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    cursor: 'crosshair',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    minHeight: '360px',
-                  }}
-                >
-                  <img
-                    src="/body-map.png"
-                    alt="Peta Tubuh"
-                    className="body-map-image"
-                    style={{ maxHeight: '340px', width: 'auto', objectFit: 'contain' }}
-                  />
-
-                  {markers.map((m) => (
-                    <div
-                      key={m.id}
-                      onClick={(e) => removeMarker(m.id, e)}
-                      title="Klik untuk menghapus tanda luka"
-                      style={{
-                        position: 'absolute',
-                        left: `${m.x}%`,
-                        top: `${m.y}%`,
-                        width: '18px',
-                        height: '18px',
-                        backgroundColor: '#2563eb',
-                        border: '2px solid white',
-                        borderRadius: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                        cursor: 'pointer',
-                      }}
-                    />
-                  ))}
-                </div>
-
-                <div
-                  style={{
-                    marginTop: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    fontSize: '13px',
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#2563eb', borderRadius: '50%' }}></div>
-                  <span>Sentuh gambar untuk menandai / sentuh bulatan untuk menghapus tanda luka</span>
-                </div>
-              </div>
-            </section>
-
-            {/* Faktor Penghambat Card */}
-            <section className="registration-form-card">
-              <div className="form-header">
-                <h2>5. Faktor Penghambat Penyembuhan Luka</h2>
-                <p>Pilih faktor yang dapat menghambat proses penyembuhan luka.</p>
-              </div>
-
-              <div className="form-body">
-                <div className="checkbox-grid-3">
-                  {[
-                    'Diabetes',
-                    'Hipertensi',
-                    'Gagal Ginjal',
-                    'Edema',
-                    'Sirkulasi',
-                    'Imobilisasi',
-                    'Luka Berulang',
-                    'Kemoterapi',
-                    'Luka Terinfeksi',
-                    'Inkontinensia',
-                    'Gaya Hidup',
-                  ].map((item) => (
-                    <label
-                      key={item}
-                      className="custom-checkbox-wrapper"
-                      style={{ cursor: 'pointer', userSelect: 'none' }}
-                    >
+            {/* Komorbiditas */}
+            <div className="text-xs space-y-2">
+              <label className="block font-semibold text-slate-700 flex items-center gap-1.5">
+                <HeartPulse className="w-4 h-4 text-blue-700" />
+                <span>Penyakit Komorbiditas (Faktor Penghambat Penyembuhan Luka)</span>
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                {komorbidList.map((k) => {
+                  const isChecked = selectedPenyakit.includes(k);
+                  return (
+                    <label key={k} className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700 select-none">
                       <input
                         type="checkbox"
-                        checked={inhibitors.includes(item)}
-                        onChange={() => toggleInhibitor(item)}
+                        checked={isChecked}
+                        onChange={() => handleToggleKomorbid(k)}
+                        className="rounded border-slate-300 text-blue-800 focus:ring-blue-800"
                       />
-                      <span>{item}</span>
+                      <span className={isChecked ? 'font-semibold text-slate-900' : ''}>{k}</span>
                     </label>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            </section>
-          </>
-        )}
+            </div>
 
-        {/* Action Buttons */}
-        <div
-          className="action-buttons"
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '16px',
-            marginTop: '8px',
-          }}
-        >
-          <Link
-            href="/"
-            className="btn-secondary"
-            style={{
-              padding: '12px 24px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: 'white',
-              color: 'var(--text-main)',
-              textDecoration: 'none',
-              fontWeight: 600,
-              fontSize: '14px',
-            }}
-          >
-            Batal
-          </Link>
-          <button
-            type="submit"
-            className="btn-primary"
-            style={{
-              padding: '12px 28px',
-              borderRadius: '8px',
-              border: 'none',
-              backgroundColor: 'var(--primary-blue)',
-              color: 'white',
-              fontWeight: 600,
-              fontSize: '14px',
-              cursor: 'pointer',
-              boxShadow: 'var(--shadow-sm)',
-            }}
-          >
-            Simpan Data Pasien
-          </button>
-        </div>
-      </form>
-
-      {/* Tabel Pasien Terdaftar yang Sudah Ada di Sistem */}
-      <section className="registration-form-card" style={{ marginTop: '32px' }}>
-        <div className="form-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2>Daftar Pasien Terdaftar ({patients.length})</h2>
-            <p>Data pasien yang sudah tersimpan di sistem rekam medis</p>
+            {/* Keluhan / Diagnosa Awal */}
+            <div className="text-xs">
+              <label className="block font-semibold text-slate-700 mb-1.5">
+                Diagnosa Awal / Keluhan Utama Terkait Luka
+              </label>
+              <input
+                type="text"
+                value={diagnosisMedisUtama}
+                onChange={(e) => setDiagnosisMedisUtama(e.target.value)}
+                placeholder="Contoh: Ulkus Kaki Diabetikum Dextra Wagner Grade 2"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800"
+              />
+            </div>
           </div>
-        </div>
 
-        <div style={{ overflowX: 'auto', marginTop: '16px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #e2e8f0', color: 'var(--text-muted)' }}>
-                <th style={{ padding: '12px 16px' }}>No. RM</th>
-                <th style={{ padding: '12px 16px' }}>Nama Pasien</th>
-                <th style={{ padding: '12px 16px' }}>NIK</th>
-                <th style={{ padding: '12px 16px' }}>Diagnosis Utama</th>
-                <th style={{ padding: '12px 16px' }}>Status</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right' }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {patients.map((p) => (
-                <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--primary-blue)' }}>
-                    {p.noRm}
-                  </td>
-                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>{p.nama}</td>
-                  <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{p.nik}</td>
-                  <td style={{ padding: '12px 16px' }}>{p.diagnosisMedisUtama}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        backgroundColor: '#d1fae5',
-                        color: '#065f46',
-                      }}
-                    >
-                      {p.statusKunjungan}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+          {/* Form Actions */}
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setNik('');
+                setNama('');
+                setAlamat('');
+              }}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition"
+            >
+              Kosongkan Formulir
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold rounded-lg transition shadow-xs flex items-center gap-2"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Daftarkan Pasien & Terbitkan No. RM</span>
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* View 2: Direktori Pasien Terdaftar */}
+      {activeView === 'direktori' && (
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden space-y-4 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Direktori Rekam Medis Pasien</h2>
+              <p className="text-xs text-slate-500">Total {patients.length} rekam medis terdaftar dalam pangkalan data</p>
+            </div>
+
+            <div className="relative w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari pasien (Nama, RM, NIK)..."
+                className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 text-slate-800"
+              />
+            </div>
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {filteredPatients.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 text-xs">
+                Tidak ditemukan pasien yang sesuai dengan kata kunci pencarian.
+              </div>
+            ) : (
+              filteredPatients.map((p) => (
+                <div key={p.id} className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/60 p-2 rounded-lg transition">
+                  <div>
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-bold text-sm text-slate-900">{p.nama}</span>
+                      <span className="text-[11px] font-mono font-bold bg-blue-100 text-blue-900 px-2 py-0.5 rounded">
+                        {p.noRm}
+                      </span>
+                      <span className="text-xs text-slate-400">•</span>
+                      <span className="text-xs text-slate-600">{p.jenisKelamin}, Lahir {p.tanggalLahir}</span>
+                    </div>
+
+                    <div className="text-xs text-slate-600 mt-1 flex items-center gap-4 flex-wrap">
+                      <span>NIK: <strong className="font-mono text-slate-800">{p.nik}</strong></span>
+                      <span>Diagnosa: <strong className="text-slate-800">{p.diagnosisMedisUtama}</strong></span>
+                      <span className="flex items-center gap-1 text-slate-500">
+                        <Phone className="w-3 h-3" />
+                        <span>{p.noHp}</span>
+                      </span>
+                    </div>
+
+                    {p.riwayatPenyakit.length > 0 && (
+                      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                        {p.riwayatPenyakit.map((rk) => (
+                          <span key={rk} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                            {rk}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
                     <Link
                       href={`/asesmen?pasienId=${p.id}`}
-                      style={{
-                        padding: '6px 12px',
-                        backgroundColor: 'var(--primary-light)',
-                        color: 'white',
-                        borderRadius: '6px',
-                        textDecoration: 'none',
-                        fontSize: '12px',
-                        fontWeight: 500,
-                        marginRight: '8px',
-                      }}
+                      className="px-3 py-1.5 bg-blue-900 text-white text-xs font-semibold rounded-lg hover:bg-blue-950 transition flex items-center gap-1.5 shadow-xs"
                     >
-                      Asesmen
+                      <Bandage className="w-3.5 h-3.5" />
+                      <span>Asesmen Luka</span>
+                    </Link>
+                    <Link
+                      href={`/rekam-medis?pasienId=${p.id}`}
+                      className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-100 transition flex items-center gap-1.5"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Lembar CPPT</span>
                     </Link>
                     <button
                       type="button"
                       onClick={() => {
-                        if (confirm(`Hapus data pasien ${p.nama}?`)) deletePatient(p.id);
+                        if (confirm(`Hapus rekam medis pasien ${p.nama}?`)) deletePatient(p.id);
                       }}
-                      style={{
-                        border: 'none',
-                        background: 'transparent',
-                        color: '#ef4444',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                      }}
-                      title="Hapus"
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      title="Hapus Pasien"
                     >
-                      <i className="ph ph-trash"></i>
+                      <Trash2 className="w-4 h-4" />
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
-      </section>
-    </main>
+      )}
+    </div>
   );
 }
