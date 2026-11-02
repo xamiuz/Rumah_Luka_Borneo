@@ -1,18 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import { ClinicProvider } from '@/context/ClinicContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
-
 export const metadata: Metadata = {
-  title: 'Rumah Luka Borneo - Rekam Medis Elektronik (ERM)',
-  description: 'Sistem Informasi Rekam Medis dan Asesmen Wound Care Klinis Rumah Luka Borneo',
+  title: 'Rumah Luka Borneo - ERM',
+  description: 'Sistem Informasi Rekam Medis Rumah Luka Borneo',
 };
 
 export default function RootLayout({
@@ -21,14 +15,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className={`${inter.variable} h-full antialiased`}>
-      <body className="font-sans min-h-screen bg-[#f4f7fb] text-slate-800 flex">
+    <html lang="id">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <script src="https://unpkg.com/@phosphor-icons/web" async></script>
+      </head>
+      <body>
         <ClinicProvider>
-          <div className="flex w-full min-h-screen">
+          <div className="app-container">
             <Sidebar />
-            <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-              {children}
-            </div>
+            {children}
           </div>
         </ClinicProvider>
       </body>

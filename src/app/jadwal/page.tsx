@@ -1,313 +1,297 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  CalendarDays, 
-  Clock, 
-  User, 
-  PlusCircle, 
-  CheckCircle2, 
-  Home, 
-  Bandage, 
-  Scissors, 
-  Check, 
-  Search 
-} from 'lucide-react';
-import { Header } from '@/components/layout/Header';
 import { useClinic } from '@/context/ClinicContext';
-import { JadwalPerawatan } from '@/types';
 
 export default function JadwalPage() {
-  const { schedules, addSchedule, updateScheduleStatus, patients, users } = useClinic();
-
-  const [activeFilter, setActiveFilter] = useState<string>('Semua');
-  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const { schedules, addSchedule, patients } = useClinic();
+  const [currentMonth, setCurrentMonth] = useState('September 2026');
+  const [showAddModal, setShowAddModal] = useState(false);
 
   // Form State
-  const [pasienId, setPasienId] = useState<string>(patients.length > 0 ? patients[0].id : '');
-  const [tanggalJadwal, setTanggalJadwal] = useState<string>('');
-  const [jam, setJam] = useState<string>('09:00');
+  const [pasienNama, setPasienNama] = useState('');
+  const [noRm, setNoRm] = useState('');
+  const [tglPerawatan, setTglPerawatan] = useState('17 September 2026');
+  const [tindakan, setTindakan] = useState('Wound Care');
+  const [catatan, setCatatan] = useState('Perawatan wound care sesuai jadwal.');
 
-  React.useEffect(() => {
-    setTanggalJadwal(new Date().toISOString().split('T')[0]);
-  }, []);
-  const [jenisLayanan, setJenisLayanan] = useState<JadwalPerawatan['jenisLayanan']>('Wound Care Klinik');
-  const [namaPerawat, setNamaPerawat] = useState<string>(
-    users.find((u) => u.role === 'Perawat')?.nama || 'Ns. Hendra Wijaya, S.Kep., CWCCA'
-  );
-  const [catatan, setCatatan] = useState<string>('');
-
-  const filteredSchedules = schedules.filter((s) => {
-    if (activeFilter === 'Semua') return true;
-    return s.jenisLayanan === activeFilter;
-  });
+  const handlePatientSelect = (pId: string) => {
+    const p = patients.find((item) => item.id === pId);
+    if (p) {
+      setPasienNama(p.nama);
+      setNoRm(p.noRm);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const patientObj = patients.find((p) => p.id === pasienId);
-    if (!patientObj) {
-      alert('Pilih pasien terlebih dahulu.');
+    if (!pasienNama) {
+      alert('Nama pasien wajib diisi');
       return;
     }
 
     addSchedule({
-      pasienId: patientObj.id,
-      namaPasien: patientObj.nama,
-      noRm: patientObj.noRm,
-      tanggalJadwal,
-      jam,
-      jenisLayanan,
-      namaPerawat,
+      pasienId: `PAS-${Date.now()}`,
+      namaPasien: pasienNama,
+      noRm: noRm || 'RM-2026-AUTO',
+      tanggalJadwal: '2026-09-17',
+      jam: '09:00',
+      jenisLayanan: tindakan as any || 'Wound Care Klinik',
+      namaPerawat: 'Ns. Hendra Wijaya, S.Kep., CWCCA',
       status: 'Menunggu',
-      catatan: catatan || 'Penggantian balutan steril & pemantauan luka.',
+      catatan,
     });
 
-    setCatatan('');
     setShowAddModal(false);
+    setPasienNama('');
+    setNoRm('');
   };
 
+  // Calendar days grid sample (30 days for September)
+  const calendarDays = Array.from({ length: 30 }, (_, i) => i + 1);
+
   return (
-    <div className="flex-1 flex flex-col min-w-0">
-      <Header
-        title="Jadwal Perawatan & Kunjungan Home Care"
-        subtitle="Manajemen antrean janji temu klinik, penggantian balutan wound care, dan kunjungan home care"
-      />
-
-      <main className="p-6 space-y-6 max-w-7xl w-full mx-auto">
-        {/* Top Controls Bar */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {['Semua', 'Wound Care Klinik', 'Home Care', 'Khitan'].map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveFilter(tab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  activeFilter === tab
-                    ? 'bg-[#224b9b] text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+    <main className="main-content">
+      {/* Headerbar */}
+      <header className="header">
+        <div className="header-title">
+          <h1 style={{ color: 'var(--primary-blue)', fontSize: '22px', fontWeight: 700 }}>
+            Kalender Perawatan
+          </h1>
+        </div>
+        <div className="header-actions">
+          <div className="search-bar">
+            <input type="text" placeholder="Cari pasien atau No. RM..." />
+            <i className="ph ph-magnifying-glass"></i>
           </div>
+        </div>
+      </header>
 
-          <button
-            type="button"
-            onClick={() => setShowAddModal(!showAddModal)}
-            className="px-4 py-2 bg-[#224b9b] text-white font-bold text-xs rounded-lg hover:bg-[#1b3d7e] transition shadow-xs flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Tambah Jadwal Perawatan</span>
+      {/* Calendar Controls Banner */}
+      <section className="calendar-controls">
+        <div className="month-title">
+          <h2 id="currentMonthLabel">{currentMonth}</h2>
+        </div>
+        <div className="nav-buttons">
+          <button className="nav-btn" id="prevMonth" title="Bulan Sebelumnya">
+            <i className="ph ph-caret-left"></i>
+          </button>
+          <button className="nav-btn" id="nextMonth" title="Bulan Berikutnya">
+            <i className="ph ph-caret-right"></i>
+          </button>
+          <button className="btn-today" id="btnToday">
+            Hari Ini
           </button>
         </div>
+      </section>
 
-        {/* Modal / Form Tambah Jadwal */}
-        {showAddModal && (
-          <div className="bg-white p-6 rounded-xl border border-blue-200 shadow-md space-y-4">
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-200">
-              <CalendarDays className="w-4 h-4 text-[#224b9b]" />
-              <h3 className="text-sm font-bold text-slate-800">Form Tambah Jadwal Kunjungan Baru</h3>
+      {/* Summary Cards for Calendar */}
+      <section className="summary-cards calendar-summary">
+        <div className="card cal-stat">
+          <h4>Jadwal Hari Ini</h4>
+          <div className="stat-value">
+            <h2>{schedules.length || 1}</h2>
+            <span>pasien</span>
+          </div>
+        </div>
+        <div className="card cal-stat">
+          <h4>Pasien Woundcare</h4>
+          <div className="stat-value">
+            <h2>3</h2>
+            <span>terjadwal</span>
+          </div>
+        </div>
+        <div className="card cal-stat">
+          <h4>Menunggu Konfirmasi</h4>
+          <div className="stat-value">
+            <h2>2</h2>
+            <span>pasien</span>
+          </div>
+        </div>
+        <div className="card cal-stat action-card">
+          <h4>Aksi Cepat</h4>
+          <button
+            className="btn-add-schedule"
+            onClick={() => setShowAddModal(true)}
+          >
+            + Tambah Jadwal Baru
+          </button>
+        </div>
+      </section>
+
+      {/* Calendar Grid */}
+      <section className="calendar-container">
+        <div className="calendar-header-days">
+          <div>Sen</div>
+          <div>Sel</div>
+          <div>Rab</div>
+          <div>Kam</div>
+          <div>Jum</div>
+          <div>Sab</div>
+          <div>Min</div>
+        </div>
+        <div className="calendar-grid" id="calendarGrid">
+          {calendarDays.map((day) => {
+            const isToday = day === 17;
+            const hasEvent = day === 17 || day === 18 || day === 21;
+            return (
+              <div
+                key={day}
+                className={`calendar-day ${isToday ? 'today' : ''}`}
+                onClick={() => setShowAddModal(true)}
+                style={{
+                  minHeight: '80px',
+                  padding: '8px',
+                  border: '1px solid #e2e8f0',
+                  backgroundColor: isToday ? '#f0f9ff' : 'white',
+                  cursor: 'pointer',
+                  position: 'relative',
+                }}
+              >
+                <div style={{ fontWeight: isToday ? 700 : 500, color: isToday ? 'var(--primary-blue)' : '#1e293b' }}>
+                  {day}
+                </div>
+                {hasEvent && (
+                  <div
+                    style={{
+                      marginTop: '6px',
+                      backgroundColor: isToday ? '#0ea5e9' : '#e0f2fe',
+                      color: isToday ? 'white' : '#0369a1',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {isToday ? '12 Pasien' : 'Wound Care'}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="calendar-footer">
+          <p>Klik tanggal untuk memasukkan pasien dan membuat jadwal.</p>
+        </div>
+      </section>
+
+      {/* Modal Add Schedule */}
+      {showAddModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              maxWidth: '480px',
+              width: '100%',
+              padding: '24px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b', margin: 0 }}>Tambah Jadwal Wound Care</h3>
+                <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>Kamis, 17 September 2026</p>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#94a3b8' }}
+              >
+                &times;
+              </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Pilih Pasien Terdaftar *</label>
-                  <select
-                    value={pasienId}
-                    onChange={(e) => setPasienId(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b] bg-white text-slate-800"
-                  >
-                    {patients.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nama} ({p.noRm}) - {p.diagnosisMedisUtama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Jenis Layanan Medis</label>
-                  <select
-                    value={jenisLayanan}
-                    onChange={(e) => setJenisLayanan(e.target.value as JadwalPerawatan['jenisLayanan'])}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b] bg-white text-slate-800"
-                  >
-                    <option value="Wound Care Klinik">Wound Care Klinik</option>
-                    <option value="Home Care">Home Care (Kunjungan Rumah)</option>
-                    <option value="Khitan">Khitan / Sirkumsisi</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Tanggal Janji Temu</label>
-                  <input
-                    type="date"
-                    required
-                    value={tanggalJadwal}
-                    onChange={(e) => setTanggalJadwal(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Jam Pelayanan (WITA)</label>
-                  <input
-                    type="time"
-                    required
-                    value={jam}
-                    onChange={(e) => setJam(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Perawat Penanggung Jawab (PIC)</label>
-                  <select
-                    value={namaPerawat}
-                    onChange={(e) => setNamaPerawat(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b] bg-white"
-                  >
-                    {users.map((u) => (
-                      <option key={u.id} value={u.nama}>
-                        {u.nama} ({u.role})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
+              <div>
+                <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>Pilih Pasien Terdaftar</label>
+                <select
+                  onChange={(e) => handlePatientSelect(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                >
+                  <option value="">-- Pasien Baru / Bebas --</option>
+                  {patients.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nama} ({p.noRm})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Catatan Tindakan / Deskripsi Rencana</label>
+                <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>Nama Pasien *</label>
                 <input
                   type="text"
-                  value={catatan}
-                  onChange={(e) => setCatatan(e.target.value)}
-                  placeholder="Contoh: Penggantian balutan hari ke-3, debridement kalus, edukasi kaki diabetik"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b]"
+                  required
+                  value={pasienNama}
+                  onChange={(e) => setPasienNama(e.target.value)}
+                  placeholder="Masukkan nama pasien"
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div>
+                <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>No. RM</label>
+                <input
+                  type="text"
+                  value={noRm}
+                  onChange={(e) => setNoRm(e.target.value)}
+                  placeholder="Nomor Rekam Medis"
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>Tindakan</label>
+                <input
+                  type="text"
+                  value={tindakan}
+                  onChange={(e) => setTindakan(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>Catatan</label>
+                <textarea
+                  rows={2}
+                  value={catatan}
+                  onChange={(e) => setCatatan(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                ></textarea>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200"
+                  style={{ padding: '10px 16px', background: '#e2e8f0', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#224b9b] text-white font-bold rounded-lg hover:bg-[#1b3d7e]"
+                  style={{ padding: '10px 20px', background: 'var(--primary-blue)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Simpan Jadwal
                 </button>
               </div>
             </form>
           </div>
-        )}
-
-        {/* Tabel Jadwal */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">Daftar Jadwal Perawatan</h3>
-              <p className="text-xs text-slate-500">Kategori: <strong>{activeFilter}</strong> ({filteredSchedules.length} Jadwal)</p>
-            </div>
-          </div>
-
-          <div className="divide-y divide-slate-100 overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                <tr>
-                  <th className="px-5 py-3">Waktu & Tanggal</th>
-                  <th className="px-5 py-3">Nama Pasien & No. RM</th>
-                  <th className="px-4 py-3">Jenis Layanan</th>
-                  <th className="px-4 py-3">PIC Perawat</th>
-                  <th className="px-5 py-3">Rencana Tindakan</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-5 py-3 text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredSchedules.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-5 py-8 text-center text-slate-400">
-                      Tidak ada jadwal perawatan pada kategori ini.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredSchedules.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="font-bold text-slate-900 font-mono text-xs">{item.jam} WITA</div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          <span>{item.tanggalJadwal}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="font-semibold text-slate-900">{item.namaPasien}</div>
-                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">{item.noRm}</div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold border ${
-                          item.jenisLayanan === 'Home Care'
-                            ? 'bg-amber-50 text-amber-800 border-amber-200'
-                            : item.jenisLayanan === 'Khitan'
-                            ? 'bg-purple-50 text-purple-800 border-purple-200'
-                            : 'bg-blue-50 text-blue-800 border-blue-200'
-                        }`}>
-                          {item.jenisLayanan === 'Home Care' && <Home className="w-3 h-3" />}
-                          {item.jenisLayanan === 'Wound Care Klinik' && <Bandage className="w-3 h-3" />}
-                          {item.jenisLayanan === 'Khitan' && <Scissors className="w-3 h-3" />}
-                          <span>{item.jenisLayanan}</span>
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-slate-700 font-medium">
-                        {item.namaPerawat}
-                      </td>
-                      <td className="px-5 py-3.5 text-slate-600 max-w-xs truncate" title={item.catatan}>
-                        {item.catatan || 'Perawatan berkala'}
-                      </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded border ${
-                          item.status === 'Selesai'
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                            : item.status === 'Dikonfirmasi'
-                            ? 'bg-blue-50 text-blue-800 border-blue-200'
-                            : 'bg-amber-50 text-amber-800 border-amber-200'
-                        }`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-right whitespace-nowrap space-x-1.5">
-                        {item.status !== 'Selesai' ? (
-                          <button
-                            type="button"
-                            onClick={() => updateScheduleStatus(item.id, 'Selesai')}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-700 text-white rounded text-[11px] font-semibold hover:bg-emerald-800 transition"
-                          >
-                            <CheckCircle2 className="w-3 h-3" />
-                            <span>Selesai</span>
-                          </button>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 italic">Selesai dirawat</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
         </div>
-      </main>
-    </div>
+      )}
+    </main>
   );
 }

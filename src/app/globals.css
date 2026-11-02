@@ -1,28 +1,31 @@
-@import "tailwindcss";
+@import "./erm.css";
 
-:root {
-  --background: #f4f7fb;
-  --foreground: #1e293b;
-  --primary-blue: #224b9b;
-  --primary-light: #3765c6;
-  --primary-hover: #1e3b7b;
+html, body {
+  background-color: #f4f7fb !important;
+  color: #1e293b !important;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+* {
+  box-sizing: border-box;
+}
+
+/* Ensure next.js root container fills screen */
+#__next, body > div:first-child {
+  min-height: 100vh;
+  background-color: #f4f7fb;
 }
 
 @media print {
-  aside, header, nav, button, .print\:hidden {
+  .sidebar, .header-actions, button, .no-print {
     display: none !important;
   }
-  
-  body, main {
-    background: #ffffff !important;
-    color: #000000 !important;
+  .main-content {
+    margin-left: 0 !important;
     padding: 0 !important;
-    margin: 0 !important;
+    max-width: 100% !important;
   }
 }

@@ -114,3 +114,4 @@ export interface JadwalPerawatan {
   status: 'Menunggu' | 'Dikonfirmasi' | 'Selesai' | 'Batal';
   catatan?: string;
 }
+

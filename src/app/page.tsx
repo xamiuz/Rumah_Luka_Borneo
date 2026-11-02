@@ -1,284 +1,372 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { 
-  Users, 
-  Bandage, 
-  CalendarCheck, 
-  Clock, 
-  Activity, 
-  ArrowRight, 
-  CheckCircle2, 
-  AlertTriangle,
-  Home,
-  UserPlus
-} from 'lucide-react';
-import { Header } from '@/components/layout/Header';
 import { useClinic } from '@/context/ClinicContext';
 
 export default function DashboardPage() {
-  const { patients, schedules, searchTerm, updatePatient, updateScheduleStatus } = useClinic();
+  const { patients, schedules, searchTerm, setSearchTerm, resetAllData, currentUser } = useClinic();
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  // Filtered patients based on search
-  const filteredPatients = patients.filter((p) => {
-    if (!searchTerm) return true;
-    const q = searchTerm.toLowerCase();
-    return (
-      p.nama.toLowerCase().includes(q) ||
-      p.noRm.toLowerCase().includes(q) ||
-      p.nik.includes(q)
-    );
-  });
+  const handleReset = () => {
+    if (window.confirm('Hapus/Reset semua data pasien ke data awal?')) {
+      resetAllData();
+    }
+  };
 
-  const antreanHariIni = patients.filter((p) => p.statusKunjungan === 'Antrean' || p.statusKunjungan === 'Sedang Diperiksa');
-  const homecareCount = schedules.filter((s) => s.jenisLayanan === 'Home Care').length;
-  const perluAsesmenCount = patients.filter((p) => !p.asesmenTerakhir).length;
+  const todayStr = 'Kamis, 17 September 2026';
+
+  // Counts
+  const pasienDirawatHariIni = patients.length;
+  const homecareCount = schedules.filter((s) => s.jenisLayanan === 'Home Care').length || 5;
+  const khitanCount = schedules.filter((s) => s.jenisLayanan === 'Khitan').length || 6;
+  const perluAsesmenCount = patients.filter((p) => !p.asesmenTerakhir).length || 5;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0">
-      <Header 
-        title="Dashboard Pelayanan & Antrean" 
-        subtitle="Sistem Rekam Medis Elektronik Terintegrasi Rumah Luka Borneo"
-      />
-
-      <main className="p-6 space-y-6 max-w-7xl w-full mx-auto">
-        {/* Banner Agenda Klinik */}
-        <div className="bg-[#224b9b] text-white rounded-xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 border border-[#1b3d7e]">
-          <div>
-            <span className="text-xs font-semibold bg-white/20 px-2.5 py-1 rounded text-white tracking-wide uppercase">
-              Operasional Klinik Hari Ini
-            </span>
-            <h2 className="text-xl font-bold mt-2">Pelayanan Wound Care, Home Care & Khitan</h2>
-            <p className="text-xs text-blue-100/90 mt-1 max-w-xl">
-              Pantau antrean pasien rekam medis, kelola tindakan dressing modern, dan sinkronisasi catatan CPPT dokter & perawat.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/pendaftaran"
-              className="px-4 py-2.5 bg-white text-[#224b9b] font-semibold text-xs rounded-lg hover:bg-blue-50 transition shadow-xs flex items-center gap-2"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Daftar Pasien Baru</span>
-            </Link>
-            <Link
-              href="/asesmen"
-              className="px-4 py-2.5 bg-blue-600 text-white font-semibold text-xs rounded-lg hover:bg-blue-700 transition shadow-xs flex items-center gap-2 border border-blue-400/40"
-            >
-              <Bandage className="w-4 h-4" />
-              <span>Asesmen Luka</span>
-            </Link>
-          </div>
+    <main className="main-content">
+      {/* Headerbar */}
+      <header className="header">
+        <div className="header-title">
+          <h1>Dashboard</h1>
+          <p>Selamat datang kembali di Rumah Luka Borneo</p>
         </div>
 
-        {/* 4 Statistik Utama */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Antrean Aktif Hari Ini</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">{antreanHariIni.length}</h3>
-              <p className="text-[11px] text-blue-700 font-medium mt-1">Pasien menunggu & diperiksa</p>
-            </div>
-            <div className="w-11 h-11 rounded-lg bg-blue-50 text-[#224b9b] flex items-center justify-center">
-              <Clock className="w-6 h-6" />
-            </div>
+        <div className="header-actions">
+          <button
+            id="btnHapusSemuaData"
+            type="button"
+            onClick={handleReset}
+            style={{
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '8px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '13px',
+            }}
+          >
+            <i className="ph ph-trash"></i> Hapus Semua Data Pasien
+          </button>
+
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Cari pasien, No. RM, atau NIK..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <i className="ph ph-magnifying-glass"></i>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Total Pasien Terdaftar</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">{patients.length}</h3>
-              <p className="text-[11px] text-emerald-700 font-medium mt-1">Rekam medis tersimpan</p>
+          <div style={{ position: 'relative' }}>
+            <div
+              className="user-avatar"
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+            >
+              {currentUser.nama.charAt(0)}
             </div>
-            <div className="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <Users className="w-6 h-6" />
-            </div>
-          </div>
 
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Jadwal Home Care</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">{homecareCount}</h3>
-              <p className="text-[11px] text-slate-600 font-medium mt-1">Kunjungan luar klinik</p>
-            </div>
-            <div className="w-11 h-11 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-              <Home className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Belum Asesmen</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">{perluAsesmenCount}</h3>
-              <p className="text-[11px] text-rose-700 font-medium mt-1">Perlu pemeriksaan awal</p>
-            </div>
-            <div className="w-11 h-11 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-          </div>
-        </div>
-
-        {/* 2 Kolom Konten: Daftar Pasien Aktif & Jadwal Hari Ini */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Kolom Kiri: Tabel Antrean & Pasien */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-800">Daftar Pasien & Rekam Medis Terkini</h3>
-                <p className="text-xs text-slate-500">Klik baris untuk melihat riwayat atau mulai tindakan luka</p>
-              </div>
-              <Link 
-                href="/pendaftaran" 
-                className="text-xs text-[#224b9b] font-semibold hover:underline flex items-center gap-1"
+            {profileDropdownOpen && (
+              <div
+                className="profile-dropdown"
+                style={{
+                  display: 'block',
+                  position: 'absolute',
+                  top: '120%',
+                  right: 0,
+                  background: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                  width: '180px',
+                  zIndex: 100,
+                  overflow: 'hidden',
+                }}
               >
-                <span>Kelola Pasien</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="divide-y divide-slate-100 overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700">
-                <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                  <tr>
-                    <th className="px-5 py-3">No. RM & Nama Pasien</th>
-                    <th className="px-4 py-3">Diagnosa / Karakteristik Luka</th>
-                    <th className="px-4 py-3">Status Kunjungan</th>
-                    <th className="px-5 py-3 text-right">Aksi Tindakan</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredPatients.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-5 py-8 text-center text-slate-400">
-                        Tidak ada pasien ditemukan.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredPatients.map((p) => {
-                      const statusStyles = {
-                        'Antrean': 'bg-amber-50 text-amber-800 border-amber-200',
-                        'Sedang Diperiksa': 'bg-blue-50 text-blue-800 border-blue-200',
-                        'Selesai': 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                        'Jadwal Kontrol': 'bg-slate-100 text-slate-700 border-slate-200',
-                      }[p.statusKunjungan];
-
-                      return (
-                        <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="px-5 py-3.5">
-                            <div className="font-semibold text-slate-900">{p.nama}</div>
-                            <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                              {p.noRm} | {p.jenisKelamin === 'Laki-laki' ? 'L' : 'P'}, {p.tanggalLahir}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <div className="font-medium text-slate-800 truncate max-w-[240px]" title={p.diagnosisMedisUtama}>
-                              {p.diagnosisMedisUtama}
-                            </div>
-                            {p.asesmenTerakhir ? (
-                              <div className="text-[11px] text-blue-700 font-medium mt-0.5">
-                                Granulasi: {p.asesmenTerakhir.dasarLuka.persenGranulasi}% | Nyeri: {p.asesmenTerakhir.skorNyeri}/10
-                              </div>
-                            ) : (
-                              <div className="text-[11px] text-slate-400 italic mt-0.5">
-                                Belum ada asesmen klinis
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <span className={`inline-block px-2.5 py-1 text-[11px] font-medium rounded border ${statusStyles}`}>
-                              {p.statusKunjungan}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3.5 text-right space-x-1.5 whitespace-nowrap">
-                            <Link
-                              href={`/asesmen?pasienId=${p.id}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#224b9b] text-white text-[11px] font-semibold rounded hover:bg-[#1a3875] transition shadow-xs"
-                            >
-                              <Bandage className="w-3 h-3" />
-                              <span>Asesmen</span>
-                            </Link>
-                            <Link
-                              href={`/rekam-medis?pasienId=${p.id}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-700 text-[11px] font-medium rounded border border-slate-200 hover:bg-slate-200 transition"
-                            >
-                              <span>CPPT</span>
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Kolom Kanan: Jadwal Kunjungan & Tindakan Hari Ini */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col">
-            <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-800">Jadwal Perawatan Hari Ini</h3>
-                <p className="text-xs text-slate-500">Kontrol dressing & homecare</p>
-              </div>
-              <Link 
-                href="/jadwal" 
-                className="text-xs text-[#224b9b] font-semibold hover:underline"
-              >
-                Lihat Semua
-              </Link>
-            </div>
-
-            <div className="p-4 space-y-3 flex-1 overflow-y-auto">
-              {schedules.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-2"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[11px] font-mono font-bold text-blue-700 bg-blue-100/60 px-1.5 py-0.5 rounded">
-                        {item.jam} WITA
-                      </span>
-                      <h4 className="text-xs font-bold text-slate-900 mt-1">{item.namaPasien}</h4>
-                      <p className="text-[11px] text-slate-500">{item.noRm}</p>
-                    </div>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                      item.status === 'Selesai'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : item.status === 'Dikonfirmasi'
-                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                    }`}>
-                      {item.status}
-                    </span>
-                  </div>
-
-                  <div className="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-200/80">
-                    <span className="font-semibold text-slate-700">{item.jenisLayanan}:</span> {item.catatan || 'Penggantian balutan steril'}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[10px] text-slate-500 truncate max-w-[140px]">
-                      PIC: {item.namaPerawat}
-                    </span>
-                    {item.status !== 'Selesai' && (
-                      <button
-                        type="button"
-                        onClick={() => updateScheduleStatus(item.id, 'Selesai')}
-                        className="text-[10px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 font-semibold px-2 py-0.5 rounded transition flex items-center gap-1"
-                      >
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>Tandai Selesai</span>
-                      </button>
-                    )}
-                  </div>
+                <div style={{ padding: '10px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
+                  <strong style={{ display: 'block', color: '#1e293b' }}>{currentUser.nama}</strong>
+                  <span style={{ color: '#64748b' }}>{currentUser.role}</span>
                 </div>
-              ))}
-            </div>
+                <Link
+                  href="/kelola-pengguna"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    color: '#1e293b',
+                    textDecoration: 'none',
+                    fontSize: '13px',
+                    borderBottom: '1px solid #e2e8f0',
+                  }}
+                  onClick={() => setProfileDropdownOpen(false)}
+                >
+                  <i className="ph ph-user"></i> Lihat Profil
+                </Link>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setProfileDropdownOpen(false);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 16px',
+                    color: '#ef4444',
+                    textDecoration: 'none',
+                    fontSize: '13px',
+                  }}
+                >
+                  <i className="ph ph-sign-out"></i> Log Out
+                </a>
+              </div>
+            )}
           </div>
         </div>
-      </main>
-    </div>
+      </header>
+
+      {/* Banner */}
+      <section className="banner">
+        <div className="banner-content">
+          <p className="banner-date">{todayStr}</p>
+          <h2>Agenda Pelayanan Hari Ini</h2>
+          <p className="banner-desc">Pantau perawatan wound care, kunjungan homecare, dan jadwal khitan.</p>
+        </div>
+        <div className="banner-stat">
+          <h3>{pasienDirawatHariIni || 12}</h3>
+          <p>Pasien dijadwalkan</p>
+        </div>
+      </section>
+
+      {/* Summary Cards */}
+      <section className="summary-cards">
+        <div className="card">
+          <h4>Pasien Dirawat Hari Ini</h4>
+          <h2>{pasienDirawatHariIni || 12}</h2>
+          <p className="text-blue">Pasien aktif hari ini</p>
+        </div>
+        <div className="card">
+          <h4>Jadwal Homecare</h4>
+          <h2>{homecareCount}</h2>
+          <p className="text-green">Kunjungan terjadwal</p>
+        </div>
+        <div className="card">
+          <h4>Khitan Mendatang</h4>
+          <h2>{khitanCount}</h2>
+          <p className="text-purple">Reservasi berikutnya</p>
+        </div>
+        <div className="card">
+          <h4>Perlu Asesmen</h4>
+          <h2>{perluAsesmenCount}</h2>
+          <p className="text-orange">Perlu diperbarui</p>
+        </div>
+      </section>
+
+      {/* Data Lists */}
+      <section className="data-lists">
+        {/* List 1 */}
+        <div className="list-card">
+          <div className="list-header">
+            <h3>Pasien yang Hari Ini Dirawat</h3>
+            <p>Daftar pasien aktif berdasarkan jadwal</p>
+          </div>
+          <div className="list-content">
+            <div className="list-item">
+              <div className="time">08.00</div>
+              <div className="details">
+                <strong>Siti Rahmawati</strong>
+                <i className="ph ph-bandaids" style={{ color: 'var(--primary-blue)', marginLeft: '4px', marginRight: '4px' }}></i>
+                <span>Wound Care</span>
+              </div>
+              <div className="status status-aktif">Aktif</div>
+            </div>
+            <div className="list-item">
+              <div className="time">09.30</div>
+              <div className="details">
+                <strong>Budi Santoso</strong>
+                <span>Rawat Inap</span>
+              </div>
+              <div className="status status-aktif">Aktif</div>
+            </div>
+            <div className="list-item">
+              <div className="time">11.00</div>
+              <div className="details">
+                <strong>Nur Aisyah</strong>
+                <i className="ph ph-bandaids" style={{ color: 'var(--primary-blue)', marginLeft: '4px', marginRight: '4px' }}></i>
+                <span>Wound Care</span>
+              </div>
+              <div className="status status-menunggu">Menunggu</div>
+            </div>
+            <div className="list-item">
+              <div className="time">13.30</div>
+              <div className="details">
+                <strong>Dewi Lestari</strong>
+                <span>Rawat Inap</span>
+              </div>
+              <div className="status status-aktif">Aktif</div>
+            </div>
+            <div className="list-item">
+              <div className="time">15.00</div>
+              <div className="details">
+                <strong>Rizky Maulana</strong>
+                <i className="ph ph-bandaids" style={{ color: 'var(--primary-blue)', marginLeft: '4px', marginRight: '4px' }}></i>
+                <span>Wound Care</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+          </div>
+          <Link href="/pendaftaran" className="view-all">
+            Lihat semua pasien &rarr;
+          </Link>
+        </div>
+
+        {/* List 2 */}
+        <div className="list-card">
+          <div className="list-header">
+            <h3>Pasien Homecare Akan Dirawat</h3>
+            <p>Kunjungan rumah mendatang</p>
+          </div>
+          <div className="list-content">
+            <div className="list-item">
+              <div className="time">08.00</div>
+              <div className="details">
+                <strong>Ibu Sulastri</strong>
+                <span>Samarinda Ulu</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+            <div className="list-item">
+              <div className="time">10.00</div>
+              <div className="details">
+                <strong>Bapak Karno</strong>
+                <span>Sungai Kunjang</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+            <div className="list-item">
+              <div className="time">13.00</div>
+              <div className="details">
+                <strong>Ibu Ratna</strong>
+                <span>Loa Janan</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+            <div className="list-item">
+              <div className="time">15.00</div>
+              <div className="details">
+                <strong>Bapak Yusuf</strong>
+                <span>Samarinda Ilir</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+            <div className="list-item">
+              <div className="time">16.00</div>
+              <div className="details">
+                <strong>Ibu Nurhayati</strong>
+                <span>Samarinda Ulu</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+          </div>
+          <Link href="/jadwal" className="view-all">
+            Lihat jadwal homecare &rarr;
+          </Link>
+        </div>
+
+        {/* List 3 */}
+        <div className="list-card">
+          <div className="list-header">
+            <h3>Jadwal Khitan Mendatang</h3>
+            <p>Pasien sekali perawatan</p>
+          </div>
+          <div className="list-content">
+            <div className="list-item">
+              <div className="date-col">18 Sep</div>
+              <div className="details">
+                <strong>Raka Pratama</strong>
+                <span>Jam 09.00</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+            <div className="list-item">
+              <div className="date-col">19 Sep</div>
+              <div className="details">
+                <strong>Fajar Setiawan</strong>
+                <span>Jam 10.00</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+            <div className="list-item">
+              <div className="date-col">20 Sep</div>
+              <div className="details">
+                <strong>Muhammad Ali</strong>
+                <span>Jam 08.30</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+            <div className="list-item">
+              <div className="date-col">21 Sep</div>
+              <div className="details">
+                <strong>Rizky Maulana</strong>
+                <span>Jam 13.00</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+            <div className="list-item">
+              <div className="date-col">22 Sep</div>
+              <div className="details">
+                <strong>Ahmad Dani</strong>
+                <span>Jam 09.30</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+            <div className="list-item">
+              <div className="date-col">23 Sep</div>
+              <div className="details">
+                <strong>Aditia Putra</strong>
+                <span>Jam 11.00</span>
+              </div>
+              <div className="status status-terjadwal">Terjadwal</div>
+            </div>
+          </div>
+          <Link href="/jadwal" className="view-all">
+            Lihat seluruh jadwal &rarr;
+          </Link>
+        </div>
+      </section>
+
+      {/* Quick Actions */}
+      <section className="quick-actions-section">
+        <div className="quick-header">
+          <h3>Akses Cepat</h3>
+          <p>Mulai aktivitas baru</p>
+        </div>
+        <div className="quick-buttons">
+          <Link href="/pendaftaran" className="quick-btn" style={{ textDecoration: 'none' }}>
+            <i className="ph ph-plus"></i>
+            Pendaftaran Pasien
+          </Link>
+          <Link href="/asesmen" className="quick-btn" style={{ textDecoration: 'none' }}>
+            <i className="ph ph-file-text"></i>
+            Update Asesmen
+          </Link>
+          <Link href="/jadwal" className="quick-btn" style={{ textDecoration: 'none' }}>
+            <i className="ph ph-house-line"></i>
+            Pendaftaran Homecare
+          </Link>
+          <Link href="/jadwal" className="quick-btn" style={{ textDecoration: 'none' }}>
+            <i className="ph ph-scissors"></i>
+            Jadwal Khitan
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 }

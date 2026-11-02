@@ -1,143 +1,204 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  CalendarDays, 
-  UserPlus, 
-  Bandage, 
-  FileText, 
-  Users, 
-  ChevronRight,
-  ShieldAlert
-} from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { currentUser, switchRole } = useClinic();
-
-  const navItems = [
-    {
-      label: 'Dashboard',
-      href: '/',
-      icon: LayoutDashboard,
-    },
-    {
-      label: 'Pendaftaran Pasien',
-      href: '/pendaftaran',
-      icon: UserPlus,
-    },
-    {
-      label: 'Asesmen Wound Care',
-      href: '/asesmen',
-      icon: Bandage,
-    },
-    {
-      label: 'Rekam Medis (CPPT)',
-      href: '/rekam-medis',
-      icon: FileText,
-    },
-    {
-      label: 'Jadwal Perawatan',
-      href: '/jadwal',
-      icon: CalendarDays,
-    },
-    {
-      label: 'Kelola Pengguna',
-      href: '/kelola-pengguna',
-      icon: Users,
-    },
-  ];
+  const { currentUser } = useClinic();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(true);
+  const [woundCareOpen, setWoundCareOpen] = useState(true);
+  const [homeCareOpen, setHomeCareOpen] = useState(false);
+  const [khitanOpen, setKhitanOpen] = useState(false);
+  const [arsipOpen, setArsipOpen] = useState(false);
 
   return (
-    <aside className="w-64 bg-[#1e3b7b] text-white flex flex-col shrink-0 min-h-screen border-r border-[#162e60] select-none">
-      {/* Brand & Logo */}
-      <div className="p-5 border-b border-white/10 flex flex-col items-center gap-3">
-        <div className="bg-white p-2 rounded-lg shadow-sm w-full flex items-center justify-center">
-          <Image
-            src="/logo.png"
-            alt="Rumah Luka Borneo Logo"
-            width={180}
-            height={52}
-            className="h-10 w-auto object-contain"
-            priority
-          />
-        </div>
-        <div className="text-center w-full">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-blue-200">
-            Sistem Rekam Medis (ERM)
-          </h2>
-          <p className="text-[11px] text-blue-300/80 font-medium">Rumah Luka Borneo</p>
-        </div>
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      <div className="sidebar-header">
+        <img
+          src="/logo.png"
+          alt="Rumah Luka Borneo Logo"
+          className="sidebar-logo"
+        />
+        <button
+          className="sidebar-toggle"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          title="Toggle Sidebar"
+          type="button"
+        >
+          <i className="ph ph-list"></i>
+        </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto" aria-label="Menu Utama">
-        <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-blue-300/70">
-          Pelayanan Klinis
-        </div>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
+      <nav className="sidebar-nav">
+        <Link
+          href="/"
+          className={`nav-item ${pathname === '/' ? 'active' : ''}`}
+        >
+          <i className="ph ph-squares-four"></i>
+          <span>Dashboard</span>
+        </Link>
 
-          return (
+        <Link
+          href="/jadwal"
+          className={`nav-item ${pathname === '/jadwal' ? 'active' : ''}`}
+        >
+          <i className="ph ph-calendar-blank"></i>
+          <span>Jadwal Perawatan</span>
+        </Link>
+
+        {/* Dropdown Administrasi */}
+        <div className="nav-dropdown-container">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setAdminOpen(!adminOpen);
+            }}
+            className={`nav-item has-dropdown ${pathname === '/pendaftaran' ? 'active' : ''}`}
+          >
+            <i className="ph ph-folder"></i>
+            <span>Administrasi</span>
+            <i
+              className="ph ph-caret-down"
+              style={{
+                transition: 'transform 0.2s',
+                transform: adminOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+            ></i>
+          </a>
+          <div className={`nav-dropdown-menu ${adminOpen ? 'expanded' : ''}`} style={{ display: adminOpen ? 'flex' : 'none', flexDirection: 'column' }}>
             <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-white text-[#1e3b7b] shadow-sm font-semibold'
-                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
-              }`}
+              href="/pendaftaran"
+              className={`nav-dropdown-item ${pathname === '/pendaftaran' ? 'active' : ''}`}
+              style={{ color: pathname === '/pendaftaran' ? 'var(--white)' : 'inherit', fontWeight: pathname === '/pendaftaran' ? 600 : 400 }}
             >
-              <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#224b9b]' : 'text-blue-200'}`} />
-              <span className="flex-1">{item.label}</span>
-              {isActive && <ChevronRight className="w-4 h-4 text-[#224b9b]" />}
+              Pendaftaran
             </Link>
-          );
-        })}
+          </div>
+        </div>
+
+        {/* Dropdown Wound Care */}
+        <div className="nav-dropdown-container">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setWoundCareOpen(!woundCareOpen);
+            }}
+            className={`nav-item has-dropdown ${pathname === '/asesmen' || pathname === '/rekam-medis' ? 'active' : ''}`}
+          >
+            <i className="ph ph-bandaids"></i>
+            <span>Wound Care</span>
+            <i
+              className="ph ph-caret-down"
+              style={{
+                transition: 'transform 0.2s',
+                transform: woundCareOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+            ></i>
+          </a>
+          <div className={`nav-dropdown-menu ${woundCareOpen ? 'expanded' : ''}`} style={{ display: woundCareOpen ? 'flex' : 'none', flexDirection: 'column' }}>
+            <Link
+              href="/asesmen"
+              className={`nav-dropdown-item ${pathname === '/asesmen' ? 'active' : ''}`}
+            >
+              Asesmen Luka
+            </Link>
+            <Link
+              href="/rekam-medis"
+              className={`nav-dropdown-item ${pathname === '/rekam-medis' ? 'active' : ''}`}
+            >
+              Rekam Medis (CPPT)
+            </Link>
+          </div>
+        </div>
+
+        {/* Dropdown Home Care */}
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setHomeCareOpen(!homeCareOpen);
+          }}
+          className="nav-item has-dropdown"
+        >
+          <i className="ph ph-house"></i>
+          <span>Home Care</span>
+          <i
+            className="ph ph-caret-down"
+            style={{
+              transition: 'transform 0.2s',
+              transform: homeCareOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
+          ></i>
+        </a>
+
+        {/* Dropdown Khitan */}
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setKhitanOpen(!khitanOpen);
+          }}
+          className="nav-item has-dropdown"
+        >
+          <i className="ph ph-first-aid"></i>
+          <span>Khitan</span>
+          <i
+            className="ph ph-caret-down"
+            style={{
+              transition: 'transform 0.2s',
+              transform: khitanOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
+          ></i>
+        </a>
+
+        {/* Dropdown Arsip */}
+        <div className="nav-dropdown-container">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setArsipOpen(!arsipOpen);
+            }}
+            className="nav-item has-dropdown"
+          >
+            <i className="ph ph-archive"></i>
+            <span>Arsip</span>
+            <i
+              className="ph ph-caret-down"
+              style={{
+                transition: 'transform 0.2s',
+                transform: arsipOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+            ></i>
+          </a>
+          <div className={`nav-dropdown-menu ${arsipOpen ? 'expanded' : ''}`} style={{ display: arsipOpen ? 'flex' : 'none', flexDirection: 'column' }}>
+            <Link href="/rekam-medis" className="nav-dropdown-item">
+              Rekam Medis
+            </Link>
+          </div>
+        </div>
+
+        <Link
+          href="/kelola-pengguna"
+          className={`nav-item ${pathname === '/kelola-pengguna' ? 'active' : ''}`}
+        >
+          <i className="ph ph-users"></i>
+          <span>Kelola Pengguna</span>
+        </Link>
       </nav>
 
-      {/* Current User & Role Switcher */}
-      <div className="p-4 border-t border-white/10 bg-[#162e60]/80">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-200">
-            Akses Login Saat Ini
-          </span>
-          <span className="text-[10px] bg-blue-500/20 text-blue-200 px-2 py-0.5 rounded border border-blue-400/30">
-            {currentUser.role}
-          </span>
-        </div>
-
-        <p className="text-xs font-medium text-white truncate" title={currentUser.nama}>
-          {currentUser.nama}
-        </p>
-        {currentUser.strNip && (
-          <p className="text-[10px] text-blue-300/80 truncate">NIP/STR: {currentUser.strNip}</p>
-        )}
-
-        {/* Quick Role Switch for clinical demo */}
-        <div className="mt-3 pt-3 border-t border-white/10">
-          <label className="text-[10px] text-blue-300 block mb-1 font-medium">Ganti Peran (Simulasi):</label>
-          <div className="grid grid-cols-3 gap-1">
-            {(['Admin', 'Perawat', 'Dokter'] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => switchRole(r)}
-                className={`text-[11px] py-1 px-1.5 rounded text-center transition-colors font-medium ${
-                  currentUser.role === r
-                    ? 'bg-blue-500 text-white font-semibold'
-                    : 'bg-white/10 text-blue-200 hover:bg-white/20'
-                }`}
-              >
-                {r}
-              </button>
-            ))}
+      <div className="sidebar-footer">
+        <div className="user-status">
+          <p className="status-label">Pengguna Aktif</p>
+          <div className="status-indicator">
+            <span className="dot"></span>
+            <span className="role">{currentUser.role}</span>
           </div>
         </div>
       </div>

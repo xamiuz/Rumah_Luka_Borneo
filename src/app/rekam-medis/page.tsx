@@ -3,20 +3,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  FileText, 
-  Printer, 
-  PlusCircle, 
-  Clock, 
-  User, 
-  Bandage, 
-  AlertCircle, 
-  Check, 
-  Calendar,
-  Layers,
-  ChevronRight
-} from 'lucide-react';
-import { Header } from '@/components/layout/Header';
 import { useClinic } from '@/context/ClinicContext';
 
 function RekamMedisContent() {
@@ -27,6 +13,15 @@ function RekamMedisContent() {
   const [selectedPasienId, setSelectedPasienId] = useState<string>(
     queryPasienId || (patients.length > 0 ? patients[0].id : '')
   );
+  const [searchRM, setSearchRM] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // New SOAP
+  const [soapS, setSoapS] = useState('');
+  const [soapO, setSoapO] = useState('');
+  const [soapA, setSoapA] = useState('');
+  const [soapP, setSoapP] = useState('');
+  const [instruksi, setInstruksi] = useState('');
 
   useEffect(() => {
     if (queryPasienId) {
@@ -37,15 +32,13 @@ function RekamMedisContent() {
   const selectedPatient = patients.find((p) => p.id === selectedPasienId);
   const patientCPPT = cpptRecords.filter((c) => c.pasienId === selectedPasienId);
 
-  // New CPPT Form State
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [subjective, setSubjective] = useState('');
-  const [objective, setObjective] = useState('');
-  const [assessment, setAssessment] = useState('');
-  const [plan, setPlan] = useState('');
-  const [instruksiPPA, setInstruksiPPA] = useState('');
+  const filteredPatients = patients.filter((p) => {
+    if (!searchRM) return true;
+    const q = searchRM.toLowerCase();
+    return p.nama.toLowerCase().includes(q) || p.noRm.toLowerCase().includes(q);
+  });
 
-  const handleAddCPPT = (e: React.FormEvent) => {
+  const handleAddCatatan = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPatient) return;
 
@@ -54,355 +47,563 @@ function RekamMedisContent() {
       profesi: currentUser.role === 'Dokter' ? 'Dokter' : 'Perawat',
       namaTenagaMedis: currentUser.nama,
       soap: {
-        subjective,
-        objective,
-        assessment,
-        plan,
+        subjective: soapS,
+        objective: soapO,
+        assessment: soapA,
+        plan: soapP,
       },
-      instruksiPPA: instruksiPPA || 'Lanjutkan pemantauan klinis rutin.',
+      instruksiPPA: instruksi || 'Pertahankan balutan tetap bersih dan kering.',
     });
 
-    setSubjective('');
-    setObjective('');
-    setAssessment('');
-    setPlan('');
-    setInstruksiPPA('');
-    setShowAddForm(false);
-  };
-
-  const handlePrint = () => {
-    window.print();
+    setSoapS('');
+    setSoapO('');
+    setSoapA('');
+    setSoapP('');
+    setInstruksi('');
+    setShowAddModal(false);
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0">
-      <div className="print:hidden">
-        <Header
-          title="Rekam Medis & Catatan Perkembangan (CPPT)"
-          subtitle="Catatan Perkembangan Pasien Terintegrasi (SOAP) dan lembar riwayat klinis"
-        />
-      </div>
+    <main
+      className="main-content"
+      style={{
+        padding: 0,
+        backgroundColor: '#f8fafc',
+        height: '100vh',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Headerbar */}
+      <header
+        className="header"
+        style={{
+          background: '#fff',
+          borderBottom: '1px solid #e2e8f0',
+          padding: '20px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <div className="header-title">
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+            Rekam Medis Pasien
+          </h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+            Manajemen data dan riwayat medis pasien
+          </p>
+        </div>
 
-      <main className="p-6 space-y-6 max-w-7xl w-full mx-auto print:p-0 print:m-0">
-        {/* Pasien Selector & Print Button (Hidden in print) */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-slate-700 whitespace-nowrap">Pilih Pasien:</span>
-            <select
-              value={selectedPasienId}
-              onChange={(e) => setSelectedPasienId(e.target.value)}
-              className="text-xs font-semibold px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b] bg-slate-50 text-slate-800 min-w-[280px]"
-            >
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nama} ({p.noRm}) - {p.diagnosisMedisUtama}
-                </option>
-              ))}
-            </select>
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button
+            onClick={() => window.print()}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: 'white',
+              border: '1px solid #cbd5e1',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <i className="ph ph-printer"></i> Cetak CPPT
+          </button>
+          <div className="user-avatar">{currentUser.nama.charAt(0)}</div>
+        </div>
+      </header>
+
+      {/* RM Dual-Pane Container */}
+      <div
+        className="rm-container"
+        style={{
+          display: 'flex',
+          gap: '12px',
+          height: 'calc(100vh - 100px)',
+          padding: '16px',
+          boxSizing: 'border-box',
+        }}
+      >
+        {/* Left Sidebar: Patient List */}
+        <div
+          className="rm-sidebar"
+          style={{
+            width: '280px',
+            flexShrink: 0,
+            background: '#fff',
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            border: '1px solid #e2e8f0',
+          }}
+        >
+          <div
+            className="rm-header"
+            style={{
+              backgroundColor: '#0ea5e9',
+              color: 'white',
+              padding: '12px 16px',
+              fontWeight: 600,
+              fontSize: '14px',
+            }}
+          >
+            Daftar Pasien ({filteredPatients.length})
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="px-3 py-2 bg-blue-50 text-[#224b9b] font-semibold text-xs rounded-lg hover:bg-blue-100 transition border border-blue-200 flex items-center gap-1.5"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>{showAddForm ? 'Tutup Form SOAP' : 'Tambah Catatan SOAP'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="px-3.5 py-2 bg-[#224b9b] text-white font-semibold text-xs rounded-lg hover:bg-[#1b3d7e] transition shadow-xs flex items-center gap-1.5"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Cetak Lembar CPPT</span>
-            </button>
+          <div className="rm-search" style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>
+            <input
+              type="text"
+              placeholder="Cari berdasarkan RM atau nama"
+              value={searchRM}
+              onChange={(e) => setSearchRM(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                fontSize: '13px',
+                outline: 'none',
+              }}
+            />
+          </div>
+
+          <div
+            className="rm-patient-list"
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            {filteredPatients.map((p) => {
+              const isSelected = p.id === selectedPasienId;
+              return (
+                <div
+                  key={p.id}
+                  className="rm-patient-card"
+                  onClick={() => setSelectedPasienId(p.id)}
+                  style={{
+                    border: isSelected ? '2px solid #0ea5e9' : '1px solid #e2e8f0',
+                    backgroundColor: isSelected ? '#f0f9ff' : 'white',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    cursor: 'pointer',
+                    position: 'relative',
+                  }}
+                >
+                  <div className="rm-patient-name" style={{ fontWeight: 700, fontSize: '13px', color: '#1e293b', marginBottom: '6px' }}>
+                    {p.nama}
+                  </div>
+                  <div className="rm-patient-details" style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>
+                    {p.noRm} • {p.jenisKelamin}
+                  </div>
+                  <div className="rm-patient-date" style={{ fontSize: '11px', color: '#64748b' }}>
+                    {p.tanggalDaftar || 'Hari ini'}
+                  </div>
+                  <div
+                    className="rm-badge-bpjs"
+                    style={{
+                      position: 'absolute',
+                      bottom: '16px',
+                      right: '16px',
+                      backgroundColor: '#ecfdf5',
+                      color: '#10b981',
+                      border: '1px solid #10b981',
+                      padding: '4px 12px',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    UMUM / BPJS
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {selectedPatient ? (
-          <div className="space-y-6">
-            {/* Header Informasi Pasien (Printable) */}
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs print:border-none print:shadow-none print:p-0">
-              <div className="border-b border-slate-200 pb-4 mb-4 flex justify-between items-start">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-bold text-slate-900">{selectedPatient.nama}</h2>
-                    <span className="bg-[#224b9b] text-white text-xs font-mono font-bold px-2.5 py-0.5 rounded">
-                      {selectedPatient.noRm}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1 font-mono">
-                    NIK: {selectedPatient.nik} | {selectedPatient.jenisKelamin} | Lahir: {selectedPatient.tanggalLahir} | Gol. Darah: {selectedPatient.golonganDarah}
-                  </p>
-                </div>
-                <div className="text-right text-xs">
-                  <span className="text-slate-500 block">Status Pelayanan:</span>
-                  <span className="font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                    {selectedPatient.statusKunjungan}
-                  </span>
-                </div>
-              </div>
+        {/* Right Main Pane: Patient Details & CPPT */}
+        <div
+          className="rm-main"
+          style={{
+            flex: 1,
+            background: '#fff',
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            border: '1px solid #e2e8f0',
+          }}
+        >
+          <div
+            className="rm-header"
+            style={{
+              backgroundColor: '#0ea5e9',
+              color: 'white',
+              padding: '12px 16px',
+              fontWeight: 600,
+              fontSize: '14px',
+            }}
+          >
+            Data Diri Pasien
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                  <span className="text-[11px] font-semibold text-slate-500 block">Diagnosa Utama:</span>
-                  <strong className="text-slate-800 text-xs block mt-0.5">{selectedPatient.diagnosisMedisUtama}</strong>
-                </div>
-                <div className="bg-rose-50/60 p-3 rounded-lg border border-rose-200">
-                  <span className="text-[11px] font-semibold text-rose-700 block">Riwayat Alergi:</span>
-                  <strong className="text-rose-900 text-xs block mt-0.5">{selectedPatient.riwayatAlergi}</strong>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                  <span className="text-[11px] font-semibold text-slate-500 block">Penyakit Penyerta:</span>
-                  <div className="text-slate-800 text-xs mt-0.5">
-                    {selectedPatient.riwayatPenyakit.length > 0
-                      ? selectedPatient.riwayatPenyakit.join(', ')
-                      : 'Tidak ada komorbiditas tercatat'}
-                  </div>
-                </div>
-              </div>
+          {!selectedPatient ? (
+            <div
+              className="rm-placeholder"
+              style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#64748b',
+              }}
+            >
+              <i className="ph-fill ph-lock-key" style={{ fontSize: '80px', color: '#f87171', marginBottom: '20px' }}></i>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#475569' }}>
+                SILAHKAN PILIH PASIEN TERLEBIH DAHULU
+              </h3>
             </div>
-
-            {/* Asesmen Luka Aktif (Ringkasan) */}
-            {selectedPatient.asesmenTerakhir && (
-              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs print:border print:border-slate-300">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Bandage className="w-4 h-4 text-[#224b9b]" />
-                    <h3 className="text-sm font-bold text-slate-800">Ringkasan Asesmen Luka Terakhir</h3>
+          ) : (
+            <div
+              className="rm-detail"
+              style={{
+                padding: '24px',
+                overflowY: 'auto',
+                height: '100%',
+              }}
+            >
+              {/* Profile Card */}
+              <div
+                className="profile-card"
+                style={{
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '24px',
+                  display: 'flex',
+                  gap: '32px',
+                  marginBottom: '24px',
+                  background: '#fff',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', alignSelf: 'flex-start', alignItems: 'center', gap: '12px' }}>
+                  <div
+                    style={{
+                      width: '72px',
+                      height: '72px',
+                      backgroundColor: '#cbd5e1',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '28px',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                    }}
+                  >
+                    {selectedPatient.nama.charAt(0)}
                   </div>
-                  <span className="text-[11px] text-slate-500">
-                    Pemeriksa: <strong>{selectedPatient.asesmenTerakhir.perawatPemeriksa}</strong>
+                  <Link
+                    href={`/asesmen?pasienId=${selectedPatient.id}`}
+                    style={{
+                      border: '1px solid #0ea5e9',
+                      color: '#0ea5e9',
+                      background: 'transparent',
+                      padding: '6px 12px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Buka Asesmen
+                  </Link>
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: '15px',
+                      marginBottom: '16px',
+                      color: '#1e293b',
+                    }}
+                  >
+                    {selectedPatient.nama} / RM: {selectedPatient.noRm} / NIK: {selectedPatient.nik} / {selectedPatient.jenisKelamin.toUpperCase()}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '12px',
+                      fontSize: '12px',
+                      color: '#1e293b',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', marginBottom: '8px' }}>
+                        <span style={{ width: '110px', color: '#64748b' }}>Tgl Lahir</span>
+                        <span>: {selectedPatient.tanggalLahir}</span>
+                      </div>
+                      <div style={{ display: 'flex', marginBottom: '8px' }}>
+                        <span style={{ width: '110px', color: '#64748b' }}>No. Telepon</span>
+                        <span>: {selectedPatient.noHp}</span>
+                      </div>
+                      <div style={{ display: 'flex', marginBottom: '8px' }}>
+                        <span style={{ width: '110px', color: '#64748b' }}>Pekerjaan</span>
+                        <span>: {selectedPatient.pekerjaan}</span>
+                      </div>
+                      <div style={{ display: 'flex' }}>
+                        <span style={{ width: '110px', color: '#64748b' }}>Gol. Darah</span>
+                        <span>: {selectedPatient.golonganDarah}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', marginBottom: '8px' }}>
+                        <span style={{ width: '110px', color: '#64748b' }}>Alamat</span>
+                        <span>: {selectedPatient.alamat}</span>
+                      </div>
+                      <div style={{ display: 'flex', marginBottom: '8px' }}>
+                        <span style={{ width: '110px', color: '#64748b' }}>Diagnosa</span>
+                        <span>: <strong>{selectedPatient.diagnosisMedisUtama}</strong></span>
+                      </div>
+                      <div style={{ display: 'flex', marginBottom: '8px' }}>
+                        <span style={{ width: '110px', color: '#64748b' }}>Alergi</span>
+                        <span style={{ color: '#ef4444' }}>: {selectedPatient.riwayatAlergi}</span>
+                      </div>
+                      <div style={{ display: 'flex' }}>
+                        <span style={{ width: '110px', color: '#64748b' }}>Komorbid</span>
+                        <span>: {selectedPatient.riwayatPenyakit.join(', ') || '-'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CPPT Header Banner */}
+              <div
+                style={{
+                  backgroundColor: '#14b8a6',
+                  color: 'white',
+                  borderRadius: '8px',
+                  padding: '12px 24px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '20px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>CPPT</h3>
+                  <span style={{ fontSize: '13px', fontWeight: 500 }}>
+                    Catatan Perkembangan Pasien Terintegrasi
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                  <div>
-                    <span className="text-slate-500 block">Lokasi Luka:</span>
-                    <strong className="text-slate-800">{selectedPatient.asesmenTerakhir.lokasiLuka}</strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">Ukuran (PxLxT):</span>
-                    <strong className="text-slate-800 font-mono">
-                      {selectedPatient.asesmenTerakhir.ukuran.panjangCm} x {selectedPatient.asesmenTerakhir.ukuran.lebarCm} cm (dalam {selectedPatient.asesmenTerakhir.ukuran.kedalamanMm} mm)
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">Dasar Luka:</span>
-                    <span className="text-slate-800 font-medium">
-                      G: {selectedPatient.asesmenTerakhir.dasarLuka.persenGranulasi}% | S: {selectedPatient.asesmenTerakhir.dasarLuka.persenSlough}% | N: {selectedPatient.asesmenTerakhir.dasarLuka.persenNekrotik}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">Eksudat:</span>
-                    <strong className="text-slate-800">
-                      {selectedPatient.asesmenTerakhir.eksudat.jumlah} ({selectedPatient.asesmenTerakhir.eksudat.warna})
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-slate-100 bg-slate-50 p-3 rounded-lg text-xs space-y-1">
-                  <div>
-                    <span className="font-semibold text-slate-700">Dressing Primer:</span>{' '}
-                    <span className="text-slate-800">{selectedPatient.asesmenTerakhir.tindakanWoundCare.primaryDressing}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-700">Dressing Sekunder:</span>{' '}
-                    <span className="text-slate-800">{selectedPatient.asesmenTerakhir.tindakanWoundCare.secondaryDressing}</span>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(true)}
+                  style={{
+                    backgroundColor: 'white',
+                    color: '#14b8a6',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  + Tambah Catatan
+                </button>
               </div>
-            )}
 
-            {/* Form Tambah SOAP Baru (Conditional) */}
-            {showAddForm && (
-              <div className="bg-white p-6 rounded-xl border border-blue-200 shadow-sm print:hidden space-y-4">
-                <div className="flex items-center gap-2 pb-3 border-b border-slate-200">
-                  <PlusCircle className="w-4 h-4 text-[#224b9b]" />
-                  <h3 className="text-sm font-bold text-slate-800">
-                    Input Catatan CPPT Baru ({currentUser.role}: {currentUser.nama})
-                  </h3>
+              {/* Modal Tambah Catatan */}
+              {showAddModal && (
+                <div
+                  style={{
+                    backgroundColor: '#fff',
+                    border: '2px solid #14b8a6',
+                    borderRadius: '8px',
+                    padding: '20px',
+                    marginBottom: '24px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '16px', color: '#1e293b' }}>
+                    Tambah Catatan SOAP Baru ({currentUser.nama} - {currentUser.role})
+                  </h4>
+
+                  <form onSubmit={handleAddCatatan} style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+                    <div>
+                      <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>S (Subjective)</label>
+                      <textarea
+                        required
+                        rows={2}
+                        value={soapS}
+                        onChange={(e) => setSoapS(e.target.value)}
+                        placeholder="Keluhan pasien, rasa nyeri, dsb..."
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>O (Objective)</label>
+                      <textarea
+                        required
+                        rows={2}
+                        value={soapO}
+                        onChange={(e) => setSoapO(e.target.value)}
+                        placeholder="Pemeriksaan fisik, kondisi luka, TTV..."
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>A (Assessment)</label>
+                      <textarea
+                        required
+                        rows={2}
+                        value={soapA}
+                        onChange={(e) => setSoapA(e.target.value)}
+                        placeholder="Diagnosa medis / keperawatan..."
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>P (Plan)</label>
+                      <textarea
+                        required
+                        rows={2}
+                        value={soapP}
+                        onChange={(e) => setSoapP(e.target.value)}
+                        placeholder="Rencana tindakan, resep dressing, kontrol..."
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 600, display: 'block', marginBottom: '4px' }}>Instruksi PPA</label>
+                      <input
+                        type="text"
+                        value={instruksi}
+                        onChange={(e) => setInstruksi(e.target.value)}
+                        placeholder="Instruksi profesional pemberi asuhan..."
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddModal(false)}
+                        style={{ padding: '8px 16px', background: '#e2e8f0', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        style={{ padding: '8px 20px', background: '#14b8a6', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Simpan Catatan
+                      </button>
+                    </div>
+                  </form>
                 </div>
+              )}
 
-                <form onSubmit={handleAddCPPT} className="space-y-4 text-xs">
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      S (Subjective) - Keluhan Pasien, Sensasi Nyeri, Riwayat Kejadian:
-                    </label>
-                    <textarea
-                      required
-                      rows={2}
-                      value={subjective}
-                      onChange={(e) => setSubjective(e.target.value)}
-                      placeholder="Contoh: Pasien mengeluh nyeri pada balutan perban kaki kanan..."
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b]"
-                    />
+              {/* CPPT Entries List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {patientCPPT.length === 0 ? (
+                  <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px', background: '#f8fafc', borderRadius: '8px' }}>
+                    Belum ada riwayat catatan CPPT untuk pasien ini.
                   </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      O (Objective) - Hasil Pemeriksaan Fisik, TTV, Karakteristik Luka:
-                    </label>
-                    <textarea
-                      required
-                      rows={2}
-                      value={objective}
-                      onChange={(e) => setObjective(e.target.value)}
-                      placeholder="Contoh: TTV TD 130/80. Luka eksudat sedang serous, slough 20%..."
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      A (Assessment) - Analisis Klinis / Diagnosa Keperawatan:
-                    </label>
-                    <textarea
-                      required
-                      rows={2}
-                      value={assessment}
-                      onChange={(e) => setAssessment(e.target.value)}
-                      placeholder="Contoh: Kerusakan integritas kulit b.d insufisiensi sirkulasi perifer..."
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      P (Plan) - Rencana Tindakan, Perawatan Luka, Edukasi:
-                    </label>
-                    <textarea
-                      required
-                      rows={2}
-                      value={plan}
-                      onChange={(e) => setPlan(e.target.value)}
-                      placeholder="Contoh: 1. Rawat luka NaCl + Foam dressing. 2. Kontrol 3 hari lagi..."
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Instruksi PPA (Profesional Pemberi Asuhan):
-                    </label>
-                    <input
-                      type="text"
-                      value={instruksiPPA}
-                      onChange={(e) => setInstruksiPPA(e.target.value)}
-                      placeholder="Contoh: Pertahankan balutan kering, edukasi diit rendah gula"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#224b9b]"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddForm(false)}
-                      className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg hover:bg-slate-200 transition"
+                ) : (
+                  patientCPPT.map((cppt) => (
+                    <div
+                      key={cppt.id}
+                      style={{
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '16px',
+                        backgroundColor: '#fff',
+                        fontSize: '13px',
+                      }}
                     >
-                      Batal
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-[#224b9b] text-white font-bold text-xs rounded-lg hover:bg-[#1b3d7e] transition shadow-xs"
-                    >
-                      Simpan Catatan CPPT
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Riwayat Lembar CPPT Terintegrasi */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden print:border print:border-slate-400">
-              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">Catatan Perkembangan Pasien Terintegrasi (CPPT)</h3>
-                  <p className="text-xs text-slate-500">Urutan kronologis catatan SOAP tenaga kesehatan</p>
-                </div>
-                <span className="text-xs font-mono font-bold text-slate-600 bg-white px-2.5 py-1 rounded border border-slate-200">
-                  {patientCPPT.length} Catatan Masuk
-                </span>
-              </div>
-
-              {patientCPPT.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 text-xs">
-                  Belum ada catatan CPPT untuk pasien ini. Klik tombol "Tambah Catatan SOAP" di atas untuk menambahkan.
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-200">
-                  {patientCPPT.map((cppt) => (
-                    <div key={cppt.id} className="p-6 space-y-4 hover:bg-slate-50/50 transition">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${
-                            cppt.profesi === 'Dokter'
-                              ? 'bg-purple-50 text-purple-800 border-purple-200'
-                              : 'bg-blue-50 text-blue-800 border-blue-200'
-                          }`}>
-                            {cppt.profesi}
-                          </span>
-                          <strong className="text-xs text-slate-900">{cppt.namaTenagaMedis}</strong>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          borderBottom: '1px solid #f1f5f9',
+                          paddingBottom: '8px',
+                          marginBottom: '12px',
+                        }}
+                      >
+                        <div>
+                          <strong style={{ color: '#0ea5e9', marginRight: '8px' }}>[{cppt.profesi}]</strong>
+                          <strong>{cppt.namaTenagaMedis}</strong>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{cppt.tanggalWaktu}</span>
-                        </div>
+                        <span style={{ color: '#64748b', fontSize: '12px' }}>{cppt.tanggalWaktu}</span>
                       </div>
 
-                      {/* SOAP Details Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80">
-                          <span className="font-bold text-slate-800 block mb-1">S (Subjective):</span>
-                          <p className="text-slate-700 leading-relaxed">{cppt.soap.subjective}</p>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px' }}>
+                          <strong style={{ display: 'block', color: '#1e293b', marginBottom: '4px' }}>S (Subjective):</strong>
+                          <p style={{ margin: 0, color: '#334155' }}>{cppt.soap.subjective}</p>
                         </div>
-
-                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80">
-                          <span className="font-bold text-slate-800 block mb-1">O (Objective):</span>
-                          <p className="text-slate-700 leading-relaxed">{cppt.soap.objective}</p>
+                        <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px' }}>
+                          <strong style={{ display: 'block', color: '#1e293b', marginBottom: '4px' }}>O (Objective):</strong>
+                          <p style={{ margin: 0, color: '#334155' }}>{cppt.soap.objective}</p>
                         </div>
-
-                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80">
-                          <span className="font-bold text-slate-800 block mb-1">A (Assessment):</span>
-                          <p className="text-slate-700 leading-relaxed">{cppt.soap.assessment}</p>
+                        <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px' }}>
+                          <strong style={{ display: 'block', color: '#1e293b', marginBottom: '4px' }}>A (Assessment):</strong>
+                          <p style={{ margin: 0, color: '#334155' }}>{cppt.soap.assessment}</p>
                         </div>
-
-                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80">
-                          <span className="font-bold text-slate-800 block mb-1">P (Plan):</span>
-                          <p className="text-slate-700 leading-relaxed">{cppt.soap.plan}</p>
+                        <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px' }}>
+                          <strong style={{ display: 'block', color: '#1e293b', marginBottom: '4px' }}>P (Plan):</strong>
+                          <p style={{ margin: 0, color: '#334155' }}>{cppt.soap.plan}</p>
                         </div>
                       </div>
 
                       {cppt.instruksiPPA && (
-                        <div className="text-xs bg-amber-50/70 p-3 rounded-lg border border-amber-200 flex items-start gap-2">
-                          <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="font-bold text-amber-900">Instruksi PPA: </span>
-                            <span className="text-amber-800">{cppt.instruksiPPA}</span>
-                          </div>
+                        <div style={{ marginTop: '10px', padding: '8px 12px', backgroundColor: '#fef3c7', borderRadius: '6px', color: '#92400e' }}>
+                          <strong>Instruksi PPA:</strong> {cppt.instruksiPPA}
                         </div>
                       )}
                     </div>
-                  ))}
-                </div>
-              )}
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="bg-white p-12 text-center rounded-xl border border-slate-200 text-slate-500 text-xs">
-            Tidak ada pasien yang dipilih. Silakan pilih pasien dari menu dropdown di atas atau daftar pasien baru.
-          </div>
-        )}
-      </main>
-    </div>
+          )}
+        </div>
+      </div>
+    </main>
   );
 }
 
 export default function RekamMedisPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-slate-500">Memuat rekam medis...</div>}>
+    <Suspense fallback={<div style={{ padding: '24px' }}>Memuat rekam medis...</div>}>
       <RekamMedisContent />
     </Suspense>
   );

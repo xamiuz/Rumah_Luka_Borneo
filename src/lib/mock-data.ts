@@ -324,3 +324,4 @@ export const INITIAL_CPPT: CatatanCPPT[] = [
     instruksiPPA: 'Awasi tanda infeksi sistemik (demam, bau busuk menyengat). Rujuk segera jika ada perburukan.',
   },
 ];
+
