@@ -48,13 +48,6 @@ export default function DashboardPage() {
       {/* Top Banner / Clinical Summary */}
       <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-              Pelayanan Rekam Medis Terintegrasi
-            </span>
-            <span className="text-xs text-slate-400">•</span>
-            <span className="text-xs text-slate-500 font-medium">Bontang, Kalimantan Timur</span>
-          </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Dashboard Perawatan Luka & Stoma (Wound Care)
           </h1>
