@@ -102,7 +102,7 @@ function RekamMedisContent() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-950 text-white font-semibold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5"
           >
             <Printer className="w-4 h-4" />
             <span>Cetak Dokumen CPPT</span>
@@ -169,7 +169,7 @@ function RekamMedisContent() {
               <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-900 text-white flex items-center justify-center font-bold text-lg font-mono shrink-0 shadow-xs">
+                    <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg font-mono shrink-0 shadow-xs">
                       {selectedPatient.nama.charAt(0)}
                     </div>
                     <div>
@@ -319,7 +319,7 @@ function RekamMedisContent() {
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-950 transition"
+                        className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition"
                       >
                         Simpan Catatan CPPT
                       </button>

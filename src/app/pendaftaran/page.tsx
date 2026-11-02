@@ -392,7 +392,7 @@ export default function PendaftaranPage() {
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold rounded-lg transition shadow-xs flex items-center gap-2"
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-xs flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
               <span>Daftarkan Pasien & Terbitkan No. RM</span>
@@ -463,7 +463,7 @@ export default function PendaftaranPage() {
                   <div className="flex items-center gap-2 shrink-0">
                     <Link
                       href={`/asesmen?pasienId=${p.id}`}
-                      className="px-3 py-1.5 bg-blue-900 text-white text-xs font-semibold rounded-lg hover:bg-blue-950 transition flex items-center gap-1.5 shadow-xs"
+                      className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-1.5 shadow-xs"
                     >
                       <Bandage className="w-3.5 h-3.5" />
                       <span>Asesmen Luka</span>

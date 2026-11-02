@@ -63,7 +63,7 @@ export default function KelolaPenggunaPage() {
         <button
           type="button"
           onClick={() => setShowAddForm(!showAddForm)}
-          className="px-4 py-2 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 self-start sm:self-auto"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 self-start sm:self-auto"
         >
           <UserPlus className="w-4 h-4" />
           <span>+ Tambah Tenaga Medis</span>
@@ -140,7 +140,7 @@ export default function KelolaPenggunaPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-950 shadow-xs"
+                className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-xs"
               >
                 Simpan Tenaga Medis
               </button>

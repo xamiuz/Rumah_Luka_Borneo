@@ -81,7 +81,7 @@ export default function JadwalPage() {
         <button
           type="button"
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 self-start sm:self-auto"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 self-start sm:self-auto"
         >
           <PlusCircle className="w-4 h-4" />
           <span>+ Tambah Jadwal Kunjungan</span>
@@ -98,7 +98,7 @@ export default function JadwalPage() {
               onClick={() => setActiveFilter(tab)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 activeFilter === tab
-                  ? 'bg-blue-900 text-white shadow-xs'
+                  ? 'bg-blue-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -308,7 +308,7 @@ export default function JadwalPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-950 shadow-xs"
+                  className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-xs"
                 >
                   Simpan Jadwal
                 </button>

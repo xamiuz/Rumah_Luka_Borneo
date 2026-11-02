@@ -162,7 +162,7 @@ function AsesmenContent() {
                 Alergi: {selectedPatient.riwayatAlergi}
               </span>
             )}
-            <span>Pemeriksa: <strong className="text-blue-900">{currentUser.nama}</strong></span>
+            <span>Pemeriksa: <strong className="text-blue-700">{currentUser.nama}</strong></span>
           </div>
         )}
       </div>
@@ -577,7 +577,7 @@ function AsesmenContent() {
               <div className="pt-3 flex justify-end">
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-2"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-2"
                 >
                   <Save className="w-4 h-4" />
                   <span>Simpan Asesmen & Sinkronkan ke Lembar CPPT</span>

@@ -7,8 +7,6 @@ import {
   UserPlus, 
   Building2, 
   Clock, 
-  ShieldCheck, 
-  ChevronDown,
   RotateCcw
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
@@ -26,13 +24,13 @@ export function TopNavbar() {
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
       {/* Branch & Shift Badge */}
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 text-slate-700">
-          <Building2 className="w-4 h-4 text-blue-700" />
-          <span className="text-xs font-semibold tracking-tight">Klinik Utama Bontang</span>
+        <div className="flex items-center gap-2 text-slate-800">
+          <Building2 className="w-4 h-4 text-blue-600" />
+          <span className="text-xs font-bold tracking-tight">Klinik Utama Bontang</span>
           <span className="text-slate-300">|</span>
         </div>
 
-        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-medium text-slate-500 bg-slate-100/80 px-2.5 py-1 rounded-md border border-slate-200">
+        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
           <Clock className="w-3.5 h-3.5 text-emerald-600" />
           <span>Shift Pelayanan Aktif (Pagi)</span>
         </div>
@@ -48,7 +46,7 @@ export function TopNavbar() {
             placeholder="Cari pasien (Nama, No. RM, NIK)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-12 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 focus:bg-white text-slate-800 transition placeholder:text-slate-400"
+            className="w-full pl-9 pr-12 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white text-slate-800 transition placeholder:text-slate-400"
           />
           <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none">
             /
@@ -68,23 +66,23 @@ export function TopNavbar() {
         {/* Quick Add Patient */}
         <Link
           href="/pendaftaran"
-          className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-900 hover:bg-blue-950 text-white text-xs font-semibold rounded-lg transition shadow-xs"
+          className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-xs"
         >
           <UserPlus className="w-3.5 h-3.5" />
           <span>+ Pasien Baru</span>
         </Link>
 
-        {/* Staff Profile Capsule */}
-        <div className="flex items-center gap-2 pl-3 border-l border-slate-200">
-          <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold font-mono">
+        {/* Staff Profile Capsule (Clean Light Blue theme) */}
+        <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
+          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center justify-center text-xs font-bold font-mono">
             {currentUser.nama.charAt(currentUser.nama.startsWith('Ns.') || currentUser.nama.startsWith('dr.') ? 4 : 0)}
           </div>
           <div className="hidden lg:block text-left text-xs">
-            <p className="font-semibold text-slate-800 leading-none truncate max-w-[130px]">
+            <p className="font-bold text-slate-900 leading-none truncate max-w-[130px]">
               {currentUser.nama}
             </p>
             <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1 font-medium">
-              <span className="text-blue-700 font-semibold">{currentUser.role}</span>
+              <span className="text-blue-700 font-bold">{currentUser.role}</span>
               {currentUser.strNip && <span>• {currentUser.strNip.split(' ')[0]}</span>}
             </p>
           </div>
@@ -93,4 +91,3 @@ export function TopNavbar() {
     </header>
   );
 }
-
