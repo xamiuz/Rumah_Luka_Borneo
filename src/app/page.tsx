@@ -65,7 +65,7 @@ export default function DashboardPage() {
             <span>Mulai Asesmen Luka</span>
           </Link>
           <Link
-            href="/pendaftaran"
+            href="/pendaftaran?tambah=true"
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shadow-xs flex items-center gap-2"
           >
             <UserPlus className="w-4 h-4" />

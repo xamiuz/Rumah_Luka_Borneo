@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
-  UserPlus, 
+  Users, 
   Activity, 
   FileText, 
   CalendarClock, 
@@ -34,9 +34,9 @@ export function Sidebar() {
       badge: 'Live',
     },
     {
-      label: 'Pendaftaran Pasien',
+      label: 'Direktori Pasien',
       href: '/pendaftaran',
-      icon: UserPlus,
+      icon: Users,
     },
     {
       label: 'Asesmen & Peta Luka',
