@@ -212,27 +212,46 @@ function DirektoriPasienContent() {
         </div>
       )}
 
-      {/* Quick Summary KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Pasien Terdaftar</span>
-          <div className="text-2xl font-extrabold text-slate-900 mt-1">{patients.length}</div>
-          <span className="text-[10px] text-blue-600 font-semibold">Tersimpan dalam database</span>
+      {/* Quick Summary KPI Cards (Compact Medical Row) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Total Terdaftar</span>
+            <span className="text-xl font-extrabold text-slate-900 mt-0.5 block">{patients.length} <span className="text-xs font-normal text-slate-500">pasien</span></span>
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+            {patients.length}
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Antrean Rawat Aktif</span>
-          <div className="text-2xl font-extrabold text-slate-900 mt-1">{antreanCount}</div>
-          <span className="text-[10px] text-amber-600 font-semibold">Siap tindakan klinis</span>
+
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Antrean Aktif</span>
+            <span className="text-xl font-extrabold text-amber-600 mt-0.5 block">{antreanCount} <span className="text-xs font-normal text-slate-500">pasien</span></span>
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">
+            {antreanCount}
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Peringatan Alergi</span>
-          <div className="text-2xl font-extrabold text-rose-600 mt-1">{alergiCount}</div>
-          <span className="text-[10px] text-rose-500 font-semibold">Memerlukan balutan khusus</span>
+
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Peringatan Alergi</span>
+            <span className="text-xl font-extrabold text-rose-600 mt-0.5 block">{alergiCount} <span className="text-xs font-normal text-slate-500">kasus</span></span>
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs">
+            {alergiCount}
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Komorbid Diabetes (DM)</span>
-          <div className="text-2xl font-extrabold text-slate-900 mt-1">{dmCount}</div>
-          <span className="text-[10px] text-emerald-600 font-semibold">Ulkus diabetikum / risiko tinggi</span>
+
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Komorbid Diabetes</span>
+            <span className="text-xl font-extrabold text-emerald-600 mt-0.5 block">{dmCount} <span className="text-xs font-normal text-slate-500">pasien</span></span>
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+            {dmCount}
+          </div>
         </div>
       </div>
 
@@ -301,23 +320,22 @@ function DirektoriPasienContent() {
           </div>
         </div>
 
-        {/* Directory Table (100% full width, table-fixed, zero horizontal scrollbar) */}
+        {/* Directory Table (5 Proportional Columns, Exactly 100% Full Width, Zero Overlap) */}
         <div className="w-full">
           <table className="w-full text-left text-xs table-fixed">
             <thead className="bg-slate-50/90 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
                 <th className="w-[22%] px-4 py-3">No. RM & Nama Pasien</th>
-                <th className="w-[18%] px-4 py-3">NIK & Kontak</th>
-                <th className="w-[25%] px-4 py-3">Diagnosa & Komorbiditas</th>
-                <th className="w-[14%] px-3 py-3">Skrining Alergi</th>
-                <th className="w-[9%] px-2 py-3 text-center">Status</th>
-                <th className="w-[12%] px-4 py-3 text-right">Tindakan</th>
+                <th className="w-[20%] px-4 py-3">Kontak & Domisili</th>
+                <th className="w-[28%] px-4 py-3">Diagnosa & Profil Medis</th>
+                <th className="w-[12%] px-3 py-3 text-center">Status</th>
+                <th className="w-[18%] px-4 py-3 text-right">Tindakan</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredPatients.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={5} className="px-4 py-12 text-center text-slate-400">
                     Tidak ditemukan data pasien yang sesuai dengan kata kunci atau filter.
                   </td>
                 </tr>
@@ -346,73 +364,70 @@ function DirektoriPasienContent() {
                         </div>
                       </td>
 
-                      {/* 2. NIK & Kontak */}
+                      {/* 2. Kontak & Domisili */}
                       <td className="px-4 py-3.5 align-middle">
-                        <div className="font-mono text-slate-700 text-xs">{p.nik}</div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                          <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>{p.noHp}</span>
+                        <div className="text-xs font-semibold text-slate-800 flex items-center gap-1">
+                          <Phone className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          <span className="font-mono">{p.noHp}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 font-mono mt-0.5 truncate" title={`NIK: ${p.nik}`}>
+                          NIK: {p.nik}
                         </div>
                         <div className="text-[10px] text-slate-400 truncate mt-0.5" title={p.alamat}>
                           {p.alamat}
                         </div>
                       </td>
 
-                      {/* 3. Diagnosa & Komorbiditas */}
+                      {/* 3. Diagnosa & Riwayat Medis / Alergi */}
                       <td className="px-4 py-3.5 align-middle">
-                        <div className="font-semibold text-slate-800 leading-snug break-words">
+                        <div className="font-semibold text-slate-800 text-xs leading-snug break-words">
                           {p.diagnosisMedisUtama}
                         </div>
-                        {p.riwayatPenyakit && p.riwayatPenyakit.length > 0 && (
-                          <div className="flex items-center gap-1 mt-1 flex-wrap">
-                            {p.riwayatPenyakit.map((rk) => (
-                              <span key={rk} className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
-                                {rk}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          {p.riwayatAlergi && p.riwayatAlergi !== 'Tidak Ada' ? (
+                            <span 
+                              title={`Alergi: ${p.riwayatAlergi}`}
+                              className="inline-flex items-center gap-1 text-[10px] text-rose-700 font-medium bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200"
+                            >
+                              <ShieldAlert className="w-3 h-3 shrink-0 text-rose-600" />
+                              <span>Alergi: {p.riwayatAlergi}</span>
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-400">Tanpa alergi</span>
+                          )}
+
+                          {p.riwayatPenyakit && p.riwayatPenyakit.slice(0, 2).map((rk) => (
+                            <span key={rk} className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
+                              {rk}
+                            </span>
+                          ))}
+                        </div>
                       </td>
 
-                      {/* 4. Skrining Alergi */}
-                      <td className="px-3 py-3.5 align-middle">
-                        {p.riwayatAlergi && p.riwayatAlergi !== 'Tidak Ada' ? (
-                          <span 
-                            title={`Alergi: ${p.riwayatAlergi}`}
-                            className="inline-flex items-center gap-1 text-[10px] text-rose-700 font-medium bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
-                          >
-                            <ShieldAlert className="w-3 h-3 shrink-0 text-rose-600" />
-                            <span className="break-words">{p.riwayatAlergi}</span>
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-slate-400">Tidak ada riwayat alergi</span>
-                        )}
-                      </td>
-
-                      {/* 5. Status Kunjungan */}
-                      <td className="px-2 py-3.5 align-middle text-center whitespace-nowrap">
-                        <span className={`px-2 py-0.5 text-[10px] font-semibold rounded border inline-block ${statusBadge}`}>
+                      {/* 4. Status Kunjungan (Spacious & Clean) */}
+                      <td className="px-3 py-3.5 align-middle text-center whitespace-nowrap">
+                        <span className={`px-2.5 py-1 text-[10px] font-semibold rounded-md border inline-block ${statusBadge}`}>
                           {p.statusKunjungan}
                         </span>
                       </td>
 
-                      {/* 6. Tindakan Cepat */}
+                      {/* 5. Tindakan Cepat (18% Width - Plenty of Room for all 3 buttons) */}
                       <td className="px-4 py-3.5 align-middle text-right whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 justify-end">
+                        <div className="inline-flex items-center gap-1.5 justify-end">
                           <Link
                             href={`/asesmen?pasienId=${p.id}`}
                             title="Mulai Asesmen Klinis & Peta Tubuh"
                             className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold rounded-md transition shadow-xs shrink-0"
                           >
-                            <Bandage className="w-3 h-3" />
+                            <Bandage className="w-3.5 h-3.5" />
                             <span>Asesmen</span>
                           </Link>
                           <Link
                             href={`/rekam-medis?pasienId=${p.id}`}
                             title="Buka Catatan CPPT Pasien"
-                            className="inline-flex items-center gap-1 px-2 py-1.5 bg-white border border-slate-300 text-slate-700 text-[11px] font-medium rounded-md hover:bg-slate-50 transition shadow-xs shrink-0"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white border border-slate-300 text-slate-700 text-[11px] font-medium rounded-md hover:bg-slate-50 transition shadow-xs shrink-0"
                           >
-                            <FileText className="w-3 h-3 text-slate-500" />
+                            <FileText className="w-3.5 h-3.5 text-slate-500" />
                             <span>CPPT</span>
                           </Link>
                           <button
@@ -422,8 +437,8 @@ function DirektoriPasienContent() {
                                 deletePatient(p.id);
                               }
                             }}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition"
-                            title="Hapus Pasien"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition shrink-0"
+                            title="Hapus Rekam Medis"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
