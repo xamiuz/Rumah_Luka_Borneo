@@ -100,7 +100,7 @@ function DirektoriPasienContent() {
       nama,
       tanggalLahir,
       jenisKelamin,
-      alamat: alamat || 'Kota Bontang, Kalimantan Timur',
+      alamat: alamat || 'Alamat Belum Diisi',
       noHp: noHp || '-',
       pekerjaan: pekerjaan || 'Karyawan / Pensiunan',
       golonganDarah,
@@ -584,7 +584,7 @@ function DirektoriPasienContent() {
                       type="text"
                       value={alamat}
                       onChange={(e) => setAlamat(e.target.value)}
-                      placeholder="Jl. / RT / Kelurahan, Kota Bontang..."
+                      placeholder="Jl. / RT / Kelurahan / Kota tempat tinggal pasien..."
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white text-slate-800"
                     />
                   </div>
