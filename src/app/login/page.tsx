@@ -92,10 +92,6 @@ export default function LoginPage() {
           </div>
           <div className="flex items-center gap-2.5 text-xs text-slate-300">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>Dukungan Database MySQL & Operasional Offline Lokal</span>
-          </div>
-          <div className="flex items-center gap-2.5 text-xs text-slate-300">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Audit Trail & Hak Akses Berbasis Profesi (RBAC)</span>
           </div>
           <p className="text-[11px] text-slate-500 pt-3">

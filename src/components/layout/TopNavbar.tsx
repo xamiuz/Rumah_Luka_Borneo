@@ -88,23 +88,6 @@ export function TopNavbar() {
             </>
           )}
         </div>
-
-        {/* Database Status Indicator */}
-        <div
-          title={
-            dbStatus === 'connected'
-              ? 'Terhubung langsung ke Database MySQL'
-              : 'MySQL belum aktif — aplikasi otomatis berjalan menggunakan penyimpanan lokal/localStorage'
-          }
-          className={`hidden md:flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md border transition ${
-            dbStatus === 'connected'
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              : 'bg-amber-50 text-amber-700 border-amber-200'
-          }`}
-        >
-          <Database className="w-3 h-3" />
-          <span>{dbStatus === 'connected' ? 'MySQL: Terhubung' : 'MySQL: Offline (Mode Lokal)'}</span>
-        </div>
       </div>
 
       {/* Global Search & Quick Actions */}
