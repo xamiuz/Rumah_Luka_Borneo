@@ -29,8 +29,12 @@ import {
 interface ClinicContextType {
   currentUser: User;
   setCurrentUser: (user: User) => void;
+  switchUser: (user: User) => void;
   switchRole: (role: Role) => void;
   users: User[];
+  addUser: (user: Omit<User, 'id'>) => User;
+  updateUser: (id: string, updated: Partial<User>) => void;
+  deleteUser: (id: string) => void;
   patients: Pasien[];
   schedules: JadwalPerawatan[];
   cpptRecords: CatatanCPPT[];
@@ -91,13 +95,17 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       if (healthData.status === 'connected') {
         setDbStatus('connected');
         // Load from MySQL
-        const [pasienRes, cpptRes, jadwalRes, hcRes] = await Promise.all([
+        const [usersRes, pasienRes, cpptRes, jadwalRes, hcRes] = await Promise.all([
+          fetch('/api/users').then((r) => r.json()).catch(() => null),
           fetch('/api/pasien').then((r) => r.json()).catch(() => null),
           fetch('/api/cppt').then((r) => r.json()).catch(() => null),
           fetch('/api/jadwal').then((r) => r.json()).catch(() => null),
           fetch('/api/homecare').then((r) => r.json()).catch(() => null),
         ]);
 
+        if (usersRes?.success && usersRes.data?.length > 0) {
+          setUsers(usersRes.data);
+        }
         if (pasienRes?.success && pasienRes.data?.length > 0) {
           setPatients(pasienRes.data);
         }
@@ -126,6 +134,9 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
 
   const loadFromLocalStorage = () => {
     try {
+      const savedUsers = localStorage.getItem('rlb_users');
+      if (savedUsers) setUsers(JSON.parse(savedUsers));
+
       const savedPatients = localStorage.getItem('rlb_patients');
       if (savedPatients) setPatients(JSON.parse(savedPatients));
 
@@ -166,6 +177,7 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoaded) return;
     try {
+      localStorage.setItem('rlb_users', JSON.stringify(users));
       localStorage.setItem('rlb_patients', JSON.stringify(patients));
       localStorage.setItem('rlb_schedules', JSON.stringify(schedules));
       localStorage.setItem('rlb_cppt', JSON.stringify(cpptRecords));
@@ -178,7 +190,14 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
-  }, [patients, schedules, cpptRecords, currentUser, homecareJaga, homecareMeals, homecareMeds, woundPhotos, parafHomecare, isLoaded]);
+  }, [users, patients, schedules, cpptRecords, currentUser, homecareJaga, homecareMeals, homecareMeds, woundPhotos, parafHomecare, isLoaded]);
+
+  const switchUser = (user: User) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('rlb_active_user', JSON.stringify(user));
+    } catch {}
+  };
 
   const switchRole = (role: Role) => {
     const found = users.find((u) => u.role === role) || {
@@ -188,7 +207,46 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       role,
       status: 'Aktif',
     };
-    setCurrentUser(found);
+    switchUser(found);
+  };
+
+  const addUser = (userData: Omit<User, 'id'>): User => {
+    const newUser: User = {
+      ...userData,
+      id: `USR-${Date.now()}`,
+    };
+
+    setUsers((prev) => [...prev, newUser]);
+
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newUser),
+    }).catch(() => {});
+
+    return newUser;
+  };
+
+  const updateUser = (id: string, updated: Partial<User>) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, ...updated } : u))
+    );
+    if (currentUser.id === id) {
+      setCurrentUser((prev) => ({ ...prev, ...updated }));
+    }
+  };
+
+  const deleteUser = (id: string) => {
+    if (users.length <= 1) {
+      alert('Minimal harus ada satu akun petugas dalam sistem.');
+      return;
+    }
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+    if (currentUser.id === id) {
+      const nextUser = users.find((u) => u.id !== id);
+      if (nextUser) switchUser(nextUser);
+    }
+    fetch(`/api/users?id=${id}`, { method: 'DELETE' }).catch(() => {});
   };
 
   const addPatient = (data: Omit<Pasien, 'id' | 'noRm' | 'tanggalDaftar'>): Pasien => {
@@ -491,8 +549,12 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentUser,
         setCurrentUser,
+        switchUser,
         switchRole,
         users,
+        addUser,
+        updateUser,
+        deleteUser,
         patients,
         schedules,
         cpptRecords,

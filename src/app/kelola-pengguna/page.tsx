@@ -8,14 +8,14 @@ import {
   Check, 
   BadgeCheck, 
   KeyRound,
-  Stethoscope
+  Stethoscope,
+  Trash2
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 import { User, Role } from '@/types';
 
 export default function KelolaPenggunaPage() {
-  const { users, currentUser, setCurrentUser } = useClinic();
-  const [localUsers, setLocalUsers] = useState<User[]>(users);
+  const { users, currentUser, switchUser, addUser, deleteUser } = useClinic();
   const [showAddForm, setShowAddForm] = useState(false);
 
   // Form State
@@ -31,16 +31,14 @@ export default function KelolaPenggunaPage() {
       return;
     }
 
-    const newUser: User = {
-      id: `USR-${Date.now()}`,
+    addUser({
       nama,
       username,
       role,
       strNip: strNip || '-',
       status: 'Aktif',
-    };
+    });
 
-    setLocalUsers([...localUsers, newUser]);
     setNama('');
     setUsername('');
     setStrNip('');
@@ -153,7 +151,7 @@ export default function KelolaPenggunaPage() {
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900">Daftar Akun Tenaga Medis Terdaftar</h2>
-          <span className="text-xs font-mono font-bold text-slate-500">{localUsers.length} Pengguna</span>
+          <span className="text-xs font-mono font-bold text-slate-500">{users.length} Pengguna</span>
         </div>
 
         <div className="divide-y divide-slate-100 overflow-x-auto">
@@ -165,11 +163,11 @@ export default function KelolaPenggunaPage() {
                 <th className="px-4 py-3">Profesi / Hak Akses</th>
                 <th className="px-5 py-3">Nomor STR / NIP</th>
                 <th className="px-4 py-3">Status Akun</th>
-                <th className="px-5 py-3 text-right">Simulasi Sesi</th>
+                <th className="px-5 py-3 text-right">Simulasi Sesi & Tindakan</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {localUsers.map((u) => {
+              {users.map((u) => {
                 const isCurrent = currentUser.id === u.id || currentUser.username === u.username;
 
                 return (
@@ -199,20 +197,34 @@ export default function KelolaPenggunaPage() {
                       </span>
                     </td>
                     <td className="px-5 py-4 text-right whitespace-nowrap">
-                      {isCurrent ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-900 rounded-md text-[11px] font-bold border border-emerald-300">
-                          <BadgeCheck className="w-3.5 h-3.5 text-emerald-700" />
-                          <span>Sesi Aktif</span>
-                        </span>
-                      ) : (
+                      <div className="flex items-center justify-end gap-2">
+                        {isCurrent ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-900 rounded-md text-[11px] font-bold border border-emerald-300">
+                            <BadgeCheck className="w-3.5 h-3.5 text-emerald-700" />
+                            <span>Sesi Aktif</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => switchUser(u)}
+                            className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-md text-[11px] font-semibold border border-slate-300 transition"
+                          >
+                            Ganti ke Akun Ini
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => setCurrentUser(u)}
-                          className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-md text-[11px] font-semibold border border-slate-300 transition"
+                          onClick={() => {
+                            if (window.confirm(`Hapus akun ${u.nama}?`)) {
+                              deleteUser(u.id);
+                            }
+                          }}
+                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
+                          title="Hapus Petugas"
                         >
-                          Ganti ke Akun Ini
+                          <Trash2 className="w-4 h-4" />
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 );

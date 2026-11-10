@@ -29,10 +29,10 @@ export const INITIAL_USERS: User[] = [
   },
   {
     id: 'USR-003',
-    nama: 'Bambang Kusuma, A.Md.RMIK',
-    username: 'admin_bambang',
+    nama: 'Kolifah, S.E. (Admin Home Care)',
+    username: 'admin_kolifah',
     role: 'Admin',
-    strNip: 'ADM-RLB-008',
+    strNip: '19850312 201001 2 005',
     status: 'Aktif',
   },
   {
