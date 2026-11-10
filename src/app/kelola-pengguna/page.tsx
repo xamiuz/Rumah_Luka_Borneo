@@ -289,15 +289,10 @@ export default function KelolaPenggunaPage() {
                 {currentUser.role.charAt(0)}
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-lg font-bold text-slate-900 truncate">
-                    {currentUser.nama}
-                  </h2>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Aktif
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-slate-500">
+                <h2 className="text-lg font-bold text-slate-900 truncate">
+                  {currentUser.nama}
+                </h2>
+                <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
                   <span className="font-mono text-slate-700">@{currentUser.username}</span>
                   <span>•</span>
                   <span className="font-medium text-blue-700">{currentUser.role}</span>
@@ -395,31 +390,20 @@ export default function KelolaPenggunaPage() {
               </h3>
               <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4 text-xs">
                 <div className="sm:border-r sm:border-slate-100 pr-4">
-                  <dt className="text-slate-400 font-medium mb-1">ID Pengenal Sistem (Permanen)</dt>
-                  <dd className="font-mono font-bold text-slate-600 text-sm">{currentUser.id}</dd>
-                  <span className="text-[10px] text-slate-400">ID baku tidak dapat diubah</span>
+                  <dt className="text-slate-400 font-medium mb-1">ID Pengenal Petugas</dt>
+                  <dd className="font-mono font-bold text-slate-800 text-sm">{currentUser.id}</dd>
                 </div>
 
                 <div className="sm:border-r sm:border-slate-100 pr-4">
-                  <dt className="text-slate-400 font-medium mb-1">Hak Akses Klinis (RBAC)</dt>
+                  <dt className="text-slate-400 font-medium mb-1">Hak Akses</dt>
                   <dd className="font-semibold text-blue-700 text-sm">{currentUser.role}</dd>
-                  <span className="text-[10px] text-slate-400">Dikelola oleh Administrator</span>
                 </div>
 
                 <div>
                   <dt className="text-slate-400 font-medium mb-1">Fasilitas Pelayanan</dt>
                   <dd className="font-medium text-slate-800 text-sm">Rumah Luka Borneo</dd>
-                  <span className="text-[10px] text-slate-400">WITA (UTC+8)</span>
                 </div>
               </dl>
-            </div>
-          </div>
-
-          {/* Baris Bawah: Catatan Keamanan Rekam Medis */}
-          <div className="p-6 bg-slate-50/60 flex items-start gap-3 text-xs text-slate-600">
-            <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-            <div className="leading-relaxed">
-              Anda dapat memperbarui data pribadi seperti <strong>Nomor WhatsApp/HP, STR/NIP, dan Email</strong> secara mandiri melalui tombol <em>Ubah Data Saya</em>. ID Pengenal Sistem bersifat permanen demi menjaga audit trail rekam medis pasien.
             </div>
           </div>
         </div>
