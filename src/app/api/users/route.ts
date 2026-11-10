@@ -26,6 +26,8 @@ export async function POST(req: Request) {
         password: body.password || '123',
         role: body.role,
         strNip: body.strNip || null,
+        noHp: body.noHp || null,
+        email: body.email || null,
         status: body.status || 'Aktif',
       },
     });

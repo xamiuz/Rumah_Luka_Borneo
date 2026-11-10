@@ -18,6 +18,8 @@ export const INITIAL_USERS: User[] = [
     password: '123',
     role: 'Perawat',
     strNip: '19870514 201101 1 003',
+    noHp: '0812-5432-8891',
+    email: 'hendra.wijaya@rumahluka.id',
     status: 'Aktif',
   },
   {
@@ -27,6 +29,8 @@ export const INITIAL_USERS: User[] = [
     password: '123',
     role: 'Dokter',
     strNip: '31.1.1.100.1.20.123456',
+    noHp: '0811-9876-1234',
+    email: 'dr.siti.spb@rumahluka.id',
     status: 'Aktif',
   },
   {
@@ -36,6 +40,8 @@ export const INITIAL_USERS: User[] = [
     password: '123',
     role: 'Admin',
     strNip: '19850312 201001 2 005',
+    noHp: '0813-4455-6677',
+    email: 'kolifah.admin@rumahluka.id',
     status: 'Aktif',
   },
   {
@@ -45,6 +51,8 @@ export const INITIAL_USERS: User[] = [
     password: '123',
     role: 'Perawat',
     strNip: '19920821 201503 2 007',
+    noHp: '0821-3344-5566',
+    email: 'maya.nurse@rumahluka.id',
     status: 'Aktif',
   },
 ];

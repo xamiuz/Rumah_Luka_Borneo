@@ -353,8 +353,19 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       prev.map((u) => (u.id === id ? { ...u, ...updated } : u))
     );
     if (currentUser.id === id) {
-      setCurrentUser((prev) => ({ ...prev, ...updated }));
+      const merged = { ...currentUser, ...updated };
+      setCurrentUser(merged);
+      try {
+        localStorage.setItem('rlb_active_user', JSON.stringify(merged));
+      } catch {}
     }
+
+    // Sync to MySQL API
+    fetch('/api/users', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updated }),
+    }).catch(() => {});
   };
 
   const deleteUser = (id: string) => {

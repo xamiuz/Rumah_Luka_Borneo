@@ -24,7 +24,10 @@ import {
   Mail,
   ChevronRight,
   LogOut,
-  Hospital
+  Hospital,
+  Edit3,
+  Phone,
+  Save
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 import { Role } from '@/types';
@@ -35,6 +38,7 @@ export default function KelolaPenggunaPage() {
   const { 
     users, 
     currentUser, 
+    updateUser,
     addUser, 
     deleteUser, 
     changePassword, 
@@ -44,6 +48,15 @@ export default function KelolaPenggunaPage() {
 
   const [activeTab, setActiveTab] = useState<'profil' | 'manajemen'>('profil');
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Popout / Modal Edit Profil Pribadi
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editNama, setEditNama] = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editStrNip, setEditStrNip] = useState('');
+  const [editNoHp, setEditNoHp] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [profileFeedback, setProfileFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Popout / Modal Ganti Password Pribadi
   const [showChangePassModal, setShowChangePassModal] = useState(false);
@@ -61,11 +74,56 @@ export default function KelolaPenggunaPage() {
   const [initialPassword, setInitialPassword] = useState('123');
   const [role, setRole] = useState<Role>('Perawat');
   const [strNip, setStrNip] = useState('');
+  const [noHp, setNoHp] = useState('');
+  const [email, setEmail] = useState('');
 
   // Admin Reset Modal
   const [resetModalUser, setResetModalUser] = useState<{ id: string; nama: string; username: string } | null>(null);
   const [adminNewPass, setAdminNewPass] = useState('');
   const [adminResetMsg, setAdminResetMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Buka Modal Edit Profil Pribadi dengan Data Terisi
+  const handleOpenEditProfile = () => {
+    setEditNama(currentUser.nama || '');
+    setEditUsername(currentUser.username || '');
+    setEditStrNip(currentUser.strNip || '');
+    setEditNoHp(currentUser.noHp || '');
+    setEditEmail(currentUser.email || '');
+    setProfileFeedback(null);
+    setShowEditProfileModal(true);
+  };
+
+  // Simpan Perubahan Profil Pribadi
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editNama.trim() || !editUsername.trim()) {
+      setProfileFeedback({ type: 'error', message: 'Nama dan username wajib diisi.' });
+      return;
+    }
+
+    // Cek duplikasi username jika username diganti
+    if (
+      editUsername.trim().toLowerCase() !== currentUser.username.toLowerCase() &&
+      users.some((u) => u.id !== currentUser.id && u.username.toLowerCase() === editUsername.trim().toLowerCase())
+    ) {
+      setProfileFeedback({ type: 'error', message: 'Username sudah digunakan oleh akun lain.' });
+      return;
+    }
+
+    updateUser(currentUser.id, {
+      nama: editNama.trim(),
+      username: editUsername.trim(),
+      strNip: editStrNip.trim() || '-',
+      noHp: editNoHp.trim() || '-',
+      email: editEmail.trim() || '-',
+    });
+
+    setProfileFeedback({ type: 'success', message: 'Profil dan kontak pribadi berhasil diperbarui!' });
+    setTimeout(() => {
+      setShowEditProfileModal(false);
+      setProfileFeedback(null);
+    }, 1000);
+  };
 
   // Handle Ganti Password Pribadi
   const handleChangeMyPassword = async (e: React.FormEvent) => {
@@ -128,6 +186,8 @@ export default function KelolaPenggunaPage() {
       password: initialPassword || '123',
       role,
       strNip: strNip || '-',
+      noHp: noHp || '-',
+      email: email || '-',
       status: 'Aktif',
     });
 
@@ -135,6 +195,8 @@ export default function KelolaPenggunaPage() {
     setUsername('');
     setInitialPassword('123');
     setStrNip('');
+    setNoHp('');
+    setEmail('');
     setShowAddForm(false);
   };
 
@@ -217,10 +279,10 @@ export default function KelolaPenggunaPage() {
         </div>
       </div>
 
-      {/* TAB 1: PROFIL SAYA (Tampilan List Dokumen Bersih, Tanpa Kotak Bertumpuk) */}
+      {/* TAB 1: PROFIL SAYA (Tampilan Dokumen Bersih dengan Kemampuan Edit Data Mandiri) */}
       {activeTab === 'profil' && (
         <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 shadow-2xs">
-          {/* Header Row: Profil Pengguna */}
+          {/* Header Row: Profil Pengguna & Aksi */}
           <div className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
@@ -249,8 +311,17 @@ export default function KelolaPenggunaPage() {
               </div>
             </div>
 
-            {/* Tombol Aksi Langsung */}
-            <div className="flex items-center gap-3 self-start sm:self-center shrink-0">
+            {/* Tombol Aksi: Edit Data Pribadi & Ganti Password */}
+            <div className="flex items-center gap-2.5 self-start sm:self-center shrink-0 flex-wrap">
+              <button
+                type="button"
+                onClick={handleOpenEditProfile}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer border border-slate-200"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-blue-600" />
+                <span>Ubah Data Saya</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
@@ -260,7 +331,7 @@ export default function KelolaPenggunaPage() {
                   setNewPassword('');
                   setConfirmPassword('');
                 }}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg shadow-xs transition flex items-center gap-2 cursor-pointer"
+                className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer"
               >
                 <KeyRound className="w-3.5 h-3.5" />
                 <span>Ganti Password</span>
@@ -269,7 +340,7 @@ export default function KelolaPenggunaPage() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="px-3.5 py-2 border border-rose-200 bg-rose-50/50 hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-2 border border-rose-200 bg-rose-50/50 hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Keluar</span>
@@ -277,47 +348,68 @@ export default function KelolaPenggunaPage() {
             </div>
           </div>
 
-          {/* Data List Rows (Gaya Formulir Rinci Bersih Tanpa Kotak-kotak) */}
-          <div className="p-6 sm:p-8 space-y-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Informasi Kredensial Klinis
-            </h3>
-
-            <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4 text-xs">
-              <div className="sm:border-r sm:border-slate-100 pr-4">
-                <dt className="text-slate-400 font-medium mb-1">Nomor STR / NIP Petugas</dt>
-                <dd className="font-semibold text-slate-900 font-mono text-sm">{currentUser.strNip || '-'}</dd>
+          {/* Data List Rows: Kredensial Klinis & Kontak Mandiri */}
+          <div className="p-6 sm:p-8 space-y-6">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Informasi Kredensial & Kontak Petugas
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleOpenEditProfile}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 cursor-pointer"
+                >
+                  <Edit3 className="w-3 h-3" />
+                  <span>Perbarui Nomor & Kontak</span>
+                </button>
               </div>
 
-              <div className="sm:border-r sm:border-slate-100 pr-4">
-                <dt className="text-slate-400 font-medium mb-1">ID Pengenal Petugas (Sistem)</dt>
-                <dd className="font-semibold text-slate-900 font-mono text-sm">{currentUser.id}</dd>
-              </div>
-
-              <div>
-                <dt className="text-slate-400 font-medium mb-1">Hak Akses Klinis (RBAC)</dt>
-                <dd className="font-semibold text-blue-700 text-sm">{currentUser.role}</dd>
-              </div>
-            </dl>
-
-            <div className="pt-4 border-t border-slate-100">
               <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4 text-xs">
                 <div className="sm:border-r sm:border-slate-100 pr-4">
-                  <dt className="text-slate-400 font-medium mb-1">Fasilitas Pelayanan Kesehatan</dt>
-                  <dd className="font-medium text-slate-800">Rumah Luka Borneo (Truly Health Care)</dd>
+                  <dt className="text-slate-400 font-medium mb-1">Nomor STR / NIP Petugas</dt>
+                  <dd className="font-semibold text-slate-900 font-mono text-sm">{currentUser.strNip || '-'}</dd>
                 </div>
 
                 <div className="sm:border-r sm:border-slate-100 pr-4">
-                  <dt className="text-slate-400 font-medium mb-1">Status Sesi Rekam Medis</dt>
-                  <dd className="font-medium text-emerald-700 flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    Terverifikasi Aktif
+                  <dt className="text-slate-400 font-medium mb-1">Nomor Telepon / WhatsApp</dt>
+                  <dd className="font-semibold text-slate-900 font-mono text-sm flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{currentUser.noHp || '-'}</span>
                   </dd>
                 </div>
 
                 <div>
-                  <dt className="text-slate-400 font-medium mb-1">Zona Waktu Operasional</dt>
-                  <dd className="font-medium text-slate-800 font-mono">WITA (UTC+8)</dd>
+                  <dt className="text-slate-400 font-medium mb-1">Alamat Email Resmi</dt>
+                  <dd className="font-semibold text-slate-900 text-sm flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="truncate">{currentUser.email || '-'}</span>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                Sistem & Otoritas Medis
+              </h3>
+              <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4 text-xs">
+                <div className="sm:border-r sm:border-slate-100 pr-4">
+                  <dt className="text-slate-400 font-medium mb-1">ID Pengenal Sistem (Permanen)</dt>
+                  <dd className="font-mono font-bold text-slate-600 text-sm">{currentUser.id}</dd>
+                  <span className="text-[10px] text-slate-400">ID baku tidak dapat diubah</span>
+                </div>
+
+                <div className="sm:border-r sm:border-slate-100 pr-4">
+                  <dt className="text-slate-400 font-medium mb-1">Hak Akses Klinis (RBAC)</dt>
+                  <dd className="font-semibold text-blue-700 text-sm">{currentUser.role}</dd>
+                  <span className="text-[10px] text-slate-400">Dikelola oleh Administrator</span>
+                </div>
+
+                <div>
+                  <dt className="text-slate-400 font-medium mb-1">Fasilitas Pelayanan</dt>
+                  <dd className="font-medium text-slate-800 text-sm">Rumah Luka Borneo</dd>
+                  <span className="text-[10px] text-slate-400">WITA (UTC+8)</span>
                 </div>
               </dl>
             </div>
@@ -327,7 +419,7 @@ export default function KelolaPenggunaPage() {
           <div className="p-6 bg-slate-50/60 flex items-start gap-3 text-xs text-slate-600">
             <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
             <div className="leading-relaxed">
-              Seluruh asesmen luka, catatan CPPT, dan tindakan home care yang Anda buat terhubung langsung dengan tanda tangan digital akun ini. Klik tombol <strong>Ganti Password</strong> jika ingin memperbarui sandi login Anda.
+              Anda dapat memperbarui data pribadi seperti <strong>Nomor WhatsApp/HP, STR/NIP, dan Email</strong> secara mandiri melalui tombol <em>Ubah Data Saya</em>. ID Pengenal Sistem bersifat permanen demi menjaga audit trail rekam medis pasien.
             </div>
           </div>
         </div>
@@ -420,6 +512,17 @@ export default function KelolaPenggunaPage() {
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
                     />
                   </div>
+
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">No. WhatsApp / HP</label>
+                    <input
+                      type="text"
+                      value={noHp}
+                      onChange={(e) => setNoHp(e.target.value)}
+                      placeholder="Contoh: 0812-3456-7890"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
@@ -448,6 +551,7 @@ export default function KelolaPenggunaPage() {
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
                     <th className="py-3 px-4">Nama Lengkap & NIP</th>
+                    <th className="py-3 px-4">Kontak / No. HP</th>
                     <th className="py-3 px-4">Username</th>
                     <th className="py-3 px-4">Peran (Role)</th>
                     <th className="py-3 px-4">Status</th>
@@ -465,6 +569,10 @@ export default function KelolaPenggunaPage() {
                           <div className="text-[11px] text-slate-500 font-mono mt-0.5">
                             {u.strNip || 'Tanpa STR/NIP'}
                           </div>
+                        </td>
+
+                        <td className="py-3.5 px-4 font-mono text-slate-700">
+                          {u.noHp || '-'}
                         </td>
 
                         <td className="py-3.5 px-4 font-mono text-slate-700">
@@ -493,7 +601,7 @@ export default function KelolaPenggunaPage() {
                         <td className="py-3.5 px-4 text-center">
                           {isCurrent ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[10px] rounded-full">
-                              <Check className="w-3 h-3" /> Akun Aktif Anda
+                              <Check className="w-3 h-3" /> Akun Anda
                             </span>
                           ) : (
                             <span className="text-[11px] text-slate-400">Offline</span>
@@ -538,6 +646,137 @@ export default function KelolaPenggunaPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL / POPOUT UBAH DATA PRIBADI (Edit Nomor, Nama, Username, STR/NIP, Email) */}
+      {showEditProfileModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Ubah Data Profil Pribadi</h3>
+                  <p className="text-xs text-slate-500">ID Pengenal ({currentUser.id}) tidak dapat diubah</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEditProfileModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Feedback Alert */}
+            {profileFeedback && (
+              <div className={`p-3.5 rounded-lg text-xs flex items-start gap-2.5 ${
+                profileFeedback.type === 'success'
+                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                  : 'bg-rose-50 border border-rose-200 text-rose-800'
+              }`}>
+                {profileFeedback.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+                )}
+                <div className="leading-relaxed font-medium">{profileFeedback.message}</div>
+              </div>
+            )}
+
+            {/* Form Fields */}
+            <form onSubmit={handleSaveProfile} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Nama Lengkap & Gelar *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editNama}
+                  onChange={(e) => setEditNama(e.target.value)}
+                  placeholder="Nama Lengkap dengan Gelar"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Nomor STR / NIP Petugas
+                </label>
+                <input
+                  type="text"
+                  value={editStrNip}
+                  onChange={(e) => setEditStrNip(e.target.value)}
+                  placeholder="Contoh: 19870514 201101 1 003"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Nomor Telepon / WhatsApp
+                </label>
+                <input
+                  type="text"
+                  value={editNoHp}
+                  onChange={(e) => setEditNoHp(e.target.value)}
+                  placeholder="Contoh: 0812-5432-8891"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Alamat Email Resmi
+                </label>
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  placeholder="Contoh: hendra.wijaya@rumahluka.id"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Username Login *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
+                  placeholder="Username login"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-mono"
+                />
+              </div>
+
+              {/* Actions Footer */}
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEditProfileModal(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-lg transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Simpan Perubahan</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

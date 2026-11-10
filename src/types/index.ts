@@ -7,6 +7,8 @@ export interface User {
   password?: string;
   role: Role;
   strNip?: string;
+  noHp?: string;
+  email?: string;
   status: 'Aktif' | 'Nonaktif';
 }
 
