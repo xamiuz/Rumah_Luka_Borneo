@@ -165,4 +165,27 @@ export interface JadwalObatHomecare {
   catatanKhusus?: string;
 }
 
+// Rekomendasi Fitur Klinis Lanjutan
+export interface FotoPerkembanganLuka {
+  id: string;
+  pasienId: string;
+  tanggal: string; // YYYY-MM-DD
+  fase: 'Sebelum Tindakan' | 'Sesudah Debridement' | 'Setelah Balutan Selesai';
+  dataUrl: string; // Base64 data URL
+  catatan?: string;
+  perawat: string;
+}
+
+export interface ParafKunjunganHomecare {
+  id: string;
+  pasienId: string;
+  tanggal: string;
+  namaKeluarga: string;
+  hubungan: string; // e.g. "Istri Pasien", "Anak Pasien", "Pasien Sendiri"
+  signatureDataUrl: string; // Base64 canvas PNG
+  waktuTtd: string;
+  perawatJaga: string;
+}
+
+
 

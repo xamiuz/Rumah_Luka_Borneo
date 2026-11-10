@@ -5,7 +5,9 @@ import {
   CatatanCPPT,
   JadwalJagaHomecare,
   JadwalMakanHomecare,
-  JadwalObatHomecare 
+  JadwalObatHomecare,
+  FotoPerkembanganLuka,
+  ParafKunjunganHomecare 
 } from '@/types';
 
 export const INITIAL_USERS: User[] = [
@@ -481,5 +483,51 @@ export const INITIAL_HOMECARE_MEDS: JadwalObatHomecare[] = [
     catatanKhusus: 'Interval 12 jam dari dosis pagi.',
   },
 ];
+
+// Sample Foto Perkembangan Luka (Before - After)
+export const INITIAL_WOUND_PHOTOS: FotoPerkembanganLuka[] = [
+  {
+    id: 'FOTO-001',
+    pasienId: 'PAS-001',
+    tanggal: '2026-10-25',
+    fase: 'Sebelum Tindakan',
+    dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23f8fafc"/><rect x="40" y="40" width="320" height="220" rx="16" fill="%23fee2e2" stroke="%23ef4444" stroke-width="2"/><ellipse cx="200" cy="150" rx="90" ry="60" fill="%23b91c1c"/><ellipse cx="190" cy="145" rx="55" ry="35" fill="%23fef08a"/><text x="200" y="240" font-family="sans-serif" font-size="12" font-weight="bold" fill="%23991b1b" text-anchor="middle">Sebelum Tindakan: Slough Kuning 60%</text></svg>',
+    catatan: 'Kondisi awal ulkus diabetik pedis dextra: slough tebal kekuningan, maserasi tepi luka.',
+    perawat: 'Ns. Hendra Wijaya, S.Kep., CWCCA',
+  },
+  {
+    id: 'FOTO-002',
+    pasienId: 'PAS-001',
+    tanggal: '2026-11-02',
+    fase: 'Setelah Balutan Selesai',
+    dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23f8fafc"/><rect x="40" y="40" width="320" height="220" rx="16" fill="%23ecfdf5" stroke="%2310b981" stroke-width="2"/><ellipse cx="200" cy="150" rx="70" ry="45" fill="%23dc2626"/><ellipse cx="195" cy="148" rx="20" ry="12" fill="%23fef08a"/><ellipse cx="200" cy="150" rx="80" ry="55" fill="none" stroke="%23f472b6" stroke-width="4"/><text x="200" y="240" font-family="sans-serif" font-size="12" font-weight="bold" fill="%23065f46" text-anchor="middle">Evaluasi H-7: Granulasi 60%, Slough 30%, Epitel 10%</text></svg>',
+    catatan: 'Post sharp debridement hari ke-7: dasar luka memerah bersih (granulasi meningkat pesat).',
+    perawat: 'Ns. Hendra Wijaya, S.Kep., CWCCA',
+  },
+  {
+    id: 'FOTO-003',
+    pasienId: 'PAS-003',
+    tanggal: '2026-10-28',
+    fase: 'Sebelum Tindakan',
+    dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23f8fafc"/><rect x="40" y="40" width="320" height="220" rx="16" fill="%23fff7ed" stroke="%23f97316" stroke-width="2"/><ellipse cx="200" cy="150" rx="85" ry="60" fill="%239a3412"/><ellipse cx="190" cy="145" rx="40" ry="25" fill="%23020617"/><text x="200" y="240" font-family="sans-serif" font-size="12" font-weight="bold" fill="%239a3412" text-anchor="middle">Dekubitus Sakrum: Jaringan Nekrotik Hitam 10%</text></svg>',
+    catatan: 'Luka tekan dekubitus regio sakrum: terdapat eschar nekrotik hitam dan eksudat sedang.',
+    perawat: 'Ns. Maya Anjani, S.Kep',
+  },
+];
+
+// Sample Paraf Digital Kunjungan Home Care
+export const INITIAL_PARAF_HOMECARE: ParafKunjunganHomecare[] = [
+  {
+    id: 'PARAF-001',
+    pasienId: 'PAS-003',
+    tanggal: '2026-11-02',
+    namaKeluarga: 'Ibu Hj. Aminah Dahlan',
+    hubungan: 'Istri Pasien',
+    signatureDataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="100" viewBox="0 0 240 100"><path d="M 20 60 Q 60 20 90 70 T 160 30 T 210 65" fill="none" stroke="%231d4ed8" stroke-width="3" stroke-linecap="round"/></svg>',
+    waktuTtd: '08:15 WITA',
+    perawatJaga: 'Ns. Maya Anjani, S.Kep',
+  },
+];
+
 
 

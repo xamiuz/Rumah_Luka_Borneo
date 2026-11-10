@@ -10,7 +10,9 @@ import {
   Role,
   JadwalJagaHomecare,
   JadwalMakanHomecare,
-  JadwalObatHomecare 
+  JadwalObatHomecare,
+  FotoPerkembanganLuka,
+  ParafKunjunganHomecare 
 } from '@/types';
 import { 
   INITIAL_PATIENTS, 
@@ -19,7 +21,9 @@ import {
   INITIAL_CPPT,
   INITIAL_HOMECARE_JAGA,
   INITIAL_HOMECARE_MEALS,
-  INITIAL_HOMECARE_MEDS
+  INITIAL_HOMECARE_MEDS,
+  INITIAL_WOUND_PHOTOS,
+  INITIAL_PARAF_HOMECARE
 } from '@/lib/mock-data';
 
 interface ClinicContextType {
@@ -33,6 +37,8 @@ interface ClinicContextType {
   homecareJaga: JadwalJagaHomecare[];
   homecareMeals: JadwalMakanHomecare[];
   homecareMeds: JadwalObatHomecare[];
+  woundPhotos: FotoPerkembanganLuka[];
+  parafHomecare: ParafKunjunganHomecare[];
   addPatient: (patient: Omit<Pasien, 'id' | 'noRm' | 'tanggalDaftar'>) => Pasien;
   updatePatient: (id: string, updated: Partial<Pasien>) => void;
   addAssessment: (pasienId: string, assessment: Omit<AsesmenLuka, 'id' | 'tanggal'>) => AsesmenLuka;
@@ -49,6 +55,9 @@ interface ClinicContextType {
   addHomecareMed: (med: Omit<JadwalObatHomecare, 'id'>) => void;
   updateHomecareMed: (id: string, updated: Partial<JadwalObatHomecare>) => void;
   deleteHomecareMed: (id: string) => void;
+  addWoundPhoto: (photo: Omit<FotoPerkembanganLuka, 'id'>) => void;
+  deleteWoundPhoto: (id: string) => void;
+  addParafHomecare: (paraf: Omit<ParafKunjunganHomecare, 'id'>) => void;
   resetAllData: () => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -65,6 +74,8 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const [homecareJaga, setHomecareJaga] = useState<JadwalJagaHomecare[]>(INITIAL_HOMECARE_JAGA);
   const [homecareMeals, setHomecareMeals] = useState<JadwalMakanHomecare[]>(INITIAL_HOMECARE_MEALS);
   const [homecareMeds, setHomecareMeds] = useState<JadwalObatHomecare[]>(INITIAL_HOMECARE_MEDS);
+  const [woundPhotos, setWoundPhotos] = useState<FotoPerkembanganLuka[]>(INITIAL_WOUND_PHOTOS);
+  const [parafHomecare, setParafHomecare] = useState<ParafKunjunganHomecare[]>(INITIAL_PARAF_HOMECARE);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -91,6 +102,12 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
 
       const savedMeds = localStorage.getItem('rlb_hc_meds');
       if (savedMeds) setHomecareMeds(JSON.parse(savedMeds));
+
+      const savedPhotos = localStorage.getItem('rlb_wound_photos');
+      if (savedPhotos) setWoundPhotos(JSON.parse(savedPhotos));
+
+      const savedParaf = localStorage.getItem('rlb_paraf_homecare');
+      if (savedParaf) setParafHomecare(JSON.parse(savedParaf));
     } catch {
       // Fallback to initial data if error
     } finally {
@@ -109,10 +126,12 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('rlb_hc_jaga', JSON.stringify(homecareJaga));
       localStorage.setItem('rlb_hc_meals', JSON.stringify(homecareMeals));
       localStorage.setItem('rlb_hc_meds', JSON.stringify(homecareMeds));
+      localStorage.setItem('rlb_wound_photos', JSON.stringify(woundPhotos));
+      localStorage.setItem('rlb_paraf_homecare', JSON.stringify(parafHomecare));
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
-  }, [patients, schedules, cpptRecords, currentUser, homecareJaga, homecareMeals, homecareMeds, isLoaded]);
+  }, [patients, schedules, cpptRecords, currentUser, homecareJaga, homecareMeals, homecareMeds, woundPhotos, parafHomecare, isLoaded]);
 
   const switchRole = (role: Role) => {
     const found = users.find((u) => u.role === role) || {
@@ -275,6 +294,28 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setHomecareMeds((prev) => prev.filter((item) => item.id !== id));
   };
 
+  // Wound Photos Mutators
+  const addWoundPhoto = (data: Omit<FotoPerkembanganLuka, 'id'>) => {
+    const newPhoto: FotoPerkembanganLuka = {
+      ...data,
+      id: `FOTO-${Date.now()}`,
+    };
+    setWoundPhotos((prev) => [newPhoto, ...prev]);
+  };
+
+  const deleteWoundPhoto = (id: string) => {
+    setWoundPhotos((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  // Paraf Home Care Mutator
+  const addParafHomecare = (data: Omit<ParafKunjunganHomecare, 'id'>) => {
+    const newParaf: ParafKunjunganHomecare = {
+      ...data,
+      id: `PARAF-${Date.now()}`,
+    };
+    setParafHomecare((prev) => [newParaf, ...prev]);
+  };
+
   const resetAllData = () => {
     setPatients(INITIAL_PATIENTS);
     setSchedules(INITIAL_SCHEDULES);
@@ -282,6 +323,8 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setHomecareJaga(INITIAL_HOMECARE_JAGA);
     setHomecareMeals(INITIAL_HOMECARE_MEALS);
     setHomecareMeds(INITIAL_HOMECARE_MEDS);
+    setWoundPhotos(INITIAL_WOUND_PHOTOS);
+    setParafHomecare(INITIAL_PARAF_HOMECARE);
     setUsers(INITIAL_USERS);
     setCurrentUser(INITIAL_USERS[0]);
     localStorage.clear();
@@ -300,6 +343,8 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         homecareJaga,
         homecareMeals,
         homecareMeds,
+        woundPhotos,
+        parafHomecare,
         addPatient,
         updatePatient,
         addAssessment,
@@ -316,6 +361,9 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         addHomecareMed,
         updateHomecareMed,
         deleteHomecareMed,
+        addWoundPhoto,
+        deleteWoundPhoto,
+        addParafHomecare,
         resetAllData,
         searchTerm,
         setSearchTerm,

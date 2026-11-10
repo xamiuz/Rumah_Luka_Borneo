@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -15,15 +15,21 @@ import {
   ArrowLeft,
   ShieldAlert,
   Sliders,
-  FileText
+  FileText,
+  Camera,
+  UploadCloud,
+  AlertTriangle,
+  ImageIcon,
+  Trash2,
+  CheckCircle2
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
-import { TipeLuka } from '@/types';
+import { TipeLuka, FotoPerkembanganLuka } from '@/types';
 
 function AsesmenContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { patients, addAssessment, currentUser } = useClinic();
+  const { patients, addAssessment, currentUser, woundPhotos, addWoundPhoto, deleteWoundPhoto } = useClinic();
 
   const queryPasienId = searchParams.get('pasienId');
   const [selectedPasienId, setSelectedPasienId] = useState<string>(
@@ -35,6 +41,13 @@ function AsesmenContent() {
   }, [queryPasienId]);
 
   const selectedPatient = patients.find((p) => p.id === selectedPasienId);
+  const patientPhotos = woundPhotos.filter((p) => p.pasienId === selectedPasienId);
+
+  // Photo Upload State
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [photoFase, setPhotoFase] = useState<FotoPerkembanganLuka['fase']>('Sebelum Tindakan');
+  const [photoCatatan, setPhotoCatatan] = useState('');
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
 
   // Form State
   const [lokasiLuka, setLokasiLuka] = useState('Plantar Pedis Dextra (Kaki Kanan Bawah)');
@@ -79,6 +92,51 @@ function AsesmenContent() {
   const [targetEvaluasi, setTargetEvaluasi] = useState('Kontrol ganti balutan 3 hari lagi (target reduksi slough & maserasi)');
 
   const [isSaved, setIsSaved] = useState(false);
+
+  // Photo Upload Handler
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setPreviewPhoto(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSavePhoto = () => {
+    if (!selectedPatient || !previewPhoto) return;
+
+    addWoundPhoto({
+      pasienId: selectedPatient.id,
+      tanggal: new Date().toISOString().split('T')[0],
+      fase: photoFase,
+      dataUrl: previewPhoto,
+      catatan: photoCatatan || `Dokumentasi luka ${photoFase}`,
+      perawat: currentUser.nama,
+    });
+
+    setPreviewPhoto(null);
+    setPhotoCatatan('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // Real-time Clinical Safety Allergy Detector
+  const detectedAllergyKeyword = React.useMemo(() => {
+    if (!selectedPatient?.riwayatAlergi || selectedPatient.riwayatAlergi === 'Tidak Ada') return null;
+    const allergyLower = selectedPatient.riwayatAlergi.toLowerCase();
+    const dressingCombined = `${primaryDressing} ${secondaryDressing} ${cairanPencuci}`.toLowerCase();
+
+    const dangerKeywords = ['plester', 'karet', 'latex', 'lateks', 'iodine', 'betadine', 'penisilin', 'sulfa'];
+    for (const kw of dangerKeywords) {
+      if (allergyLower.includes(kw) && dressingCombined.includes(kw)) {
+        return kw;
+      }
+    }
+    return null;
+  }, [selectedPatient, primaryDressing, secondaryDressing, cairanPencuci]);
 
   const handleBodyMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -136,7 +194,7 @@ function AsesmenContent() {
   };
 
   return (
-    <div className="w-full px-8 py-6 space-y-6">
+    <div className="w-full px-4 sm:px-6 py-5 space-y-5">
       {/* Patient Selector Bar */}
       <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -276,6 +334,129 @@ function AsesmenContent() {
                   onChange={(e) => setSkorNyeri(Number(e.target.value))}
                   className="w-full accent-blue-900 cursor-pointer"
                 />
+              </div>
+            </div>
+
+            {/* Card Galeri Foto Perkembangan Luka (Before-After) */}
+            <div className="bg-white p-6 rounded-xl border border-slate-200/80 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-blue-600" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Foto Perkembangan Luka (Before-After)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-mono font-bold bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">
+                  {patientPhotos.length} Foto
+                </span>
+              </div>
+
+              {/* Upload & Capture Input */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="text-xs file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                  />
+                </div>
+
+                {previewPhoto && (
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                    <div className="text-[11px] font-semibold text-slate-700">Preview Foto Baru:</div>
+                    <div className="relative h-40 w-full rounded-md overflow-hidden bg-slate-900/5 border border-slate-200 flex items-center justify-center">
+                      <img src={previewPhoto} alt="Preview Luka" className="max-h-full max-w-full object-contain" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Fase Dokumentasi:</label>
+                        <select
+                          value={photoFase}
+                          onChange={(e) => setPhotoFase(e.target.value as any)}
+                          className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                        >
+                          <option value="Sebelum Tindakan">Sebelum Tindakan</option>
+                          <option value="Sesudah Debridement">Sesudah Debridement</option>
+                          <option value="Setelah Balutan Selesai">Setelah Balutan Selesai</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Catatan Foto:</label>
+                        <input
+                          type="text"
+                          value={photoCatatan}
+                          onChange={(e) => setPhotoCatatan(e.target.value)}
+                          placeholder="Misal: Slough diangkat 50%..."
+                          className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewPhoto(null)}
+                        className="px-2.5 py-1 text-[11px] text-slate-600 hover:bg-slate-200 rounded"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSavePhoto}
+                        className="px-3 py-1 text-[11px] bg-blue-600 text-white font-bold rounded hover:bg-blue-700 shadow-xs flex items-center gap-1"
+                      >
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>Simpan Foto ke Galeri</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Photo Timeline / Gallery */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Riwayat Visual Luka Pasien:
+                </span>
+                {patientPhotos.length === 0 ? (
+                  <div className="text-center py-6 text-slate-400 text-xs">
+                    Belum ada foto luka yang diunggah untuk pasien ini.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2.5 max-h-60 overflow-y-auto">
+                    {patientPhotos.map((photo) => (
+                      <div key={photo.id} className="p-2 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1.5 relative group">
+                        <div className="h-28 rounded bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                          <img src={photo.dataUrl} alt={photo.fase} className="max-h-full max-w-full object-contain" />
+                        </div>
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className={`px-1.5 py-0.2 rounded font-bold ${
+                            photo.fase === 'Sebelum Tindakan' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            {photo.fase}
+                          </span>
+                          <span className="text-slate-400 font-mono">{photo.tanggal}</span>
+                        </div>
+                        {photo.catatan && (
+                          <p className="text-[10px] text-slate-600 truncate" title={photo.catatan}>
+                            {photo.catatan}
+                          </p>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => deleteWoundPhoto(photo.id)}
+                          className="absolute top-3 right-3 p-1 bg-white/90 text-slate-400 hover:text-rose-600 rounded shadow-xs opacity-0 group-hover:opacity-100 transition"
+                          title="Hapus Foto"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -517,10 +698,40 @@ function AsesmenContent() {
 
             {/* Card 3: Resep Dressing Modern & Rencana Tindakan */}
             <div className="bg-white p-6 rounded-xl border border-slate-200/80 shadow-xs space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-bold text-slate-900">Resep Modern Dressing & Rencana Tindakan</h3>
-                <p className="text-xs text-slate-500">Pemberian cairan pencuci, debridement, dan balutan luka primer/sekunder</p>
+              <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Resep Modern Dressing & Rencana Tindakan</h3>
+                  <p className="text-xs text-slate-500">Pemberian cairan pencuci, debridement, dan balutan luka primer/sekunder</p>
+                </div>
               </div>
+
+              {/* Real-time Clinical Safety Alert Guard */}
+              {detectedAllergyKeyword ? (
+                <div className="p-4 bg-rose-50 border-2 border-rose-500 rounded-xl flex items-start gap-3 shadow-xs animate-in zoom-in-95 duration-150">
+                  <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h5 className="text-xs font-black text-rose-900 uppercase tracking-wide flex items-center gap-2">
+                      <span>PERINGATAN BAHAYA ALERGI PASIEN!</span>
+                      <span className="bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded font-mono font-bold">
+                        DANGER
+                      </span>
+                    </h5>
+                    <p className="text-[11px] text-rose-800 mt-1 leading-snug">
+                      Terdeteksi kata kunci <strong>&quot;{detectedAllergyKeyword.toUpperCase()}&quot;</strong> pada resep balutan Anda! Pasien ini memiliki riwayat alergi: <strong>{selectedPatient?.riwayatAlergi}</strong>.
+                    </p>
+                    <p className="text-[10px] text-rose-700 font-semibold mt-1 bg-white/70 p-2 rounded border border-rose-200">
+                      Rekomendasi Aman: Ganti perekat karet dengan <strong>Silicone Adhesive Border Foam</strong> atau fiksasi <strong>Kasa Gulung Non-Adhesive / Tubular Bandage</strong> untuk mencegah kulit melepuh dan maserasi parah.
+                    </p>
+                  </div>
+                </div>
+              ) : selectedPatient?.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada' ? (
+                <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-lg flex items-center gap-2 text-xs text-amber-900">
+                  <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span>
+                    <strong>Peringatan Pasien Berisiko:</strong> Pasien tercatat alergi terhadap <strong>{selectedPatient.riwayatAlergi}</strong>. Pastikan tidak meresepkan plester/balutan dengan perekat karet atau bahan pemicu.
+                  </span>
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
