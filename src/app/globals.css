@@ -43,12 +43,48 @@
 }
 
 @media print {
-  .no-print, aside, header, nav, button {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 12mm 12mm;
+  }
+  
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print, aside, header, nav, button, input, .no-print-area {
     display: none !important;
   }
+
   main {
     margin: 0 !important;
     padding: 0 !important;
     max-width: 100% !important;
+    background: #ffffff !important;
+  }
+
+  /* Force document print view to be visible during print */
+  .print-only-document {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .print-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .print-avoid-break, tr, table {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }
