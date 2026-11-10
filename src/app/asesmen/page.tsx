@@ -20,7 +20,9 @@ import {
   AlertTriangle,
   ImageIcon,
   Trash2,
-  CheckCircle2
+  CheckCircle2,
+  Search,
+  ChevronRight
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 import { TipeLuka, FotoPerkembanganLuka, TitikLukaPeta } from '@/types';
@@ -42,6 +44,32 @@ function AsesmenContent() {
 
   const selectedPatient = patients.find((p) => p.id === selectedPasienId);
   const patientPhotos = woundPhotos.filter((p) => p.pasienId === selectedPasienId);
+
+  // Combobox Search State
+  const [patientSearchQuery, setPatientSearchQuery] = useState('');
+  const [isPatientDropdownOpen, setIsPatientDropdownOpen] = useState(false);
+  const patientDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Close dropdown when clicked outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (patientDropdownRef.current && !patientDropdownRef.current.contains(event.target as Node)) {
+        setIsPatientDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredPatients = patients.filter((p) => {
+    const q = patientSearchQuery.toLowerCase();
+    return (
+      p.nama.toLowerCase().includes(q) ||
+      p.noRm.toLowerCase().includes(q) ||
+      (p.nik && p.nik.includes(q)) ||
+      (p.diagnosisMedisUtama && p.diagnosisMedisUtama.toLowerCase().includes(q))
+    );
+  });
 
   // Photo Upload State
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -103,6 +131,144 @@ function AsesmenContent() {
   const [targetEvaluasi, setTargetEvaluasi] = useState('Kontrol ganti balutan 3 hari lagi (target reduksi slough & maserasi)');
 
   const [isSaved, setIsSaved] = useState(false);
+
+  // Synchronize anatomical map & clinical assessment fields dynamically when patient changes
+  useEffect(() => {
+    if (!selectedPatient) return;
+
+    const asm = selectedPatient.asesmenTerakhir;
+    if (asm) {
+      setLokasiLuka(asm.lokasiLuka);
+      if (asm.daftarTitikLuka && asm.daftarTitikLuka.length > 0) {
+        setTitikLukaList(asm.daftarTitikLuka);
+        setActiveTitikId(asm.daftarTitikLuka[0].id);
+      } else {
+        const view: 'foot' | 'anterior' | 'posterior' =
+          asm.lokasiKoordinat?.view ||
+          (asm.lokasiLuka.toLowerCase().includes('pedis') ||
+          asm.lokasiLuka.toLowerCase().includes('kaki') ||
+          asm.lokasiLuka.toLowerCase().includes('tumit')
+            ? 'foot'
+            : asm.lokasiLuka.toLowerCase().includes('sakrum') ||
+              asm.lokasiLuka.toLowerCase().includes('punggung') ||
+              asm.lokasiLuka.toLowerCase().includes('pantat') ||
+              asm.lokasiLuka.toLowerCase().includes('gluteal')
+            ? 'posterior'
+            : 'anterior');
+        const newPin: TitikLukaPeta = {
+          id: `PIN-${selectedPatient.id}-1`,
+          nomor: 1,
+          label: 'Luka Utama',
+          view,
+          x: asm.lokasiKoordinat?.x ?? 50,
+          y: asm.lokasiKoordinat?.y ?? 50,
+          regioAnatomi: asm.lokasiLuka,
+        };
+        setTitikLukaList([newPin]);
+        setActiveTitikId(newPin.id);
+      }
+
+      setTipeLuka(asm.tipeLuka);
+      setStadiumLuka(asm.stadiumLuka);
+      setPanjangCm(asm.ukuran.panjangCm);
+      setLebarCm(asm.ukuran.lebarCm);
+      setKedalamanMm(asm.ukuran.kedalamanMm);
+      setUnderminingCm(asm.ukuran.underminingGoaCm ?? 0);
+
+      setGranulasi(asm.dasarLuka.persenGranulasi);
+      setSlough(asm.dasarLuka.persenSlough);
+      setNekrotik(asm.dasarLuka.persenNekrotik);
+      setEpitelisasi(asm.dasarLuka.persenEpitelisasi);
+
+      setEksudatJumlah(asm.eksudat.jumlah);
+      setEksudatWarna(asm.eksudat.warna);
+      setEksudatBau(asm.eksudat.bau);
+
+      setKulitSekitar(asm.kulitSekitar);
+      setTepiLuka(asm.tepiLuka);
+      setTandaInfeksi(asm.tandaInfeksi);
+      setSkorNyeri(asm.skorNyeri);
+
+      setCairanPencuci(asm.tindakanWoundCare.cairanPencuci);
+      setTeknikDebridement(asm.tindakanWoundCare.teknikDebridement);
+      setPrimaryDressing(asm.tindakanWoundCare.primaryDressing);
+      setSecondaryDressing(asm.tindakanWoundCare.secondaryDressing);
+      setTargetEvaluasi(asm.targetEvaluasi);
+    } else {
+      // Intelligent fallback derived from diagnosisMedisUtama
+      const diag = (selectedPatient.diagnosisMedisUtama || '').toLowerCase();
+      let defaultView: 'foot' | 'anterior' | 'posterior' = 'anterior';
+      let defaultTipe: TipeLuka = 'Luka Trauma / Laserasi';
+      let defaultStadium = 'Superficial Partial-Thickness';
+      let defaultLokasi = 'Extremitas Superior Sinistra (Lengan Kiri)';
+      let defX = 24;
+      let defY = 45;
+
+      if (diag.includes('diabet') || diag.includes('pedis') || diag.includes('kaki') || diag.includes('foot')) {
+        defaultView = 'foot';
+        defaultTipe = 'Ulkus Diabetikum (Diabetic Foot)';
+        defaultStadium = 'Wagner Grade 2';
+        defaultLokasi = 'Plantar Pedis Dextra (Telapak Kaki Kanan)';
+        defX = 74;
+        defY = 78;
+      } else if (diag.includes('sakrum') || diag.includes('decubitus') || diag.includes('pressure') || diag.includes('tekan')) {
+        defaultView = 'posterior';
+        defaultTipe = 'Luka Tekan (Pressure Injury / Decubitus)';
+        defaultStadium = 'Stadium 2 (Hilangnya sebagian ketebalan kulit)';
+        defaultLokasi = 'Regio Sakrum / Os Koksi (Dekubitus)';
+        defX = 50;
+        defY = 48;
+      } else if (diag.includes('venos') || diag.includes('cruris') || diag.includes('betis')) {
+        defaultView = 'anterior';
+        defaultTipe = 'Ulkus Venosum / Arteriosum';
+        defaultStadium = 'Superficial Full-Thickness Dermis';
+        defaultLokasi = 'Regio Cruris Anterior Sinistra (Betis Depan Kiri)';
+        defX = 42;
+        defY = 78;
+      }
+
+      const newPin: TitikLukaPeta = {
+        id: `PIN-${selectedPatient.id}-1`,
+        nomor: 1,
+        label: 'Luka Utama',
+        view: defaultView,
+        x: defX,
+        y: defY,
+        regioAnatomi: defaultLokasi,
+      };
+      setTitikLukaList([newPin]);
+      setActiveTitikId(newPin.id);
+      setLokasiLuka(defaultLokasi);
+      setTipeLuka(defaultTipe);
+      setStadiumLuka(defaultStadium);
+      setPanjangCm(3.0);
+      setLebarCm(2.0);
+      setKedalamanMm(3);
+      setUnderminingCm(0);
+      setGranulasi(80);
+      setSlough(10);
+      setNekrotik(0);
+      setEpitelisasi(10);
+      setEksudatJumlah('Sedikit');
+      setEksudatWarna('Serous');
+      setEksudatBau('Tidak Berbau');
+      setKulitSekitar('Sehat');
+      setTepiLuka('Menyatu');
+      setTandaInfeksi({
+        dolorNyeri: true,
+        calorHangat: false,
+        ruborKemerahan: true,
+        tumorBengkak: false,
+        functioLaesa: false,
+      });
+      setSkorNyeri(2);
+      setCairanPencuci('NaCl 0.9% steril irigasi lembut');
+      setTeknikDebridement('Mechanical cleansing & debridement tepi luka');
+      setPrimaryDressing('Hydrogel dressing + Non-adherent wound contact layer');
+      setSecondaryDressing('Sterile gauze pad + cohesive bandage');
+      setTargetEvaluasi('Penutupan epitelial tepi luka dalam 5 hari');
+    }
+  }, [selectedPasienId, selectedPatient]);
 
   // Photo Upload Handler
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,21 +368,95 @@ function AsesmenContent() {
 
   return (
     <div className="w-full px-4 sm:px-6 py-5 space-y-5">
-      {/* Patient Selector Bar */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <label className="text-xs font-bold text-slate-700 whitespace-nowrap">Pilih Pasien Pemeriksaan:</label>
-          <select
-            value={selectedPasienId}
-            onChange={(e) => setSelectedPasienId(e.target.value)}
-            className="text-xs font-semibold px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 bg-slate-50 text-slate-800 min-w-[280px]"
+      {/* Patient Selector Bar with Searchable Combobox */}
+      <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="relative w-full lg:w-[480px]" ref={patientDropdownRef}>
+          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+            Pilih Pasien Pemeriksaan:
+          </label>
+          
+          <button
+            type="button"
+            onClick={() => setIsPatientDropdownOpen(!isPatientDropdownOpen)}
+            className="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl text-xs transition flex items-center justify-between gap-2 cursor-pointer shadow-2xs"
           >
-            {patients.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nama} ({p.noRm}) - {p.diagnosisMedisUtama}
-              </option>
-            ))}
-          </select>
+            {selectedPatient ? (
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 truncate">{selectedPatient.nama}</span>
+                  <span className="font-mono text-[11px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 shrink-0">
+                    {selectedPatient.noRm}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                  {selectedPatient.diagnosisMedisUtama}
+                </p>
+              </div>
+            ) : (
+              <span className="text-slate-400">Pilih pasien untuk asesmen luka...</span>
+            )}
+            <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${isPatientDropdownOpen ? 'rotate-90' : ''}`} />
+          </button>
+
+          {/* Search Dropdown Popover */}
+          {isPatientDropdownOpen && (
+            <div className="absolute top-full left-0 mt-1.5 w-full bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+              {/* Quick Filter Search Box */}
+              <div className="p-2.5 border-b border-slate-100 bg-slate-50/70">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Ketik Nama, No. RM, NIK, atau Diagnosis..."
+                    value={patientSearchQuery}
+                    onChange={(e) => setPatientSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600 text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Patient List */}
+              <div className="max-h-60 overflow-y-auto divide-y divide-slate-100">
+                {filteredPatients.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-slate-400">
+                    Tidak ditemukan pasien dengan kata kunci &quot;{patientSearchQuery}&quot;
+                  </div>
+                ) : (
+                  filteredPatients.map((p) => {
+                    const isSelected = p.id === selectedPasienId;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPasienId(p.id);
+                          setIsPatientDropdownOpen(false);
+                          setPatientSearchQuery('');
+                        }}
+                        className={`w-full text-left px-3.5 py-2.5 hover:bg-blue-50/60 transition flex items-center justify-between gap-3 text-xs ${
+                          isSelected ? 'bg-blue-50/80 font-bold' : ''
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-900 truncate">{p.nama}</span>
+                            <span className="font-mono text-[10px] text-blue-700 bg-blue-100/60 px-1.5 py-0.5 rounded">
+                              {p.noRm}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                            {p.diagnosisMedisUtama}
+                          </p>
+                        </div>
+                        {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {selectedPatient && (

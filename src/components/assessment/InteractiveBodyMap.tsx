@@ -36,6 +36,13 @@ export function InteractiveBodyMap({
   // Active pin reference
   const activePin = titikLukaList.find((p) => p.id === activeTitikId) || titikLukaList[0];
 
+  // Auto-sync activeView when activePin or its perspective view changes
+  React.useEffect(() => {
+    if (activePin?.view && activePin.view !== activeView) {
+      setActiveView(activePin.view);
+    }
+  }, [activePin?.id, activePin?.view]);
+
   // Auto-detect anatomical region based on view and (x, y) %
   const detectRegion = (view: 'anterior' | 'posterior' | 'foot', x: number, y: number): string => {
     if (view === 'foot') {
@@ -205,7 +212,14 @@ export function InteractiveBodyMap({
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold self-start sm:self-auto">
           <button
             type="button"
-            onClick={() => setActiveView('foot')}
+            onClick={() => {
+              setActiveView('foot');
+              if (activePin) {
+                onTitikLukaListChange(
+                  titikLukaList.map((p) => (p.id === activePin.id ? { ...p, view: 'foot' } : p))
+                );
+              }
+            }}
             className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 text-[11px] ${
               activeView === 'foot'
                 ? 'bg-blue-600 text-white shadow-xs font-bold'
@@ -217,7 +231,14 @@ export function InteractiveBodyMap({
           </button>
           <button
             type="button"
-            onClick={() => setActiveView('anterior')}
+            onClick={() => {
+              setActiveView('anterior');
+              if (activePin) {
+                onTitikLukaListChange(
+                  titikLukaList.map((p) => (p.id === activePin.id ? { ...p, view: 'anterior' } : p))
+                );
+              }
+            }}
             className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 text-[11px] ${
               activeView === 'anterior'
                 ? 'bg-blue-600 text-white shadow-xs font-bold'
@@ -229,7 +250,14 @@ export function InteractiveBodyMap({
           </button>
           <button
             type="button"
-            onClick={() => setActiveView('posterior')}
+            onClick={() => {
+              setActiveView('posterior');
+              if (activePin) {
+                onTitikLukaListChange(
+                  titikLukaList.map((p) => (p.id === activePin.id ? { ...p, view: 'posterior' } : p))
+                );
+              }
+            }}
             className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 text-[11px] ${
               activeView === 'posterior'
                 ? 'bg-blue-600 text-white shadow-xs font-bold'
