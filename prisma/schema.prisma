@@ -1,0 +1,274 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Pengguna & Tenaga Medis (Admin, Dokter, Perawat)
+model User {
+  id        String   @id @default(cuid())
+  nama      String
+  username  String   @unique
+  role      String   // Admin, Dokter, Perawat, Petugas Administrasi
+  strNip    String?
+  status    String   @default("Aktif") // Aktif, Nonaktif
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+// 2. Data Pasien
+model Pasien {
+  id                  String   @id @default(cuid())
+  noRm                String   @unique // Format: RM-2026-XXXX
+  nik                 String   @unique
+  nama                String
+  tanggalLahir        String
+  jenisKelamin        String   // Laki-laki, Perempuan
+  alamat              String   @db.Text
+  noHp                String
+  pekerjaan           String
+  golonganDarah       String   @default("O")
+  riwayatPenyakit     String   @default("[]") // JSON string array
+  riwayatAlergi       String?
+  statusKunjungan     String   @default("Antrean") // Antrean, Sedang Diperiksa, Selesai, Jadwal Kontrol
+  tanggalDaftar       String
+  diagnosisMedisUtama String   @db.Text
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relasi
+  asesmenList       AsesmenLuka[]
+  cpptList          CatatanCPPT[]
+  jadwalList        JadwalPerawatan[]
+  homecareJagaList  HomecareJaga[]
+  homecareMealList  HomecareMeal[]
+  homecareMedList   HomecareMed[]
+  homecareParafList HomecareParaf[]
+  fotoLukaList      FotoLuka[]
+
+  @@map("pasien")
+}
+
+// 3. Asesmen Klinis Perkembangan Luka Modern (TIME Protocol)
+model AsesmenLuka {
+  id                    String   @id @default(cuid())
+  pasienId              String
+  tanggal               DateTime @default(now())
+  perawatPemeriksa      String
+  lokasiLuka            String   @db.Text
+  lokasiKoordinatX      Float?
+  lokasiKoordinatY      Float?
+  lokasiView            String?  // anterior, posterior, foot
+  tipeLuka              String
+  stadiumLuka           String
+  
+  // Dimensi
+  panjangCm             Float
+  lebarCm               Float
+  kedalamanMm           Float
+  underminingCm         Float?   @default(0)
+
+  // TIME Tissue Bed (%)
+  persenGranulasi       Int      @default(0)
+  persenSlough          Int      @default(0)
+  persenNekrotik        Int      @default(0)
+  persenEpitelisasi     Int      @default(0)
+
+  // Eksudat & Peri-wound
+  eksudatJumlah         String   @default("Sedikit")
+  eksudatWarna          String   @default("Serous")
+  eksudatBau            String   @default("Khas")
+  kulitSekitar          String   @default("Sehat")
+  tepiLuka              String   @default("Menyatu")
+
+  // Tanda Infeksi Lokal
+  dolorNyeri            Boolean  @default(false)
+  calorHangat           Boolean  @default(false)
+  ruborKemerahan        Boolean  @default(false)
+  tumorBengkak          Boolean  @default(false)
+  functioLaesa          Boolean  @default(false)
+  skorNyeri             Int      @default(0) // 0-10 VAS
+
+  // Tindakan & Balutan
+  cairanPencuci         String   @db.Text
+  teknikDebridement     String   @db.Text
+  primaryDressing       String   @db.Text
+  secondaryDressing     String   @db.Text
+  terapiTambahan        String?  @db.Text
+  intervensiKeperawatan String   @db.Text
+  targetEvaluasi        String   @db.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relasi
+  pasien                Pasien   @relation(fields: [pasienId], references: [id], onDelete: Cascade)
+  titikLukaList         TitikLuka[]
+
+  @@map("asesmen_luka")
+}
+
+// 4. Titik Koordinat Luka Interaktif (Multi-Wound)
+model TitikLuka {
+  id           String      @id @default(cuid())
+  asesmenId    String
+  nomor        Int         @default(1)
+  label        String
+  view         String      // anterior, posterior, foot
+  x            Float
+  y            Float
+  regioAnatomi String      @db.Text
+  createdAt    DateTime    @default(now())
+
+  // Relasi
+  asesmen      AsesmenLuka @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
+
+  @@map("titik_luka")
+}
+
+// 5. Galeri Foto Perkembangan Luka (Before-After)
+model FotoLuka {
+  id        String   @id @default(cuid())
+  pasienId  String
+  tanggal   String
+  fase      String   // Sebelum Tindakan, Sesudah Debridement, Setelah Balutan Selesai
+  dataUrl   String   @db.LongText
+  catatan   String?  @db.Text
+  perawat   String
+  createdAt DateTime @default(now())
+
+  // Relasi
+  pasien    Pasien   @relation(fields: [pasienId], references: [id], onDelete: Cascade)
+
+  @@map("foto_luka")
+}
+
+// 6. Catatan Perkembangan Pasien Terintegrasi (CPPT SOAP)
+model CatatanCPPT {
+  id              String   @id @default(cuid())
+  pasienId        String
+  tanggalWaktu    String
+  profesi         String   // Dokter, Perawat
+  namaTenagaMedis String
+  subjective      String   @db.Text
+  objective       String   @db.Text
+  assessment      String   @db.Text
+  plan            String   @db.Text
+  instruksiPPA    String   @db.Text
+  createdAt       DateTime @default(now())
+
+  // Relasi
+  pasien          Pasien   @relation(fields: [pasienId], references: [id], onDelete: Cascade)
+
+  @@map("catatan_cppt")
+}
+
+// 7. Jadwal Pelayanan Klinik & Kontrol
+model JadwalPerawatan {
+  id            String   @id @default(cuid())
+  pasienId      String
+  namaPasien    String
+  noRm          String
+  tanggalJadwal String
+  jam           String
+  jenisLayanan  String   // Wound Care Klinik, Home Care, Khitan
+  namaPerawat   String
+  status        String   @default("Menunggu") // Menunggu, Dikonfirmasi, Selesai, Batal
+  catatan       String?  @db.Text
+  createdAt     DateTime @default(now())
+
+  // Relasi
+  pasien       Pasien   @relation(fields: [pasienId], references: [id], onDelete: Cascade)
+
+  @@map("jadwal_perawatan")
+}
+
+// 8. Home Care: Jadwal Penugasan Jaga Perawat (Input oleh Admin)
+model HomecareJaga {
+  id               String   @id @default(cuid())
+  pasienId         String
+  namaPasien       String
+  noRm             String
+  alamatPasien     String   @db.Text
+  tanggal          String
+  shift            String
+  perawatJaga      String
+  perawatPengganti String?
+  statusJaga       String   @default("Terjadwal")
+  catatanAdmin     String?  @db.Text
+  createdBy        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relasi
+  pasien           Pasien   @relation(fields: [pasienId], references: [id], onDelete: Cascade)
+
+  @@map("homecare_jaga")
+}
+
+// 9. Home Care: Jadwal Makan & Nutrisi Pasien (Input oleh Perawat)
+model HomecareMeal {
+  id            String   @id @default(cuid())
+  pasienId      String
+  tanggal       String
+  waktuMakan    String
+  menuDiet      String   @db.Text
+  targetNutrisi String?  @db.Text
+  porsiDimakan  String
+  status        String   @default("Belum Diberikan")
+  jamRealisasi  String?
+  perawatInput  String
+  catatan       String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relasi
+  pasien        Pasien   @relation(fields: [pasienId], references: [id], onDelete: Cascade)
+
+  @@map("homecare_meal")
+}
+
+// 10. Home Care: Jadwal Obat & MAR (Input oleh Perawat)
+model HomecareMed {
+  id            String   @id @default(cuid())
+  pasienId      String
+  tanggal       String
+  jamObat       String
+  namaObat      String
+  dosisRute     String
+  aturanMinum   String   @default("Sesudah Makan")
+  status        String   @default("Belum Diminum")
+  jamDiminum    String?
+  perawatInput  String
+  catatanKhusus String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relasi
+  pasien        Pasien   @relation(fields: [pasienId], references: [id], onDelete: Cascade)
+
+  @@map("homecare_med")
+}
+
+// 11. Home Care: Paraf & Tanda Tangan Digital Keluarga Pasien
+model HomecareParaf {
+  id               String   @id @default(cuid())
+  pasienId         String
+  tanggal          String
+  namaKeluarga     String
+  hubungan         String
+  signatureDataUrl String   @db.LongText
+  waktuTtd         String
+  perawatJaga      String
+  createdAt        DateTime @default(now())
+
+  // Relasi
+  pasien           Pasien   @relation(fields: [pasienId], references: [id], onDelete: Cascade)
+
+  @@map("homecare_paraf")
+}
+

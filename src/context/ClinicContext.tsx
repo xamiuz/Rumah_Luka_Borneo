@@ -39,6 +39,8 @@ interface ClinicContextType {
   homecareMeds: JadwalObatHomecare[];
   woundPhotos: FotoPerkembanganLuka[];
   parafHomecare: ParafKunjunganHomecare[];
+  dbStatus: 'connected' | 'offline' | 'checking';
+  refreshDb: () => Promise<void>;
   addPatient: (patient: Omit<Pasien, 'id' | 'noRm' | 'tanggalDaftar'>) => Pasien;
   updatePatient: (id: string, updated: Partial<Pasien>) => void;
   addAssessment: (pasienId: string, assessment: Omit<AsesmenLuka, 'id' | 'tanggal'>) => AsesmenLuka;
@@ -78,9 +80,51 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const [parafHomecare, setParafHomecare] = useState<ParafKunjunganHomecare[]>(INITIAL_PARAF_HOMECARE);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [dbStatus, setDbStatus] = useState<'connected' | 'offline' | 'checking'>('checking');
 
-  // Load from localStorage on mount
-  useEffect(() => {
+  // Load data function: checks MySQL first, falls back to localStorage
+  const refreshDb = async () => {
+    try {
+      const healthRes = await fetch('/api/health');
+      const healthData = await healthRes.json();
+
+      if (healthData.status === 'connected') {
+        setDbStatus('connected');
+        // Load from MySQL
+        const [pasienRes, cpptRes, jadwalRes, hcRes] = await Promise.all([
+          fetch('/api/pasien').then((r) => r.json()).catch(() => null),
+          fetch('/api/cppt').then((r) => r.json()).catch(() => null),
+          fetch('/api/jadwal').then((r) => r.json()).catch(() => null),
+          fetch('/api/homecare').then((r) => r.json()).catch(() => null),
+        ]);
+
+        if (pasienRes?.success && pasienRes.data?.length > 0) {
+          setPatients(pasienRes.data);
+        }
+        if (cpptRes?.success && cpptRes.data?.length > 0) {
+          setCpptRecords(cpptRes.data);
+        }
+        if (jadwalRes?.success && jadwalRes.data?.length > 0) {
+          setSchedules(jadwalRes.data);
+        }
+        if (hcRes?.success && hcRes.data) {
+          if (hcRes.data.jaga?.length > 0) setHomecareJaga(hcRes.data.jaga);
+          if (hcRes.data.meals?.length > 0) setHomecareMeals(hcRes.data.meals);
+          if (hcRes.data.meds?.length > 0) setHomecareMeds(hcRes.data.meds);
+          if (hcRes.data.photos?.length > 0) setWoundPhotos(hcRes.data.photos);
+          if (hcRes.data.paraf?.length > 0) setParafHomecare(hcRes.data.paraf);
+        }
+      } else {
+        setDbStatus('offline');
+        loadFromLocalStorage();
+      }
+    } catch {
+      setDbStatus('offline');
+      loadFromLocalStorage();
+    }
+  };
+
+  const loadFromLocalStorage = () => {
     try {
       const savedPatients = localStorage.getItem('rlb_patients');
       if (savedPatients) setPatients(JSON.parse(savedPatients));
@@ -110,12 +154,15 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       if (savedParaf) setParafHomecare(JSON.parse(savedParaf));
     } catch {
       // Fallback to initial data if error
-    } finally {
-      setIsLoaded(true);
     }
+  };
+
+  // On initial mount
+  useEffect(() => {
+    refreshDb().finally(() => setIsLoaded(true));
   }, []);
 
-  // Save changes to localStorage
+  // Sync to localStorage as offline safety backup
   useEffect(() => {
     if (!isLoaded) return;
     try {
@@ -156,6 +203,14 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     };
 
     setPatients((prev) => [newPatient, ...prev]);
+
+    // Sync to MySQL API
+    fetch('/api/pasien', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newPatient),
+    }).catch(() => {});
+
     return newPatient;
   };
 
@@ -204,6 +259,17 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
 
     setCpptRecords((prev) => [autoCPPT, ...prev]);
 
+    // Sync Asesmen & CPPT to MySQL API
+    fetch('/api/asesmen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pasienId,
+        assessmentData,
+        perawat: currentUser.nama,
+      }),
+    }).catch(() => {});
+
     return newAssessment;
   };
 
@@ -214,6 +280,12 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       tanggalWaktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
     };
     setCpptRecords((prev) => [newRecord, ...prev]);
+
+    fetch('/api/cppt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRecord),
+    }).catch(() => {});
   };
 
   const addSchedule = (data: Omit<JadwalPerawatan, 'id'>) => {
@@ -222,12 +294,24 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       id: `SCH-${Date.now()}`,
     };
     setSchedules((prev) => [newSchedule, ...prev]);
+
+    fetch('/api/jadwal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newSchedule),
+    }).catch(() => {});
   };
 
   const updateScheduleStatus = (id: string, status: JadwalPerawatan['status']) => {
     setSchedules((prev) =>
       prev.map((s) => (s.id === id ? { ...s, status } : s))
     );
+
+    fetch('/api/jadwal', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    }).catch(() => {});
   };
 
   const deletePatient = (id: string) => {
@@ -237,6 +321,8 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setHomecareJaga((prev) => prev.filter((j) => j.pasienId !== id));
     setHomecareMeals((prev) => prev.filter((m) => m.pasienId !== id));
     setHomecareMeds((prev) => prev.filter((m) => m.pasienId !== id));
+
+    fetch(`/api/pasien?id=${id}`, { method: 'DELETE' }).catch(() => {});
   };
 
   // Home Care Mutators
@@ -246,16 +332,34 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       id: `HC-JAGA-${Date.now()}`,
     };
     setHomecareJaga((prev) => [newJaga, ...prev]);
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addJaga', payload: newJaga }),
+    }).catch(() => {});
   };
 
   const updateHomecareJaga = (id: string, updated: Partial<JadwalJagaHomecare>) => {
     setHomecareJaga((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
     );
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateJaga', payload: { id, data: updated } }),
+    }).catch(() => {});
   };
 
   const deleteHomecareJaga = (id: string) => {
     setHomecareJaga((prev) => prev.filter((item) => item.id !== id));
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteJaga', payload: { id } }),
+    }).catch(() => {});
   };
 
   const addHomecareMeal = (data: Omit<JadwalMakanHomecare, 'id'>) => {
@@ -264,16 +368,34 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       id: `MEAL-${Date.now()}`,
     };
     setHomecareMeals((prev) => [newMeal, ...prev]);
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addMeal', payload: newMeal }),
+    }).catch(() => {});
   };
 
   const updateHomecareMeal = (id: string, updated: Partial<JadwalMakanHomecare>) => {
     setHomecareMeals((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
     );
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateMeal', payload: { id, data: updated } }),
+    }).catch(() => {});
   };
 
   const deleteHomecareMeal = (id: string) => {
     setHomecareMeals((prev) => prev.filter((item) => item.id !== id));
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteMeal', payload: { id } }),
+    }).catch(() => {});
   };
 
   const addHomecareMed = (data: Omit<JadwalObatHomecare, 'id'>) => {
@@ -282,16 +404,34 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       id: `MED-${Date.now()}`,
     };
     setHomecareMeds((prev) => [newMed, ...prev]);
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addMed', payload: newMed }),
+    }).catch(() => {});
   };
 
   const updateHomecareMed = (id: string, updated: Partial<JadwalObatHomecare>) => {
     setHomecareMeds((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
     );
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateMed', payload: { id, data: updated } }),
+    }).catch(() => {});
   };
 
   const deleteHomecareMed = (id: string) => {
     setHomecareMeds((prev) => prev.filter((item) => item.id !== id));
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteMed', payload: { id } }),
+    }).catch(() => {});
   };
 
   // Wound Photos Mutators
@@ -301,10 +441,22 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       id: `FOTO-${Date.now()}`,
     };
     setWoundPhotos((prev) => [newPhoto, ...prev]);
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addPhoto', payload: newPhoto }),
+    }).catch(() => {});
   };
 
   const deleteWoundPhoto = (id: string) => {
     setWoundPhotos((prev) => prev.filter((p) => p.id !== id));
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deletePhoto', payload: { id } }),
+    }).catch(() => {});
   };
 
   // Paraf Home Care Mutator
@@ -314,6 +466,12 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       id: `PARAF-${Date.now()}`,
     };
     setParafHomecare((prev) => [newParaf, ...prev]);
+
+    fetch('/api/homecare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addParaf', payload: newParaf }),
+    }).catch(() => {});
   };
 
   const resetAllData = () => {
@@ -325,8 +483,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setHomecareMeds(INITIAL_HOMECARE_MEDS);
     setWoundPhotos(INITIAL_WOUND_PHOTOS);
     setParafHomecare(INITIAL_PARAF_HOMECARE);
-    setUsers(INITIAL_USERS);
-    setCurrentUser(INITIAL_USERS[0]);
     localStorage.clear();
   };
 
@@ -345,6 +501,8 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         homecareMeds,
         woundPhotos,
         parafHomecare,
+        dbStatus,
+        refreshDb,
         addPatient,
         updatePatient,
         addAssessment,
@@ -381,4 +539,3 @@ export function useClinic() {
   }
   return context;
 }
-

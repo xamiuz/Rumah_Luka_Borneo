@@ -7,12 +7,13 @@ import {
   UserPlus, 
   Building2, 
   Clock, 
-  RotateCcw
+  RotateCcw,
+  Database
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 
 export function TopNavbar() {
-  const { searchTerm, setSearchTerm, currentUser, resetAllData } = useClinic();
+  const { searchTerm, setSearchTerm, currentUser, resetAllData, dbStatus } = useClinic();
 
   const handleReset = () => {
     if (window.confirm('Reset ulang data sample klinik untuk demonstrasi?')) {
@@ -32,6 +33,23 @@ export function TopNavbar() {
         <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
           <Clock className="w-3.5 h-3.5 text-emerald-600" />
           <span>Shift Pelayanan Aktif (Pagi)</span>
+        </div>
+
+        {/* Database Status Indicator */}
+        <div
+          title={
+            dbStatus === 'connected'
+              ? 'Terhubung langsung ke Database MySQL'
+              : 'MySQL belum aktif — aplikasi otomatis berjalan menggunakan penyimpanan lokal/localStorage'
+          }
+          className={`hidden md:flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md border transition ${
+            dbStatus === 'connected'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : 'bg-amber-50 text-amber-700 border-amber-200'
+          }`}
+        >
+          <Database className="w-3 h-3" />
+          <span>{dbStatus === 'connected' ? 'MySQL: Terhubung' : 'MySQL: Offline (Mode Lokal)'}</span>
         </div>
       </div>
 
