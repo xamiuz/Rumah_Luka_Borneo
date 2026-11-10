@@ -18,6 +18,16 @@ export type TipeLuka =
   | 'Luka Trauma / Laserasi'
   | 'Luka Kanker';
 
+export interface TitikLukaPeta {
+  id: string;
+  nomor: number;
+  label: string;
+  view: 'anterior' | 'posterior' | 'foot';
+  x: number;
+  y: number;
+  regioAnatomi: string;
+}
+
 export interface DasarLuka {
   persenGranulasi: number; // Merah
   persenSlough: number;    // Kuning
@@ -31,7 +41,8 @@ export interface AsesmenLuka {
   tanggal: string; // ISO format
   perawatPemeriksa: string;
   lokasiLuka: string; // e.g. "Dorsum Pedis Dextra", "Kalkaneus Sinistra", dll.
-  lokasiKoordinat?: { x: number; y: number }; // Koordinat pada Body Map
+  lokasiKoordinat?: { x: number; y: number; view?: 'anterior' | 'posterior' | 'foot' }; // Koordinat pada Body Map
+  daftarTitikLuka?: TitikLukaPeta[]; // Dukungan Multi-Luka (Multi-Pin)
   tipeLuka: TipeLuka;
   stadiumLuka: string;
   ukuran: {

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import { 
   Activity, 
@@ -24,7 +23,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
-import { TipeLuka, FotoPerkembanganLuka } from '@/types';
+import { TipeLuka, FotoPerkembanganLuka, TitikLukaPeta } from '@/types';
+import { InteractiveBodyMap } from '@/components/assessment/InteractiveBodyMap';
 
 function AsesmenContent() {
   const searchParams = useSearchParams();
@@ -50,8 +50,19 @@ function AsesmenContent() {
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
 
   // Form State
-  const [lokasiLuka, setLokasiLuka] = useState('Plantar Pedis Dextra (Kaki Kanan Bawah)');
-  const [pin, setPin] = useState<{ x: number; y: number }>({ x: 55, y: 88 });
+  const [lokasiLuka, setLokasiLuka] = useState('Kalkaneus / Tumit Kanan (Plantar Dextra)');
+  const [titikLukaList, setTitikLukaList] = useState<TitikLukaPeta[]>([
+    {
+      id: 'PIN-1',
+      nomor: 1,
+      label: 'Luka Utama',
+      view: 'foot',
+      x: 74,
+      y: 78,
+      regioAnatomi: 'Kalkaneus / Tumit Kanan (Plantar Dextra)',
+    },
+  ]);
+  const [activeTitikId, setActiveTitikId] = useState<string>('PIN-1');
   const [tipeLuka, setTipeLuka] = useState<TipeLuka>('Ulkus Diabetikum (Diabetic Foot)');
   const [stadiumLuka, setStadiumLuka] = useState('Wagner Grade 3 (Ulkus dalam dengan keterlibatan tulang/abses)');
 
@@ -138,22 +149,18 @@ function AsesmenContent() {
     return null;
   }, [selectedPatient, primaryDressing, secondaryDressing, cairanPencuci]);
 
-  const handleBodyMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
-    const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
-    setPin({ x, y });
-  };
-
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPatient) return;
+
+    const activePin = titikLukaList.find((p) => p.id === activeTitikId) || titikLukaList[0];
 
     addAssessment(selectedPatient.id, {
       pasienId: selectedPatient.id,
       perawatPemeriksa: currentUser.nama,
       lokasiLuka,
-      lokasiKoordinat: pin,
+      lokasiKoordinat: activePin ? { x: activePin.x, y: activePin.y, view: activePin.view } : undefined,
+      daftarTitikLuka: titikLukaList,
       tipeLuka,
       stadiumLuka,
       ukuran: {
@@ -236,55 +243,16 @@ function AsesmenContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column: Body Map & Infection Cardinal Signs (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-white p-6 rounded-xl border border-slate-200/80 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Peta Tubuh Interaktif (Body Map)</h3>
-                  <p className="text-xs text-slate-500">Klik pada gambar tubuh untuk menandai koordinat lokasi luka</p>
-                </div>
-                <span className="text-[10px] font-mono font-bold bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">
-                  X:{pin.x}% Y:{pin.y}%
-                </span>
-              </div>
-
-              {/* Body Map Canvas */}
-              <div
-                onClick={handleBodyMapClick}
-                className="relative bg-slate-50/80 rounded-xl border border-slate-200 overflow-hidden cursor-crosshair flex items-center justify-center p-3 select-none min-h-[380px]"
-                title="Klik untuk memindahkan pin lokasi luka"
-              >
-                <Image
-                  src="/body-map.png"
-                  alt="Peta Anatomi Tubuh"
-                  width={320}
-                  height={400}
-                  className="max-h-[360px] w-auto object-contain pointer-events-none select-none"
-                  priority
-                />
-
-                {/* Animated Marker */}
-                <div
-                  style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-                  className="absolute -translate-x-1/2 -translate-y-full pointer-events-none transition-all duration-150 flex flex-col items-center"
-                >
-                  <div className="bg-rose-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                    Luka
-                  </div>
-                  <MapPin className="w-6 h-6 text-rose-600 fill-rose-600 drop-shadow-md" />
-                </div>
-              </div>
-
-              <div className="text-xs space-y-1.5">
-                <label className="block font-semibold text-slate-700">Nama Lokasi Anatomis Luka *</label>
-                <input
-                  type="text"
-                  required
-                  value={lokasiLuka}
-                  onChange={(e) => setLokasiLuka(e.target.value)}
-                  placeholder="Contoh: Plantar Pedis Dextra, Regio Sakrum, dsb."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 text-slate-800 font-medium"
-                />
-              </div>
+            {/* Interactive Anatomical Body Map Component */}
+            <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
+              <InteractiveBodyMap
+                lokasiLuka={lokasiLuka}
+                onLokasiLukaChange={setLokasiLuka}
+                titikLukaList={titikLukaList}
+                onTitikLukaListChange={setTitikLukaList}
+                activeTitikId={activeTitikId}
+                onActiveTitikIdChange={setActiveTitikId}
+              />
             </div>
 
             {/* Tanda Kardinal Infeksi Lokal */}
