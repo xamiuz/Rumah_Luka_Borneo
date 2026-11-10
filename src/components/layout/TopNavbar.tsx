@@ -24,9 +24,8 @@ export function TopNavbar() {
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
       {/* Branch & Shift Badge */}
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 text-slate-800">
-          <Building2 className="w-4 h-4 text-blue-600" />
-          <span className="text-xs font-bold tracking-tight">Rumah Luka Borneo</span>
+        <div className="flex items-center gap-2.5 text-slate-800">
+          <img src="/logo.png" alt="Rumah Luka Borneo" className="h-9 w-auto object-contain" />
           <span className="text-slate-300">|</span>
         </div>
 

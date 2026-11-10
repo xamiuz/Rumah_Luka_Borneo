@@ -78,26 +78,18 @@ export function Sidebar() {
         isExpanded ? 'w-64 shadow-xl' : 'w-20 shadow-xs'
       }`}
     >
-      {/* Brand Header */}
+      {/* Brand Header with Authentic Logo */}
       <div className={`h-16 border-b border-slate-100 flex items-center px-4 transition-all duration-300 ${
         isExpanded ? 'justify-between' : 'justify-center'
       }`}>
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs shrink-0">
-            <HeartPulse className="w-5 h-5" />
-          </div>
-          <div
-            className={`min-w-0 transition-all duration-300 ${
-              isExpanded ? 'opacity-100 max-w-[150px]' : 'opacity-0 max-w-0 pointer-events-none'
+        <div className="flex items-center gap-2.5 overflow-hidden">
+          <img
+            src="/logo.png"
+            alt="Rumah Luka Borneo"
+            className={`object-contain transition-all duration-300 ${
+              isExpanded ? 'h-10 w-auto max-w-[170px]' : 'h-8 w-auto max-w-[48px]'
             }`}
-          >
-            <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none whitespace-nowrap">
-              RUMAH LUKA BORNEO
-            </h1>
-            <p className="text-[10px] text-blue-700 font-semibold tracking-wide uppercase mt-1 whitespace-nowrap">
-              Wound Care Clinic
-            </p>
-          </div>
+          />
         </div>
 
         {/* Pin / Lock Toggle (only visible when expanded) */}
