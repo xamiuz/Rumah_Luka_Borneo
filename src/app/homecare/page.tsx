@@ -452,42 +452,18 @@ function HomecareContent() {
           </p>
         </div>
 
-        {/* Role Capsule & Fast Switcher */}
-        <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200 shadow-xs self-start lg:self-auto">
+        {/* Active Staff Identity Capsule */}
+        <div className="flex items-center gap-3 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs self-start lg:self-auto">
           <div className="text-left">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Login Sebagai:</span>
-            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-purple-600' : 'bg-blue-600'}`} />
-              <span>{currentUser.nama}</span>
-              <span className="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-mono font-bold">
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Petugas Aktif:</span>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs font-bold text-slate-900">{currentUser.nama}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                isAdmin ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+              }`}>
                 {currentUser.role}
               </span>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1 pl-2 border-l border-slate-200">
-            <button
-              type="button"
-              onClick={() => switchRole('Admin')}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition ${
-                isAdmin 
-                  ? 'bg-purple-600 text-white shadow-xs' 
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
-              }`}
-            >
-              Mode Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => switchRole('Perawat')}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition ${
-                isNurse 
-                  ? 'bg-blue-600 text-white shadow-xs' 
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
-              }`}
-            >
-              Mode Perawat
-            </button>
+            </div>
           </div>
         </div>
       </div>
@@ -666,12 +642,12 @@ function HomecareContent() {
             <span>
               {activeTab === 'jaga' && (
                 isAdmin 
-                  ? 'Mode Admin Aktif: Anda memiliki hak penuh untuk menambah, mengubah (edit), dan menukar perawat jaga.'
-                  : 'Mode Perawat: Penjadwalan jaga diinput oleh Admin. Silakan lihat shift tugas Anda di bawah.'
+                  ? 'Penjadwalan perawat jaga home care oleh Administrator klinik.'
+                  : 'Daftar jadwal perawat jaga yang bertugas di rumah pasien.'
               )}
-              {activeTab === 'makan' && 'Diinput oleh Perawat yang bertugas di rumah pasien: catat menu diet tinggi protein dan porsi makanan yang dihabiskan.'}
-              {activeTab === 'obat' && 'Diinput oleh Perawat jaga: Dilengkapi Clinical Safety Alert untuk memproteksi pasien dari obat yang memicu alergi.'}
-              {activeTab === 'foto' && 'Dokumentasi visual perkembangan penyembuhan luka (Before - After) per fase tindakan.'}
+              {activeTab === 'makan' && 'Pencatatan asupan nutrisi dan menu diet pasien home care.'}
+              {activeTab === 'obat' && 'Pencatatan pemberian obat harian pasien home care.'}
+              {activeTab === 'foto' && 'Dokumentasi visual perkembangan penyembuhan luka (Before - After).'}
               {activeTab === 'paraf' && 'Bukti serah terima dan kehadiran kunjungan home care yang ditandatangani digital oleh keluarga pasien.'}
             </span>
           </div>
