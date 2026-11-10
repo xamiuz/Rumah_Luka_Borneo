@@ -115,3 +115,54 @@ export interface JadwalPerawatan {
   catatan?: string;
 }
 
+// Modul Home Care Terpadu
+export type ShiftHomecare = 
+  | 'Pagi (07:00 - 14:00)' 
+  | 'Sore (14:00 - 21:00)' 
+  | 'Malam (21:00 - 07:00)' 
+  | 'Kunjungan Harian (Visit)';
+
+export interface JadwalJagaHomecare {
+  id: string;
+  pasienId: string;
+  namaPasien: string;
+  noRm: string;
+  alamatPasien: string;
+  tanggal: string; // YYYY-MM-DD
+  shift: ShiftHomecare;
+  perawatJaga: string;
+  perawatPengganti?: string;
+  statusJaga: 'Terjadwal' | 'Sedang Bertugas' | 'Selesai' | 'Tukar Jaga' | 'Dibatalkan';
+  catatanAdmin?: string;
+  createdBy: string; // e.g. "Admin Bambang"
+}
+
+export interface JadwalMakanHomecare {
+  id: string;
+  pasienId: string;
+  tanggal: string; // YYYY-MM-DD
+  waktuMakan: 'Sarapan Pagi (07:00)' | 'Snack Pagi (10:00)' | 'Makan Siang (12:30)' | 'Snack Sore (16:00)' | 'Makan Malam (19:00)';
+  menuDiet: string;
+  targetNutrisi: string; // e.g. "TKTP (Tinggi Kalori Tinggi Protein) + Rendah Gula"
+  porsiDimakan: 'Habis (100%)' | '3/4 Porsi' | '1/2 Porsi' | 'Hanya Sedikit (<1/4)' | 'Menolak Makan' | 'Belum Diberikan';
+  status: 'Belum Diberikan' | 'Sudah Diberikan';
+  jamRealisasi?: string;
+  perawatInput: string;
+  catatan?: string;
+}
+
+export interface JadwalObatHomecare {
+  id: string;
+  pasienId: string;
+  tanggal: string; // YYYY-MM-DD
+  jamObat: string; // e.g. "07:00", "13:00", "19:00", "22:00"
+  namaObat: string;
+  dosisRute: string; // e.g. "1 Tablet (Oral)", "1 Ampul (IV)"
+  aturanMinum: 'Sebelum Makan' | 'Sesudah Makan' | 'Bersama Makanan' | 'Saat Nyeri';
+  status: 'Belum Diminum' | 'Sudah Diminum' | 'Ditunda' | 'Menolak';
+  jamDiminum?: string;
+  perawatInput: string;
+  catatanKhusus?: string;
+}
+
+

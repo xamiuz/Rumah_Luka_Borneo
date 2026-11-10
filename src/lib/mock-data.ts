@@ -1,4 +1,12 @@
-import { Pasien, JadwalPerawatan, User, CatatanCPPT } from '@/types';
+import { 
+  Pasien, 
+  JadwalPerawatan, 
+  User, 
+  CatatanCPPT,
+  JadwalJagaHomecare,
+  JadwalMakanHomecare,
+  JadwalObatHomecare 
+} from '@/types';
 
 export const INITIAL_USERS: User[] = [
   {
@@ -324,4 +332,154 @@ export const INITIAL_CPPT: CatatanCPPT[] = [
     instruksiPPA: 'Awasi tanda infeksi sistemik (demam, bau busuk menyengat). Rujuk segera jika ada perburukan.',
   },
 ];
+
+// Initial Data Modul Home Care
+export const INITIAL_HOMECARE_JAGA: JadwalJagaHomecare[] = [
+  {
+    id: 'HC-JAGA-001',
+    pasienId: 'PAS-003',
+    namaPasien: 'Bpk. H. Ahmad Dahlan',
+    noRm: 'RM-2026-0021',
+    alamatPasien: 'Jl. Brigjen Katamso No. 19, Bontang Barat',
+    tanggal: '2026-11-02',
+    shift: 'Pagi (07:00 - 14:00)',
+    perawatJaga: 'Ns. Maya Anjani, S.Kep',
+    statusJaga: 'Sedang Bertugas',
+    catatanAdmin: 'Prioritas: miring kanan-kiri tiap 2 jam (repositioning) & ganti balutan sakrum.',
+    createdBy: 'Bambang Kusuma, A.Md.RMIK (Admin)',
+  },
+  {
+    id: 'HC-JAGA-002',
+    pasienId: 'PAS-003',
+    namaPasien: 'Bpk. H. Ahmad Dahlan',
+    noRm: 'RM-2026-0021',
+    alamatPasien: 'Jl. Brigjen Katamso No. 19, Bontang Barat',
+    tanggal: '2026-11-02',
+    shift: 'Sore (14:00 - 21:00)',
+    perawatJaga: 'Ns. Hendra Wijaya, S.Kep., CWCCA',
+    statusJaga: 'Terjadwal',
+    catatanAdmin: 'Lanjutkan monitoring luka dan edukasi keluarga mengenai kasur anti-dekubitus.',
+    createdBy: 'Bambang Kusuma, A.Md.RMIK (Admin)',
+  },
+  {
+    id: 'HC-JAGA-003',
+    pasienId: 'PAS-002',
+    namaPasien: 'Ibu Siti Rahmawati',
+    noRm: 'RM-2026-0015',
+    alamatPasien: 'Jl. Pupuk Raya Blok D-12, Bontang Barat',
+    tanggal: '2026-11-03',
+    shift: 'Kunjungan Harian (Visit)',
+    perawatJaga: 'Ns. Maya Anjani, S.Kep',
+    statusJaga: 'Terjadwal',
+    catatanAdmin: 'Kunjungan berkala ganti balutan kompresi ulkus vena di rumah.',
+    createdBy: 'Bambang Kusuma, A.Md.RMIK (Admin)',
+  },
+];
+
+export const INITIAL_HOMECARE_MEALS: JadwalMakanHomecare[] = [
+  {
+    id: 'MEAL-001',
+    pasienId: 'PAS-003',
+    tanggal: '2026-11-02',
+    waktuMakan: 'Sarapan Pagi (07:00)',
+    menuDiet: 'Bubur beras merah halus + sup sari ikan gabus (ekstrak albumin) + telur rebus putih',
+    targetNutrisi: 'TKTP (Tinggi Kalori Tinggi Protein) Albumin Booster',
+    porsiDimakan: 'Habis (100%)',
+    status: 'Sudah Diberikan',
+    jamRealisasi: '07:25 WITA',
+    perawatInput: 'Ns. Maya Anjani, S.Kep',
+    catatan: 'Pasien makan dengan bantuan posisi semi-fowler 45 derajat.',
+  },
+  {
+    id: 'MEAL-002',
+    pasienId: 'PAS-003',
+    tanggal: '2026-11-02',
+    waktuMakan: 'Snack Pagi (10:00)',
+    menuDiet: 'Puding chia seed & pepaya blender (serat tinggi cegah konstipasi)',
+    targetNutrisi: 'Serat Lunak & Hidrasi',
+    porsiDimakan: '3/4 Porsi',
+    status: 'Sudah Diberikan',
+    jamRealisasi: '10:15 WITA',
+    perawatInput: 'Ns. Maya Anjani, S.Kep',
+    catatan: 'Minum air putih hangat 200ml.',
+  },
+  {
+    id: 'MEAL-003',
+    pasienId: 'PAS-003',
+    tanggal: '2026-11-02',
+    waktuMakan: 'Makan Siang (12:30)',
+    menuDiet: 'Nasi tim lunak + filet dada ayam cincang bumbu kuning + sayur labu siam',
+    targetNutrisi: 'TKTP Rendah Lemak Jenuh',
+    porsiDimakan: 'Belum Diberikan',
+    status: 'Belum Diberikan',
+    perawatInput: 'Ns. Maya Anjani, S.Kep',
+    catatan: 'Disiapkan oleh keluarga pasien sesuai anjuran diet perawat.',
+  },
+  {
+    id: 'MEAL-004',
+    pasienId: 'PAS-003',
+    tanggal: '2026-11-02',
+    waktuMakan: 'Makan Malam (19:00)',
+    menuDiet: 'Sup kaldu daging sapi tanpa lemak + tahu kukus + wortel cincang',
+    targetNutrisi: 'TKTP & Asupan Seng (Zinc) untuk epitelisasi',
+    porsiDimakan: 'Belum Diberikan',
+    status: 'Belum Diberikan',
+    perawatInput: 'Ns. Hendra Wijaya, S.Kep., CWCCA',
+    catatan: 'Jadwal shift sore/malam.',
+  },
+];
+
+export const INITIAL_HOMECARE_MEDS: JadwalObatHomecare[] = [
+  {
+    id: 'MED-001',
+    pasienId: 'PAS-003',
+    tanggal: '2026-11-02',
+    jamObat: '07:00',
+    namaObat: 'Ciprofloxacin 500mg (Antibiotik Oral)',
+    dosisRute: '1 Kaplet (Oral)',
+    aturanMinum: 'Sesudah Makan',
+    status: 'Sudah Diminum',
+    jamDiminum: '07:35 WITA',
+    perawatInput: 'Ns. Maya Anjani, S.Kep',
+    catatanKhusus: 'Ditelan utuh dengan segelas air setelah sarapan.',
+  },
+  {
+    id: 'MED-002',
+    pasienId: 'PAS-003',
+    tanggal: '2026-11-02',
+    jamObat: '07:00',
+    namaObat: 'Curcuma & Ekstrak Channa Striata (Albumin Kapsul)',
+    dosisRute: '2 Kapsul (Oral)',
+    aturanMinum: 'Sesudah Makan',
+    status: 'Sudah Diminum',
+    jamDiminum: '07:40 WITA',
+    perawatInput: 'Ns. Maya Anjani, S.Kep',
+    catatanKhusus: 'Suplemen penyembuhan jaringan granulasi luka dekubitus.',
+  },
+  {
+    id: 'MED-003',
+    pasienId: 'PAS-003',
+    tanggal: '2026-11-02',
+    jamObat: '13:00',
+    namaObat: 'Paracetamol 500mg',
+    dosisRute: '1 Tablet (Oral)',
+    aturanMinum: 'Saat Nyeri',
+    status: 'Belum Diminum',
+    perawatInput: 'Ns. Maya Anjani, S.Kep',
+    catatanKhusus: 'Diberikan bila skor nyeri luka > 3.',
+  },
+  {
+    id: 'MED-004',
+    pasienId: 'PAS-003',
+    tanggal: '2026-11-02',
+    jamObat: '19:00',
+    namaObat: 'Ciprofloxacin 500mg (Antibiotik Dosis Ke-2)',
+    dosisRute: '1 Kaplet (Oral)',
+    aturanMinum: 'Sesudah Makan',
+    status: 'Belum Diminum',
+    perawatInput: 'Ns. Hendra Wijaya, S.Kep., CWCCA',
+    catatanKhusus: 'Interval 12 jam dari dosis pagi.',
+  },
+];
+
 

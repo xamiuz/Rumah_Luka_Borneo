@@ -13,7 +13,8 @@ import {
   HeartPulse,
   Pin,
   PinOff,
-  ChevronRight
+  ChevronRight,
+  Home
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 
@@ -47,6 +48,12 @@ export function Sidebar() {
       label: 'Rekam Medis (CPPT)',
       href: '/rekam-medis',
       icon: FileText,
+    },
+    {
+      label: 'Layanan Home Care',
+      href: '/homecare',
+      icon: Home,
+      badge: 'Shift & Diet',
     },
   ];
 

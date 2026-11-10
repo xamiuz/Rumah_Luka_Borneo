@@ -1,8 +1,26 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Pasien, JadwalPerawatan, User, AsesmenLuka, CatatanCPPT, Role } from '@/types';
-import { INITIAL_PATIENTS, INITIAL_SCHEDULES, INITIAL_USERS, INITIAL_CPPT } from '@/lib/mock-data';
+import { 
+  Pasien, 
+  JadwalPerawatan, 
+  User, 
+  AsesmenLuka, 
+  CatatanCPPT, 
+  Role,
+  JadwalJagaHomecare,
+  JadwalMakanHomecare,
+  JadwalObatHomecare 
+} from '@/types';
+import { 
+  INITIAL_PATIENTS, 
+  INITIAL_SCHEDULES, 
+  INITIAL_USERS, 
+  INITIAL_CPPT,
+  INITIAL_HOMECARE_JAGA,
+  INITIAL_HOMECARE_MEALS,
+  INITIAL_HOMECARE_MEDS
+} from '@/lib/mock-data';
 
 interface ClinicContextType {
   currentUser: User;
@@ -12,6 +30,9 @@ interface ClinicContextType {
   patients: Pasien[];
   schedules: JadwalPerawatan[];
   cpptRecords: CatatanCPPT[];
+  homecareJaga: JadwalJagaHomecare[];
+  homecareMeals: JadwalMakanHomecare[];
+  homecareMeds: JadwalObatHomecare[];
   addPatient: (patient: Omit<Pasien, 'id' | 'noRm' | 'tanggalDaftar'>) => Pasien;
   updatePatient: (id: string, updated: Partial<Pasien>) => void;
   addAssessment: (pasienId: string, assessment: Omit<AsesmenLuka, 'id' | 'tanggal'>) => AsesmenLuka;
@@ -19,6 +40,15 @@ interface ClinicContextType {
   addSchedule: (schedule: Omit<JadwalPerawatan, 'id'>) => void;
   updateScheduleStatus: (id: string, status: JadwalPerawatan['status']) => void;
   deletePatient: (id: string) => void;
+  addHomecareJaga: (jaga: Omit<JadwalJagaHomecare, 'id'>) => void;
+  updateHomecareJaga: (id: string, updated: Partial<JadwalJagaHomecare>) => void;
+  deleteHomecareJaga: (id: string) => void;
+  addHomecareMeal: (meal: Omit<JadwalMakanHomecare, 'id'>) => void;
+  updateHomecareMeal: (id: string, updated: Partial<JadwalMakanHomecare>) => void;
+  deleteHomecareMeal: (id: string) => void;
+  addHomecareMed: (med: Omit<JadwalObatHomecare, 'id'>) => void;
+  updateHomecareMed: (id: string, updated: Partial<JadwalObatHomecare>) => void;
+  deleteHomecareMed: (id: string) => void;
   resetAllData: () => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -32,6 +62,9 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const [patients, setPatients] = useState<Pasien[]>(INITIAL_PATIENTS);
   const [schedules, setSchedules] = useState<JadwalPerawatan[]>(INITIAL_SCHEDULES);
   const [cpptRecords, setCpptRecords] = useState<CatatanCPPT[]>(INITIAL_CPPT);
+  const [homecareJaga, setHomecareJaga] = useState<JadwalJagaHomecare[]>(INITIAL_HOMECARE_JAGA);
+  const [homecareMeals, setHomecareMeals] = useState<JadwalMakanHomecare[]>(INITIAL_HOMECARE_MEALS);
+  const [homecareMeds, setHomecareMeds] = useState<JadwalObatHomecare[]>(INITIAL_HOMECARE_MEDS);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -49,6 +82,15 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
 
       const savedUser = localStorage.getItem('rlb_active_user');
       if (savedUser) setCurrentUser(JSON.parse(savedUser));
+
+      const savedJaga = localStorage.getItem('rlb_hc_jaga');
+      if (savedJaga) setHomecareJaga(JSON.parse(savedJaga));
+
+      const savedMeals = localStorage.getItem('rlb_hc_meals');
+      if (savedMeals) setHomecareMeals(JSON.parse(savedMeals));
+
+      const savedMeds = localStorage.getItem('rlb_hc_meds');
+      if (savedMeds) setHomecareMeds(JSON.parse(savedMeds));
     } catch {
       // Fallback to initial data if error
     } finally {
@@ -64,10 +106,13 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('rlb_schedules', JSON.stringify(schedules));
       localStorage.setItem('rlb_cppt', JSON.stringify(cpptRecords));
       localStorage.setItem('rlb_active_user', JSON.stringify(currentUser));
+      localStorage.setItem('rlb_hc_jaga', JSON.stringify(homecareJaga));
+      localStorage.setItem('rlb_hc_meals', JSON.stringify(homecareMeals));
+      localStorage.setItem('rlb_hc_meds', JSON.stringify(homecareMeds));
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
-  }, [patients, schedules, cpptRecords, currentUser, isLoaded]);
+  }, [patients, schedules, cpptRecords, currentUser, homecareJaga, homecareMeals, homecareMeds, isLoaded]);
 
   const switchRole = (role: Role) => {
     const found = users.find((u) => u.role === role) || {
@@ -170,12 +215,73 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     setPatients((prev) => prev.filter((p) => p.id !== id));
     setSchedules((prev) => prev.filter((s) => s.pasienId !== id));
     setCpptRecords((prev) => prev.filter((c) => c.pasienId !== id));
+    setHomecareJaga((prev) => prev.filter((j) => j.pasienId !== id));
+    setHomecareMeals((prev) => prev.filter((m) => m.pasienId !== id));
+    setHomecareMeds((prev) => prev.filter((m) => m.pasienId !== id));
+  };
+
+  // Home Care Mutators
+  const addHomecareJaga = (data: Omit<JadwalJagaHomecare, 'id'>) => {
+    const newJaga: JadwalJagaHomecare = {
+      ...data,
+      id: `HC-JAGA-${Date.now()}`,
+    };
+    setHomecareJaga((prev) => [newJaga, ...prev]);
+  };
+
+  const updateHomecareJaga = (id: string, updated: Partial<JadwalJagaHomecare>) => {
+    setHomecareJaga((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
+    );
+  };
+
+  const deleteHomecareJaga = (id: string) => {
+    setHomecareJaga((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const addHomecareMeal = (data: Omit<JadwalMakanHomecare, 'id'>) => {
+    const newMeal: JadwalMakanHomecare = {
+      ...data,
+      id: `MEAL-${Date.now()}`,
+    };
+    setHomecareMeals((prev) => [newMeal, ...prev]);
+  };
+
+  const updateHomecareMeal = (id: string, updated: Partial<JadwalMakanHomecare>) => {
+    setHomecareMeals((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
+    );
+  };
+
+  const deleteHomecareMeal = (id: string) => {
+    setHomecareMeals((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const addHomecareMed = (data: Omit<JadwalObatHomecare, 'id'>) => {
+    const newMed: JadwalObatHomecare = {
+      ...data,
+      id: `MED-${Date.now()}`,
+    };
+    setHomecareMeds((prev) => [newMed, ...prev]);
+  };
+
+  const updateHomecareMed = (id: string, updated: Partial<JadwalObatHomecare>) => {
+    setHomecareMeds((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
+    );
+  };
+
+  const deleteHomecareMed = (id: string) => {
+    setHomecareMeds((prev) => prev.filter((item) => item.id !== id));
   };
 
   const resetAllData = () => {
     setPatients(INITIAL_PATIENTS);
     setSchedules(INITIAL_SCHEDULES);
     setCpptRecords(INITIAL_CPPT);
+    setHomecareJaga(INITIAL_HOMECARE_JAGA);
+    setHomecareMeals(INITIAL_HOMECARE_MEALS);
+    setHomecareMeds(INITIAL_HOMECARE_MEDS);
     setUsers(INITIAL_USERS);
     setCurrentUser(INITIAL_USERS[0]);
     localStorage.clear();
@@ -191,6 +297,9 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         patients,
         schedules,
         cpptRecords,
+        homecareJaga,
+        homecareMeals,
+        homecareMeds,
         addPatient,
         updatePatient,
         addAssessment,
@@ -198,6 +307,15 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         addSchedule,
         updateScheduleStatus,
         deletePatient,
+        addHomecareJaga,
+        updateHomecareJaga,
+        deleteHomecareJaga,
+        addHomecareMeal,
+        updateHomecareMeal,
+        deleteHomecareMeal,
+        addHomecareMed,
+        updateHomecareMed,
+        deleteHomecareMed,
         resetAllData,
         searchTerm,
         setSearchTerm,
