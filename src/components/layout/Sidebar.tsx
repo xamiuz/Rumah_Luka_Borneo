@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Users, 
@@ -14,15 +14,26 @@ import {
   Pin,
   PinOff,
   ChevronRight,
-  Home
+  Home,
+  LogOut,
+  KeyRound,
+  UserCog
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { currentUser, switchRole } = useClinic();
+  const router = useRouter();
+  const { currentUser, switchRole, logout } = useClinic();
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
+
+  const handleLogout = () => {
+    if (window.confirm(`Konfirmasi keluar dari akun ${currentUser.nama}?`)) {
+      logout();
+      router.push('/login');
+    }
+  };
 
   // If pinned is active, it stays expanded; otherwise it expands only on hover
   const isExpanded = isPinned || isHovered;
@@ -206,17 +217,27 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Role Switcher Box (Adaptive Mini & Expanded) */}
+      {/* Role Switcher Box & Logout (Adaptive Mini & Expanded) */}
       <div className={`border-t border-slate-200 bg-slate-50/80 transition-all duration-300 ${
-        isExpanded ? 'p-4' : 'p-3 flex flex-col items-center'
+        isExpanded ? 'p-4' : 'p-3 flex flex-col items-center gap-2'
       }`}>
         {!isExpanded ? (
-          <div
-            title={`Pengguna: ${currentUser.nama} (${currentUser.role})\nArahkan kursor ke sini untuk membuka menu lengkap`}
-            className="w-10 h-10 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center justify-center font-bold text-xs font-mono cursor-pointer"
-          >
-            {currentUser.role.charAt(0)}
-          </div>
+          <>
+            <div
+              title={`Pengguna: ${currentUser.nama} (${currentUser.role})\nArahkan kursor untuk membuka menu`}
+              className="w-10 h-10 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center justify-center font-bold text-xs font-mono cursor-pointer"
+            >
+              {currentUser.role.charAt(0)}
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Keluar / Logout"
+              className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </>
         ) : (
           <div className="w-full">
             <div className="flex items-center justify-between mb-2">
@@ -250,6 +271,28 @@ export function Sidebar() {
                   {r}
                 </button>
               ))}
+            </div>
+
+            {/* Bottom Actions: Account Management & Logout */}
+            <div className="mt-3 pt-3 border-t border-slate-200 space-y-1.5">
+              <Link
+                href="/kelola-pengguna"
+                className="w-full py-1.5 px-2 bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-medium rounded-lg border border-slate-200 flex items-center gap-2 transition"
+              >
+                <UserCog className="w-3.5 h-3.5 text-blue-600" />
+                <span className="truncate">Kelola Akun & Sandi</span>
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full py-1.5 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-semibold rounded-lg border border-rose-200 flex items-center justify-between transition cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Keluar / Logout</span>
+                </div>
+                <span className="text-[10px] text-rose-500">Keluar</span>
+              </button>
             </div>
           </div>
         )}

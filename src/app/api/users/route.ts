@@ -23,6 +23,7 @@ export async function POST(req: Request) {
         id: body.id || `USR-${Date.now()}`,
         nama: body.nama,
         username: body.username,
+        password: body.password || '123',
         role: body.role,
         strNip: body.strNip || null,
         status: body.status || 'Aktif',
@@ -32,6 +33,25 @@ export async function POST(req: Request) {
   } catch (error: any) {
     return NextResponse.json(
       { success: false, message: 'Gagal menyimpan user ke MySQL', error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const body = await req.json();
+    const { id, ...data } = body;
+    if (!id) return NextResponse.json({ success: false, message: 'ID user dibutuhkan' }, { status: 400 });
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data,
+    });
+    return NextResponse.json({ success: true, data: updated });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, message: 'Gagal memperbarui user di MySQL', error: error.message },
       { status: 500 }
     );
   }

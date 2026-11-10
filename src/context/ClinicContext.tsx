@@ -28,6 +28,11 @@ import {
 
 interface ClinicContextType {
   currentUser: User;
+  isAuthenticated: boolean;
+  login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => void;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<{ success: boolean; message?: string }>;
+  adminResetPassword: (userId: string, newPassword: string) => Promise<{ success: boolean; message?: string }>;
   setCurrentUser: (user: User) => void;
   switchUser: (user: User) => void;
   switchRole: (role: Role) => void;
@@ -74,6 +79,7 @@ const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
 export function ClinicProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<User[]>(INITIAL_USERS);
   const [currentUser, setCurrentUser] = useState<User>(INITIAL_USERS[0]);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [patients, setPatients] = useState<Pasien[]>(INITIAL_PATIENTS);
   const [schedules, setSchedules] = useState<JadwalPerawatan[]>(INITIAL_SCHEDULES);
   const [cpptRecords, setCpptRecords] = useState<CatatanCPPT[]>(INITIAL_CPPT);
@@ -147,7 +153,21 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       if (savedCppt) setCpptRecords(JSON.parse(savedCppt));
 
       const savedUser = localStorage.getItem('rlb_active_user');
-      if (savedUser) setCurrentUser(JSON.parse(savedUser));
+      if (savedUser) {
+        try {
+          const parsed = JSON.parse(savedUser);
+          if (parsed && parsed.id) {
+            setCurrentUser(parsed);
+            setIsAuthenticated(true);
+          }
+        } catch {}
+      } else {
+        // Check if there is an explicit auth token or session
+        const authStatus = localStorage.getItem('rlb_auth_status');
+        if (authStatus === 'unauthenticated') {
+          setIsAuthenticated(false);
+        }
+      }
 
       const savedJaga = localStorage.getItem('rlb_hc_jaga');
       if (savedJaga) setHomecareJaga(JSON.parse(savedJaga));
@@ -194,9 +214,110 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
 
   const switchUser = (user: User) => {
     setCurrentUser(user);
+    setIsAuthenticated(true);
     try {
       localStorage.setItem('rlb_active_user', JSON.stringify(user));
+      localStorage.setItem('rlb_auth_status', 'authenticated');
     } catch {}
+  };
+
+  const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
+    // 1. Try MySQL API first if connected
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.data) {
+        setCurrentUser(data.data);
+        setIsAuthenticated(true);
+        localStorage.setItem('rlb_active_user', JSON.stringify(data.data));
+        localStorage.setItem('rlb_auth_status', 'authenticated');
+        return { success: true };
+      } else if (res.status !== 500) {
+        // User not found or bad password from DB
+        return { success: false, message: data.message || 'Username atau password salah' };
+      }
+    } catch {}
+
+    // 2. Fallback to local users state
+    const target = users.find((u) => u.username.toLowerCase() === username.trim().toLowerCase());
+    if (!target) {
+      return { success: false, message: 'Username tidak terdaftar dalam sistem.' };
+    }
+    if (target.status !== 'Aktif') {
+      return { success: false, message: 'Akun Anda sedang dinonaktifkan. Hubungi Administrator.' };
+    }
+    const expectedPassword = target.password || '123';
+    if (password !== expectedPassword) {
+      return { success: false, message: 'Password yang Anda masukkan salah.' };
+    }
+
+    setCurrentUser(target);
+    setIsAuthenticated(true);
+    try {
+      localStorage.setItem('rlb_active_user', JSON.stringify(target));
+      localStorage.setItem('rlb_auth_status', 'authenticated');
+    } catch {}
+    return { success: true };
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    try {
+      localStorage.removeItem('rlb_active_user');
+      localStorage.setItem('rlb_auth_status', 'unauthenticated');
+    } catch {}
+  };
+
+  const changePassword = async (oldPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> => {
+    // Verify old password
+    const currentPass = currentUser.password || '123';
+    if (oldPassword !== currentPass) {
+      return { success: false, message: 'Password saat ini salah.' };
+    }
+
+    // Try API update
+    try {
+      await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id, oldPassword, newPassword }),
+      });
+    } catch {}
+
+    // Update in local state
+    setUsers((prev) =>
+      prev.map((u) => (u.id === currentUser.id ? { ...u, password: newPassword } : u))
+    );
+    const updated = { ...currentUser, password: newPassword };
+    setCurrentUser(updated);
+    try {
+      localStorage.setItem('rlb_active_user', JSON.stringify(updated));
+    } catch {}
+
+    return { success: true, message: 'Password berhasil diperbarui.' };
+  };
+
+  const adminResetPassword = async (userId: string, newPassword: string): Promise<{ success: boolean; message?: string }> => {
+    try {
+      await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, newPassword }),
+      });
+    } catch {}
+
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, password: newPassword } : u))
+    );
+    if (currentUser.id === userId) {
+      setCurrentUser((prev) => ({ ...prev, password: newPassword }));
+    }
+
+    return { success: true, message: 'Password akun berhasil direset.' };
   };
 
   const switchRole = (role: Role) => {
@@ -548,6 +669,11 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
     <ClinicContext.Provider
       value={{
         currentUser,
+        isAuthenticated,
+        login,
+        logout,
+        changePassword,
+        adminResetPassword,
         setCurrentUser,
         switchUser,
         switchRole,

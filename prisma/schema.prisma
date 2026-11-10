@@ -12,6 +12,7 @@ model User {
   id        String   @id @default(cuid())
   nama      String
   username  String   @unique
+  password  String   @default("123")
   role      String   // Admin, Dokter, Perawat, Petugas Administrasi
   strNip    String?
   status    String   @default("Aktif") // Aktif, Nonaktif
