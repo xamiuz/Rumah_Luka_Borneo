@@ -23,11 +23,13 @@ import {
   Calendar
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
+import { useDialog } from '@/context/DialogContext';
 import { Pasien } from '@/types';
 
 function DirektoriPasienContent() {
   const searchParams = useSearchParams();
   const { patients, addPatient, deletePatient } = useClinic();
+  const { showAlert, showConfirm } = useDialog();
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -88,10 +90,10 @@ function DirektoriPasienContent() {
     setJenisLayanan('Wound Care');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nama || !nik || !tanggalLahir) {
-      alert('Mohon lengkapi NIK, Nama Lengkap, dan Tanggal Lahir.');
+      await showAlert('Mohon lengkapi NIK, Nama Lengkap, dan Tanggal Lahir pasien.', 'Data Belum Lengkap', 'warning');
       return;
     }
 
@@ -432,12 +434,17 @@ function DirektoriPasienContent() {
                           </Link>
                           <button
                             type="button"
-                            onClick={() => {
-                              if (window.confirm(`Hapus rekam medis pasien ${p.nama}? Data asesmen terkait akan ikut terhapus.`)) {
+                            onClick={async () => {
+                              const confirmed = await showConfirm(
+                                `Hapus rekam medis pasien ${p.nama}? Seluruh data asesmen luka dan CPPT terkait akan ikut terhapus.`,
+                                'Hapus Rekam Medis Pasien',
+                                { type: 'danger', confirmLabel: 'Ya, Hapus Pasien' }
+                              );
+                              if (confirmed) {
                                 deletePatient(p.id);
                               }
                             }}
-                            className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition shrink-0"
+                            className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition shrink-0 cursor-pointer"
                             title="Hapus Rekam Medis"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

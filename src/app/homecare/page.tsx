@@ -30,6 +30,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
+import { useDialog } from '@/context/DialogContext';
 import { 
   JadwalJagaHomecare, 
   JadwalMakanHomecare, 
@@ -64,6 +65,7 @@ function HomecareContent() {
     addParafHomecare,
     addCPPT
   } = useClinic();
+  const { showAlert, showConfirm } = useDialog();
 
   const [activeTab, setActiveTab] = useState<'jaga' | 'makan' | 'obat' | 'foto' | 'paraf'>('jaga');
   
@@ -331,7 +333,7 @@ function HomecareContent() {
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  const handleSaveParaf = () => {
+  const handleSaveParaf = async () => {
     const canvas = canvasRef.current;
     if (!canvas || !selectedPatient || !namaKeluarga) return;
 
@@ -349,7 +351,7 @@ function HomecareContent() {
     });
 
     clearCanvas();
-    alert('Bukti serah terima dan paraf digital kunjungan berhasil disimpan!');
+    await showAlert('Bukti serah terima dan paraf digital kunjungan berhasil disimpan.', 'Serah Terima Tersimpan', 'success');
   };
 
   // Sinkronisasi ke Lembar CPPT SOAP
@@ -696,10 +698,15 @@ function HomecareContent() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => {
-                                if (window.confirm('Hapus jadwal jaga ini?')) deleteHomecareJaga(item.id);
+                              onClick={async () => {
+                                const confirmed = await showConfirm(
+                                  'Hapus jadwal jaga perawat ini dari sistem?',
+                                  'Hapus Jadwal Jaga',
+                                  { type: 'danger', confirmLabel: 'Ya, Hapus' }
+                                );
+                                if (confirmed) deleteHomecareJaga(item.id);
                               }}
-                              className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                              className="p-1 text-slate-400 hover:text-rose-600 rounded cursor-pointer"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -772,10 +779,15 @@ function HomecareContent() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => {
-                          if (window.confirm('Hapus jadwal makan ini?')) deleteHomecareMeal(meal.id);
+                        onClick={async () => {
+                          const confirmed = await showConfirm(
+                            'Hapus jadwal pemberian makan ini?',
+                            'Hapus Jadwal Nutrisi',
+                            { type: 'danger', confirmLabel: 'Ya, Hapus' }
+                          );
+                          if (confirmed) deleteHomecareMeal(meal.id);
                         }}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -854,10 +866,15 @@ function HomecareContent() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => {
-                          if (window.confirm('Hapus jadwal obat ini?')) deleteHomecareMed(med.id);
+                        onClick={async () => {
+                          const confirmed = await showConfirm(
+                            'Hapus jadwal pemberian obat ini?',
+                            'Hapus Jadwal Obat',
+                            { type: 'danger', confirmLabel: 'Ya, Hapus' }
+                          );
+                          if (confirmed) deleteHomecareMed(med.id);
                         }}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>

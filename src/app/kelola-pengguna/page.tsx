@@ -30,6 +30,7 @@ import {
   Save
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
+import { useDialog } from '@/context/DialogContext';
 import { Role } from '@/types';
 import { useRouter } from 'next/navigation';
 
@@ -45,6 +46,7 @@ export default function KelolaPenggunaPage() {
     adminResetPassword,
     logout 
   } = useClinic();
+  const { showAlert, showConfirm } = useDialog();
 
   const [activeTab, setActiveTab] = useState<'profil' | 'manajemen'>('profil');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -168,15 +170,15 @@ export default function KelolaPenggunaPage() {
   };
 
   // Handle Tambah Petugas
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nama || !username) {
-      alert('Nama dan username wajib diisi');
+      await showAlert('Nama lengkap dan username wajib diisi.', 'Formulir Belum Lengkap', 'warning');
       return;
     }
 
     if (users.some((u) => u.username.toLowerCase() === username.trim().toLowerCase())) {
-      alert(`Username "${username}" sudah digunakan.`);
+      await showAlert(`Username "${username}" sudah digunakan oleh petugas lain.`, 'Username Sudah Terdaftar', 'warning');
       return;
     }
 
@@ -198,6 +200,7 @@ export default function KelolaPenggunaPage() {
     setNoHp('');
     setEmail('');
     setShowAddForm(false);
+    await showAlert('Akun tenaga medis baru berhasil didaftarkan.', 'Registrasi Berhasil', 'success');
   };
 
   // Handle Admin Reset Password Petugas Lain
@@ -223,8 +226,13 @@ export default function KelolaPenggunaPage() {
     }
   };
 
-  const handleLogout = () => {
-    if (window.confirm(`Konfirmasi keluar dari akun ${currentUser.nama}?`)) {
+  const handleLogout = async () => {
+    const confirmed = await showConfirm(
+      `Apakah Anda yakin ingin keluar dari sesi akun ${currentUser.nama}?`,
+      'Konfirmasi Logout',
+      { type: 'danger', confirmLabel: 'Ya, Keluar' }
+    );
+    if (confirmed) {
       logout();
       router.push('/login');
     }
@@ -611,8 +619,13 @@ export default function KelolaPenggunaPage() {
                             {!isCurrent && users.length > 1 && (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  if (confirm(`Yakin ingin menghapus akun ${u.nama}?`)) {
+                                onClick={async () => {
+                                  const confirmed = await showConfirm(
+                                    `Yakin ingin menghapus akun ${u.nama}? Akses login untuk staf ini akan dicabut.`,
+                                    'Hapus Akun Tenaga Medis',
+                                    { type: 'danger', confirmLabel: 'Ya, Hapus' }
+                                  );
+                                  if (confirmed) {
                                     deleteUser(u.id);
                                   }
                                 }}

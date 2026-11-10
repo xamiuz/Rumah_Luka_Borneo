@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ClinicProvider } from '@/context/ClinicContext';
+import { DialogProvider } from '@/context/DialogContext';
 import { AppShell } from '@/components/layout/AppShell';
 
 const inter = Inter({
@@ -23,11 +24,13 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
-        <ClinicProvider>
-          <AppShell>
-            {children}
-          </AppShell>
-        </ClinicProvider>
+        <DialogProvider>
+          <ClinicProvider>
+            <AppShell>
+              {children}
+            </AppShell>
+          </ClinicProvider>
+        </DialogProvider>
       </body>
     </html>
   );

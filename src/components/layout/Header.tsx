@@ -3,6 +3,7 @@
 import React from 'react';
 import { Search, RotateCcw, ShieldCheck, UserCheck } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
+import { useDialog } from '@/context/DialogContext';
 
 interface HeaderProps {
   title: string;
@@ -11,6 +12,7 @@ interface HeaderProps {
 
 export function Header({ title, subtitle }: HeaderProps) {
   const { searchTerm, setSearchTerm, currentUser, resetAllData } = useClinic();
+  const { showConfirm } = useDialog();
   const [formattedDate, setFormattedDate] = React.useState<string>('Pelayanan Hari Ini');
 
   React.useEffect(() => {
@@ -27,8 +29,13 @@ export function Header({ title, subtitle }: HeaderProps) {
     }
   }, []);
 
-  const handleReset = () => {
-    if (window.confirm('Reset data ke kondisi awal (sample data)? Data baru yang diinput akan dikembalikan.')) {
+  const handleReset = async () => {
+    const confirmed = await showConfirm(
+      'Reset data ke kondisi awal (sample data)? Data baru yang diinput akan dikembalikan.',
+      'Reset Data Klinik',
+      { type: 'warning', confirmLabel: 'Ya, Reset Data' }
+    );
+    if (confirmed) {
       resetAllData();
     }
   };

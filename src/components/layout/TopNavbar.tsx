@@ -19,10 +19,12 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
+import { useDialog } from '@/context/DialogContext';
 
 export function TopNavbar() {
   const router = useRouter();
-  const { searchTerm, setSearchTerm, currentUser, switchUser, users, resetAllData, dbStatus, logout } = useClinic();
+  const { searchTerm, setSearchTerm, currentUser, switchUser, users, resetAllData, logout } = useClinic();
+  const { showConfirm } = useDialog();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -56,14 +58,24 @@ export function TopNavbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleReset = () => {
-    if (window.confirm('Reset ulang data sample klinik untuk demonstrasi?')) {
+  const handleReset = async () => {
+    const confirmed = await showConfirm(
+      'Reset ulang data sample klinik untuk demonstrasi? Seluruh data baru akan dikembalikan ke kondisi awal.',
+      'Reset Data Klinik',
+      { type: 'warning', confirmLabel: 'Ya, Reset Data' }
+    );
+    if (confirmed) {
       resetAllData();
     }
   };
 
-  const handleLogout = () => {
-    if (window.confirm(`Konfirmasi keluar dari sesi ${currentUser.nama}?`)) {
+  const handleLogout = async () => {
+    const confirmed = await showConfirm(
+      `Apakah Anda yakin ingin keluar dari sesi akun ${currentUser.nama}?`,
+      'Konfirmasi Logout',
+      { type: 'danger', confirmLabel: 'Ya, Keluar' }
+    );
+    if (confirmed) {
       logout();
       router.push('/login');
     }

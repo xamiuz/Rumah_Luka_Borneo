@@ -15,10 +15,12 @@ import {
   Filter
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
+import { useDialog } from '@/context/DialogContext';
 import { JadwalPerawatan } from '@/types';
 
 export default function JadwalPage() {
   const { schedules, addSchedule, updateScheduleStatus, patients, users } = useClinic();
+  const { showAlert } = useDialog();
   const [activeFilter, setActiveFilter] = useState<string>('Semua');
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
@@ -41,11 +43,11 @@ export default function JadwalPage() {
     return s.jenisLayanan === activeFilter;
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const patientObj = patients.find((p) => p.id === pasienId);
     if (!patientObj) {
-      alert('Pilih pasien terlebih dahulu.');
+      await showAlert('Pilih pasien terlebih dahulu.', 'Pasien Belum Dipilih', 'warning');
       return;
     }
 

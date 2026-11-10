@@ -370,7 +370,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
 
   const deleteUser = (id: string) => {
     if (users.length <= 1) {
-      alert('Minimal harus ada satu akun petugas dalam sistem.');
       return;
     }
     setUsers((prev) => prev.filter((u) => u.id !== id));

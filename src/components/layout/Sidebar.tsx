@@ -20,16 +20,23 @@ import {
   UserCog
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
+import { useDialog } from '@/context/DialogContext';
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, switchRole, logout } = useClinic();
+  const { showConfirm } = useDialog();
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
 
-  const handleLogout = () => {
-    if (window.confirm(`Konfirmasi keluar dari akun ${currentUser.nama}?`)) {
+  const handleLogout = async () => {
+    const confirmed = await showConfirm(
+      `Apakah Anda yakin ingin keluar dari sesi akun ${currentUser.nama}?`,
+      'Konfirmasi Logout',
+      { type: 'danger', confirmLabel: 'Ya, Keluar' }
+    );
+    if (confirmed) {
       logout();
       router.push('/login');
     }
