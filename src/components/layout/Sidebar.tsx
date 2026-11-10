@@ -50,7 +50,6 @@ export function Sidebar() {
       label: 'Dashboard Klinis',
       href: '/',
       icon: LayoutDashboard,
-      badge: 'Live',
     },
     {
       label: 'Direktori Pasien',
@@ -71,7 +70,6 @@ export function Sidebar() {
       label: 'Layanan Home Care',
       href: '/homecare',
       icon: Home,
-      badge: 'Shift & Diet',
     },
   ];
 
@@ -176,11 +174,6 @@ export function Sidebar() {
                   >
                     {item.label}
                   </span>
-                  {isExpanded && item.badge && !isActive && (
-                    <span className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono font-medium shrink-0 ml-auto">
-                      {item.badge}
-                    </span>
-                  )}
                   {isExpanded && isActive && (
                     <ChevronRight className="w-3.5 h-3.5 text-blue-600 shrink-0 ml-auto" />
                   )}
