@@ -27,7 +27,9 @@ import {
   AlertTriangle,
   RotateCcw,
   Trash2,
-  ShieldAlert
+  ShieldAlert,
+  Search,
+  ChevronRight
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 import { useDialog } from '@/context/DialogContext';
@@ -75,7 +77,35 @@ function HomecareContent() {
     defaultHomecarePatient ? defaultHomecarePatient.id : ''
   );
 
+  // Search & Combobox State for Scalable Patient Selection
+  const [patientSearchQuery, setPatientSearchQuery] = useState('');
+  const [isPatientDropdownOpen, setIsPatientDropdownOpen] = useState(false);
+  const patientDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (patientDropdownRef.current && !patientDropdownRef.current.contains(event.target as Node)) {
+        setIsPatientDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const selectedPatient = patients.find((p) => p.id === selectedPasienId);
+
+  // Filtered patients for search combobox
+  const filteredPatientsList = patients.filter((p) => {
+    if (!patientSearchQuery.trim()) return true;
+    const q = patientSearchQuery.toLowerCase();
+    return (
+      p.nama.toLowerCase().includes(q) ||
+      p.noRm.toLowerCase().includes(q) ||
+      p.nik.includes(q) ||
+      p.diagnosisMedisUtama.toLowerCase().includes(q)
+    );
+  });
 
   // Filtered data for selected patient
   const patientJaga = homecareJaga.filter((j) => j.pasienId === selectedPasienId);
@@ -468,38 +498,126 @@ function HomecareContent() {
         </div>
       </div>
 
-      {/* Patient Selector Capsule */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <label className="text-xs font-bold text-slate-700 whitespace-nowrap">Pilih Pasien Home Care:</label>
-          <select
-            value={selectedPasienId}
-            onChange={(e) => setSelectedPasienId(e.target.value)}
-            className="text-xs font-semibold px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50 text-slate-800 min-w-[280px]"
+      {/* Scalable Patient Selector with Search Combobox & Quick Information */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        {/* Interactive Searchable Dropdown */}
+        <div className="relative w-full lg:w-[480px]" ref={patientDropdownRef}>
+          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+            Pasien Home Care Aktif:
+          </label>
+          
+          <button
+            type="button"
+            onClick={() => setIsPatientDropdownOpen(!isPatientDropdownOpen)}
+            className="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl text-xs transition flex items-center justify-between gap-2 cursor-pointer shadow-2xs"
           >
-            {patients.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nama} ({p.noRm}) - {p.diagnosisMedisUtama}
-              </option>
-            ))}
-          </select>
+            {selectedPatient ? (
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 truncate">{selectedPatient.nama}</span>
+                  <span className="font-mono text-[11px] text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200 shrink-0">
+                    {selectedPatient.noRm}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                  {selectedPatient.diagnosisMedisUtama}
+                </p>
+              </div>
+            ) : (
+              <span className="text-slate-400">Pilih pasien home care...</span>
+            )}
+            <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${isPatientDropdownOpen ? 'rotate-90' : ''}`} />
+          </button>
+
+          {/* Search Dropdown Popover */}
+          {isPatientDropdownOpen && (
+            <div className="absolute top-full left-0 mt-1.5 w-full bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+              {/* Quick Filter Search Box */}
+              <div className="p-2.5 border-b border-slate-100 bg-slate-50/70">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Ketik Nama, No. RM, NIK, atau Diagnosis..."
+                    value={patientSearchQuery}
+                    onChange={(e) => setPatientSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600 text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* List Pasien */}
+              <div className="max-h-64 overflow-y-auto divide-y divide-slate-50 text-xs">
+                {filteredPatientsList.length === 0 ? (
+                  <div className="py-6 text-center text-slate-400 text-xs">
+                    Tidak ada pasien yang cocok dengan kata kunci pencarian.
+                  </div>
+                ) : (
+                  filteredPatientsList.map((p) => {
+                    const isSelected = p.id === selectedPasienId;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPasienId(p.id);
+                          setIsPatientDropdownOpen(false);
+                          setPatientSearchQuery('');
+                        }}
+                        className={`w-full text-left px-3.5 py-2.5 transition flex items-center justify-between gap-2 hover:bg-slate-50 cursor-pointer ${
+                          isSelected ? 'bg-blue-50/70 font-semibold text-blue-900' : 'text-slate-700'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-900 truncate">{p.nama}</span>
+                            <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded shrink-0">
+                              {p.noRm}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                            {p.diagnosisMedisUtama}
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <Check className="w-4 h-4 text-blue-600 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Footer Count */}
+              <div className="p-2 border-t border-slate-100 bg-slate-50/50 text-[11px] text-slate-500 text-center font-medium">
+                Ditemukan {filteredPatientsList.length} dari {patients.length} pasien terdaftar
+              </div>
+            </div>
+          )}
         </div>
 
+        {/* Selected Patient Live Medical Details */}
         {selectedPatient && (
-          <div className="text-xs text-slate-600 flex items-center gap-4 flex-wrap">
-            <span className="flex items-center gap-1 text-slate-500">
-              <MapPin className="w-3.5 h-3.5 text-slate-400" />
-              <span>{selectedPatient.alamat}</span>
-            </span>
-            <span className="flex items-center gap-1 text-slate-500">
-              <Phone className="w-3.5 h-3.5 text-slate-400" />
-              <span className="font-mono">{selectedPatient.noHp}</span>
-            </span>
-            {selectedPatient.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada' && (
-              <span className="text-rose-700 font-bold bg-rose-50 px-2.5 py-0.5 rounded border border-rose-200 text-[11px] flex items-center gap-1">
-                <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
-                <span>Alergi: {selectedPatient.riwayatAlergi}</span>
+          <div className="flex-1 lg:pl-6 lg:border-l lg:border-slate-100 text-xs space-y-1.5">
+            <div className="flex items-center gap-4 flex-wrap text-slate-600">
+              <span className="flex items-center gap-1.5 text-slate-600">
+                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="truncate max-w-[280px]" title={selectedPatient.alamat}>{selectedPatient.alamat}</span>
               </span>
+              <span className="flex items-center gap-1.5 text-slate-600">
+                <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="font-mono font-medium">{selectedPatient.noHp}</span>
+              </span>
+            </div>
+
+            {selectedPatient.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada' && (
+              <div>
+                <span className="inline-flex items-center gap-1 text-rose-700 font-bold bg-rose-50 px-2.5 py-0.5 rounded-md border border-rose-200 text-[11px]">
+                  <ShieldAlert className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                  <span>Peringatan Alergi Pasien: {selectedPatient.riwayatAlergi}</span>
+                </span>
+              </div>
             )}
           </div>
         )}
