@@ -269,21 +269,23 @@ export default function KelolaPenggunaPage() {
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('manajemen')}
-            className={`pb-2.5 relative transition-colors cursor-pointer flex items-center gap-2 ${
-              activeTab === 'manajemen'
-                ? 'text-blue-600 font-bold'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Daftar Staf Medis ({users.length})</span>
-            {activeTab === 'manajemen' && (
-              <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full" />
-            )}
-          </button>
+          {currentUser.role === 'Admin' && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('manajemen')}
+              className={`pb-2.5 relative transition-colors cursor-pointer flex items-center gap-2 ${
+                activeTab === 'manajemen'
+                  ? 'text-blue-600 font-bold'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Daftar Staf Medis ({users.length})</span>
+              {activeTab === 'manajemen' && (
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -417,8 +419,8 @@ export default function KelolaPenggunaPage() {
         </div>
       )}
 
-      {/* TAB 2: MANAJEMEN TENAGA MEDIS */}
-      {activeTab === 'manajemen' && (
+      {/* TAB 2: MANAJEMEN TENAGA MEDIS (HANYA UNTUK HAK AKSES ADMIN) */}
+      {activeTab === 'manajemen' && currentUser.role === 'Admin' && (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <p className="text-xs text-slate-600">

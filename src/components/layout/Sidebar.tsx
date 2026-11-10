@@ -81,11 +81,21 @@ export function Sidebar() {
       href: '/jadwal',
       icon: CalendarClock,
     },
-    {
-      label: 'Manajemen Pengguna',
-      href: '/kelola-pengguna',
-      icon: ShieldCheck,
-    },
+    ...(currentUser.role === 'Admin'
+      ? [
+          {
+            label: 'Manajemen Staf & Hak Akses',
+            href: '/kelola-pengguna',
+            icon: ShieldCheck,
+          },
+        ]
+      : [
+          {
+            label: 'Profil Akun Saya',
+            href: '/kelola-pengguna',
+            icon: ShieldCheck,
+          },
+        ]),
   ];
 
   return (
