@@ -25,6 +25,25 @@ export function TopNavbar() {
   const { searchTerm, setSearchTerm, currentUser, switchUser, users, resetAllData, dbStatus, logout } = useClinic();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [currentTime, setCurrentTime] = useState<string>('');
+
+  // Live real-time clock
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        }) + ' WITA'
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -61,7 +80,13 @@ export function TopNavbar() {
 
         <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
           <Clock className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Shift Pelayanan Aktif (Pagi)</span>
+          <span>Shift Pagi</span>
+          {currentTime && (
+            <>
+              <span className="text-slate-300">|</span>
+              <span className="font-mono text-slate-800 font-bold">{currentTime}</span>
+            </>
+          )}
         </div>
 
         {/* Database Status Indicator */}

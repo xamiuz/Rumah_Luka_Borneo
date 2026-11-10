@@ -217,7 +217,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Role Switcher Box & Logout (Adaptive Mini & Expanded) */}
+      {/* Bottom User Profile & Logout (Adaptive Mini & Expanded) */}
       <div className={`border-t border-slate-200 bg-slate-50/80 transition-all duration-300 ${
         isExpanded ? 'p-4' : 'p-3 flex flex-col items-center gap-2'
       }`}>
@@ -240,9 +240,9 @@ export function Sidebar() {
           </>
         ) : (
           <div className="w-full">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500">
-                Hak Akses Login
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                Sesi Petugas
               </span>
               <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-mono font-bold rounded border border-blue-200">
                 {currentUser.role}
@@ -253,24 +253,6 @@ export function Sidebar() {
             </div>
             <div className="text-[10px] text-slate-500 truncate mt-0.5">
               {currentUser.strNip ? `NIP/STR: ${currentUser.strNip}` : 'Staf Administrator'}
-            </div>
-
-            {/* Quick role toggle buttons */}
-            <div className="mt-3 pt-3 border-t border-slate-200 grid grid-cols-3 gap-1">
-              {(['Perawat', 'Dokter', 'Admin'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => switchRole(r)}
-                  className={`text-[10px] py-1.5 px-1 rounded-md font-semibold text-center transition ${
-                    currentUser.role === r
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
             </div>
 
             {/* Bottom Actions: Account Management & Logout */}

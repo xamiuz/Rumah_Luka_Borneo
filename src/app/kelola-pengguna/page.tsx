@@ -16,8 +16,9 @@ import {
   AlertCircle, 
   CheckCircle2, 
   User, 
-  ShieldAlert, 
-  RotateCcw 
+  RotateCcw,
+  X,
+  Sparkles
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 import { Role } from '@/types';
@@ -36,7 +37,8 @@ export default function KelolaPenggunaPage() {
   const [activeTab, setActiveTab] = useState<'profil' | 'manajemen'>('profil');
   const [showAddForm, setShowAddForm] = useState(false);
 
-  // Tab 1: Ganti Password Form State
+  // Popout / Modal Ganti Password Pribadi State
+  const [showChangePassModal, setShowChangePassModal] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -45,7 +47,7 @@ export default function KelolaPenggunaPage() {
   const [passFeedback, setPassFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isChangingPass, setIsChangingPass] = useState(false);
 
-  // Tab 2: Form Tambah Staf Medis State
+  // Form Tambah Staf Medis State
   const [nama, setNama] = useState('');
   const [username, setUsername] = useState('');
   const [initialPassword, setInitialPassword] = useState('123');
@@ -57,13 +59,13 @@ export default function KelolaPenggunaPage() {
   const [adminNewPass, setAdminNewPass] = useState('');
   const [adminResetMsg, setAdminResetMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Handle Tab 1: Ganti Password Pribadi
+  // Handle Submit Popout Ganti Password Pribadi
   const handleChangeMyPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPassFeedback(null);
 
     if (!oldPassword || !newPassword || !confirmPassword) {
-      setPassFeedback({ type: 'error', message: 'Semua field password wajib diisi.' });
+      setPassFeedback({ type: 'error', message: 'Semua kolom password wajib diisi.' });
       return;
     }
 
@@ -81,10 +83,14 @@ export default function KelolaPenggunaPage() {
     try {
       const res = await changePassword(oldPassword, newPassword);
       if (res.success) {
-        setPassFeedback({ type: 'success', message: 'Password akun Anda berhasil diubah.' });
-        setOldPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
+        setPassFeedback({ type: 'success', message: 'Password akun Anda berhasil diperbarui.' });
+        setTimeout(() => {
+          setShowChangePassModal(false);
+          setOldPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+          setPassFeedback(null);
+        }, 1200);
       } else {
         setPassFeedback({ type: 'error', message: res.message || 'Gagal mengubah password.' });
       }
@@ -95,7 +101,7 @@ export default function KelolaPenggunaPage() {
     }
   };
 
-  // Handle Tab 2: Tambah Akun Petugas
+  // Handle Tambah Akun Petugas
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nama || !username) {
@@ -171,8 +177,8 @@ export default function KelolaPenggunaPage() {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <KeyRound className="w-3.5 h-3.5" />
-            <span>Profil Saya & Ganti Sandi</span>
+            <User className="w-3.5 h-3.5" />
+            <span>Profil Saya</span>
           </button>
           <button
             type="button"
@@ -189,167 +195,87 @@ export default function KelolaPenggunaPage() {
         </div>
       </div>
 
-      {/* TAB 1: PROFIL SAYA & GANTI PASSWORD */}
+      {/* TAB 1: PROFIL SAYA (Tampilan Bersih & Elegan dengan Tombol Popout Ganti Sandi) */}
       {activeTab === 'profil' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Sisi Kiri: Ringkasan Profil Pengguna Aktif */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-xs">
-                {currentUser.role.charAt(0)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase ${
-                  currentUser.role === 'Admin'
-                    ? 'bg-purple-100 text-purple-800'
-                    : currentUser.role === 'Dokter'
-                    ? 'bg-rose-100 text-rose-800'
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
-                  {currentUser.role}
-                </span>
-                <h3 className="text-base font-bold text-slate-900 mt-1 truncate" title={currentUser.nama}>
-                  {currentUser.nama}
-                </h3>
-                <p className="text-xs text-slate-500 font-mono">@{currentUser.username}</p>
-              </div>
-            </div>
-
-            <div className="border-t border-slate-100 pt-4 space-y-3 text-xs">
-              <div className="flex justify-between items-center py-1 border-b border-slate-50">
-                <span className="text-slate-500">ID Petugas:</span>
-                <span className="font-mono font-medium text-slate-800">{currentUser.id}</span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-50">
-                <span className="text-slate-500">NIP / No. STR:</span>
-                <span className="font-medium text-slate-800">{currentUser.strNip || '-'}</span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-50">
-                <span className="text-slate-500">Status Akun:</span>
-                <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Aktif
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500">Klinik Penugasan:</span>
-                <span className="font-medium text-slate-800">Rumah Luka Borneo</span>
-              </div>
-            </div>
-
-            <div className="p-3.5 bg-blue-50/70 border border-blue-200/60 rounded-xl text-blue-900 text-xs leading-relaxed flex items-start gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" />
-              <div>
-                <strong>Keamanan Akun:</strong> Pastikan Anda menggunakan kata sandi yang kuat dan tidak membagikannya ke pihak luar untuk menjaga kerahasiaan rekam medis pasien.
-              </div>
-            </div>
-          </div>
-
-          {/* Sisi Kanan: Form Ganti Password */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
-            <div className="border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-50 text-blue-700 rounded-lg">
-                  <Lock className="w-4 h-4" />
+        <div className="max-w-3xl mx-auto space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+            {/* Header Profil */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-2xl shadow-xs">
+                  {currentUser.role.charAt(0)}
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">Ganti Password Akun Saya</h2>
-                  <p className="text-xs text-slate-500">
-                    Perbarui kata sandi untuk akun <span className="font-semibold text-slate-700">{currentUser.nama}</span>
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase ${
+                      currentUser.role === 'Admin'
+                        ? 'bg-purple-100 text-purple-800'
+                        : currentUser.role === 'Dokter'
+                        ? 'bg-rose-100 text-rose-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {currentUser.role}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Akun Aktif
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-900 mt-1">
+                    {currentUser.nama}
+                  </h2>
+                  <p className="text-xs text-slate-500 font-mono mt-0.5">Username: @{currentUser.username}</p>
                 </div>
+              </div>
+
+              {/* Action Button: Buka Popout Ganti Password */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowChangePassModal(true);
+                  setPassFeedback(null);
+                  setOldPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer self-start sm:self-center"
+              >
+                <KeyRound className="w-4 h-4" />
+                <span>Ganti Password Akun</span>
+              </button>
+            </div>
+
+            {/* Detail Informasi Akun */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-slate-400 font-medium">Nomor Induk / STR:</span>
+                <p className="font-semibold text-slate-900 text-sm">{currentUser.strNip || '-'}</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-slate-400 font-medium">ID Pengenal Sistem:</span>
+                <p className="font-mono font-semibold text-slate-900 text-sm">{currentUser.id}</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-slate-400 font-medium">Unit / Klinik Pelayanan:</span>
+                <p className="font-semibold text-slate-900 text-sm">Rumah Luka Borneo (Truly Health Care Center)</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-slate-400 font-medium">Tingkat Keamanan Sesi:</span>
+                <p className="font-semibold text-emerald-700 text-sm flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" /> Terotentikasi Penuh
+                </p>
               </div>
             </div>
 
-            {passFeedback && (
-              <div className={`p-4 rounded-xl text-xs flex items-start gap-2.5 ${
-                passFeedback.type === 'success'
-                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
-                  : 'bg-rose-50 border border-rose-200 text-rose-800'
-              }`}>
-                {passFeedback.type === 'success' ? (
-                  <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-                ) : (
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
-                )}
-                <div className="leading-relaxed font-medium">{passFeedback.message}</div>
+            {/* Banner Edukasi Keamanan Akun */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-600 flex items-start gap-3">
+              <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <strong className="text-slate-800">Privasi & Standar Medis:</strong> Seluruh pencatatan asesmen luka, rekam medis CPPT, dan jadwal tindakan terhubung dengan akun pemeriksa ini. Selalu ganti password secara berkala dan klik <strong>Keluar / Logout</strong> saat meninggalkan perangkat kerja.
               </div>
-            )}
-
-            <form onSubmit={handleChangeMyPassword} className="space-y-4 max-w-lg">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Password Saat Ini *
-                </label>
-                <div className="relative">
-                  <input
-                    type={showOldPass ? 'text' : 'password'}
-                    required
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    placeholder="Masukkan password Anda saat ini"
-                    className="w-full px-3.5 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowOldPass(!showOldPass)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    {showOldPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  Password default awal adalah <code className="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold text-slate-700">123</code>
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Password Baru *
-                </label>
-                <div className="relative">
-                  <input
-                    type={showNewPass ? 'text' : 'password'}
-                    required
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Minimal 3 karakter"
-                    className="w-full px-3.5 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPass(!showNewPass)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Ulangi Password Baru *
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Ketik ulang password baru Anda"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isChangingPass}
-                  className="py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition cursor-pointer flex items-center gap-2 disabled:opacity-50"
-                >
-                  <KeyRound className="w-3.5 h-3.5" />
-                  <span>{isChangingPass ? 'Memperbarui...' : 'Simpan Password Baru'}</span>
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
@@ -472,7 +398,7 @@ export default function KelolaPenggunaPage() {
                     <th className="py-3 px-4">Username</th>
                     <th className="py-3 px-4">Peran (Role)</th>
                     <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-center">Sesi Aktif</th>
+                    <th className="py-3 px-4 text-center">Status Sesi</th>
                     <th className="py-3 px-4 text-right">Aksi</th>
                   </tr>
                 </thead>
@@ -513,17 +439,11 @@ export default function KelolaPenggunaPage() {
 
                         <td className="py-3.5 px-4 text-center">
                           {isCurrent ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-600 text-white font-bold text-[10px] rounded-full">
-                              <Check className="w-3 h-3" /> Anda
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[10px] rounded-full">
+                              <Check className="w-3 h-3" /> Akun Aktif
                             </span>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => switchUser(u)}
-                              className="text-[11px] text-slate-500 hover:text-blue-600 underline font-medium cursor-pointer"
-                            >
-                              Ganti ke akun ini
-                            </button>
+                            <span className="text-[11px] text-slate-400">Offline</span>
                           )}
                         </td>
 
@@ -537,9 +457,10 @@ export default function KelolaPenggunaPage() {
                                 setAdminResetMsg(null);
                               }}
                               title="Reset Password Petugas"
-                              className="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                              className="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition cursor-pointer flex items-center gap-1 border border-slate-200 hover:border-blue-300"
                             >
                               <KeyRound className="w-3.5 h-3.5" />
+                              <span className="text-[10px] font-medium hidden sm:inline">Reset Sandi</span>
                             </button>
 
                             {!isCurrent && users.length > 1 && (
@@ -568,10 +489,135 @@ export default function KelolaPenggunaPage() {
         </div>
       )}
 
+      {/* MODAL / POPOUT GANTI PASSWORD PRIBADI (Muncul saat tombol Ganti Password diklik) */}
+      {showChangePassModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Ganti Password Akun</h3>
+                  <p className="text-xs text-slate-500">Akun: {currentUser.nama}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowChangePassModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Notifikasi Status Feedback */}
+            {passFeedback && (
+              <div className={`p-3.5 rounded-xl text-xs flex items-start gap-2.5 ${
+                passFeedback.type === 'success'
+                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                  : 'bg-rose-50 border border-rose-200 text-rose-800'
+              }`}>
+                {passFeedback.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+                )}
+                <div className="leading-relaxed font-medium">{passFeedback.message}</div>
+              </div>
+            )}
+
+            {/* Form Fields */}
+            <form onSubmit={handleChangeMyPassword} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Password Saat Ini *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showOldPass ? 'text' : 'password'}
+                    required
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    placeholder="Masukkan password Anda saat ini"
+                    className="w-full px-3 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOldPass(!showOldPass)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showOldPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Password Baru *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNewPass ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Minimal 3 karakter"
+                    className="w-full px-3 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPass(!showNewPass)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Konfirmasi Password Baru *
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Ketik ulang password baru Anda"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              {/* Actions Footer */}
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowChangePassModal(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-lg transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isChangingPass}
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>{isChangingPass ? 'Menyimpan...' : 'Perbarui Password'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Admin Reset Password Modal */}
       {resetModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95 duration-150">
             <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
               <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
                 <KeyRound className="w-5 h-5" />
