@@ -92,7 +92,7 @@ export function Sidebar() {
             }`}
           >
             <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none whitespace-nowrap">
-              RUMAH LUKA
+              RUMAH LUKA BORNEO
             </h1>
             <p className="text-[10px] text-blue-700 font-semibold tracking-wide uppercase mt-1 whitespace-nowrap">
               Wound Care Clinic

@@ -12,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Rumah Luka | Sistem Rekam Medis Elektronik Terpadu (Wound Care EHR)',
-  description: 'Platform Manajemen Pelayanan Perawatan Luka Modern, Asesmen Klinis, dan Rekam Medis Terintegrasi.',
+  title: 'Rumah Luka Borneo | Sistem Rekam Medis Elektronik Terpadu (Wound Care EHR)',
+  description: 'Platform Manajemen Pelayanan Perawatan Luka Modern, Asesmen Klinis, dan Rekam Medis Terintegrasi Rumah Luka Borneo.',
 };
 
 export default function RootLayout({

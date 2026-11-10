@@ -26,7 +26,7 @@ export function TopNavbar() {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 text-slate-800">
           <Building2 className="w-4 h-4 text-blue-600" />
-          <span className="text-xs font-bold tracking-tight">Klinik Rumah Luka</span>
+          <span className="text-xs font-bold tracking-tight">Rumah Luka Borneo</span>
           <span className="text-slate-300">|</span>
         </div>
 
