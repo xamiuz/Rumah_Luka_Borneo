@@ -12,8 +12,8 @@ import {
   Sparkles, 
   Save, 
   ArrowLeft,
+  ArrowRight,
   ShieldAlert,
-  Sliders,
   FileText,
   Camera,
   UploadCloud,
@@ -22,7 +22,11 @@ import {
   Trash2,
   CheckCircle2,
   Search,
-  ChevronRight
+  ChevronRight,
+  Ruler,
+  Crosshair,
+  SlidersHorizontal,
+  LayoutList
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 import { TipeLuka, FotoPerkembanganLuka, TitikLukaPeta } from '@/types';
@@ -48,12 +52,12 @@ function AsesmenContent() {
   // Combobox Search State
   const [patientSearchQuery, setPatientSearchQuery] = useState('');
   const [isPatientDropdownOpen, setIsPatientDropdownOpen] = useState(false);
-  const patientDropdownRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicked outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (patientDropdownRef.current && !patientDropdownRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsPatientDropdownOpen(false);
       }
     }
@@ -62,20 +66,19 @@ function AsesmenContent() {
   }, []);
 
   const filteredPatients = patients.filter((p) => {
-    const q = patientSearchQuery.toLowerCase();
+    const q = patientSearchQuery.toLowerCase().trim();
+    if (!q) return true;
     return (
       p.nama.toLowerCase().includes(q) ||
       p.noRm.toLowerCase().includes(q) ||
-      (p.nik && p.nik.includes(q)) ||
-      (p.diagnosisMedisUtama && p.diagnosisMedisUtama.toLowerCase().includes(q))
+      p.nik.includes(q) ||
+      p.diagnosisMedisUtama.toLowerCase().includes(q)
     );
   });
 
-  // Photo Upload State
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [photoFase, setPhotoFase] = useState<FotoPerkembanganLuka['fase']>('Sebelum Tindakan');
-  const [photoCatatan, setPhotoCatatan] = useState('');
-  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  // Step Mode & View Mode State ("1 Halaman per Langkah" vs "Lihat Semua")
+  const [activeStep, setActiveStep] = useState<number>(1);
+  const [viewMode, setViewMode] = useState<'wizard' | 'all'>('wizard');
 
   // Form State
   const [lokasiLuka, setLokasiLuka] = useState('Kalkaneus / Tumit Kanan (Plantar Dextra)');
@@ -170,176 +173,149 @@ function AsesmenContent() {
 
       setTipeLuka(asm.tipeLuka);
       setStadiumLuka(asm.stadiumLuka);
-      setPanjangCm(asm.ukuran.panjangCm);
-      setLebarCm(asm.ukuran.lebarCm);
-      setKedalamanMm(asm.ukuran.kedalamanMm);
-      setUnderminingCm(asm.ukuran.underminingGoaCm ?? 0);
+      if (asm.ukuran) {
+        setPanjangCm(asm.ukuran.panjangCm);
+        setLebarCm(asm.ukuran.lebarCm);
+        setKedalamanMm(asm.ukuran.kedalamanMm);
+        setUnderminingCm(asm.ukuran.underminingGoaCm || 0);
+      }
 
-      setGranulasi(asm.dasarLuka.persenGranulasi);
-      setSlough(asm.dasarLuka.persenSlough);
-      setNekrotik(asm.dasarLuka.persenNekrotik);
-      setEpitelisasi(asm.dasarLuka.persenEpitelisasi);
+      if (asm.dasarLuka) {
+        setGranulasi(asm.dasarLuka.persenGranulasi);
+        setSlough(asm.dasarLuka.persenSlough);
+        setNekrotik(asm.dasarLuka.persenNekrotik);
+        setEpitelisasi(asm.dasarLuka.persenEpitelisasi);
+      }
 
-      setEksudatJumlah(asm.eksudat.jumlah);
-      setEksudatWarna(asm.eksudat.warna);
-      setEksudatBau(asm.eksudat.bau);
+      if (asm.eksudat) {
+        setEksudatJumlah(asm.eksudat.jumlah);
+        setEksudatWarna(asm.eksudat.warna);
+        setEksudatBau(asm.eksudat.bau);
+      }
 
       setKulitSekitar(asm.kulitSekitar);
       setTepiLuka(asm.tepiLuka);
-      setTandaInfeksi(asm.tandaInfeksi);
-      setSkorNyeri(asm.skorNyeri);
 
-      setCairanPencuci(asm.tindakanWoundCare.cairanPencuci);
-      setTeknikDebridement(asm.tindakanWoundCare.teknikDebridement);
-      setPrimaryDressing(asm.tindakanWoundCare.primaryDressing);
-      setSecondaryDressing(asm.tindakanWoundCare.secondaryDressing);
-      setTargetEvaluasi(asm.targetEvaluasi);
-    } else {
-      // Intelligent fallback derived from diagnosisMedisUtama
-      const diag = (selectedPatient.diagnosisMedisUtama || '').toLowerCase();
-      let defaultView: 'foot' | 'anterior' | 'posterior' = 'anterior';
-      let defaultTipe: TipeLuka = 'Luka Trauma / Laserasi';
-      let defaultStadium = 'Superficial Partial-Thickness';
-      let defaultLokasi = 'Extremitas Superior Sinistra (Lengan Kiri)';
-      let defX = 24;
-      let defY = 45;
-
-      if (diag.includes('diabet') || diag.includes('pedis') || diag.includes('kaki') || diag.includes('foot')) {
-        defaultView = 'foot';
-        defaultTipe = 'Ulkus Diabetikum (Diabetic Foot)';
-        defaultStadium = 'Wagner Grade 2';
-        defaultLokasi = 'Plantar Pedis Dextra (Telapak Kaki Kanan)';
-        defX = 74;
-        defY = 78;
-      } else if (diag.includes('sakrum') || diag.includes('decubitus') || diag.includes('pressure') || diag.includes('tekan')) {
-        defaultView = 'posterior';
-        defaultTipe = 'Luka Tekan (Pressure Injury / Decubitus)';
-        defaultStadium = 'Stadium 2 (Hilangnya sebagian ketebalan kulit)';
-        defaultLokasi = 'Regio Sakrum / Os Koksi (Dekubitus)';
-        defX = 50;
-        defY = 48;
-      } else if (diag.includes('venos') || diag.includes('cruris') || diag.includes('betis')) {
-        defaultView = 'anterior';
-        defaultTipe = 'Ulkus Venosum / Arteriosum';
-        defaultStadium = 'Superficial Full-Thickness Dermis';
-        defaultLokasi = 'Regio Cruris Anterior Sinistra (Betis Depan Kiri)';
-        defX = 42;
-        defY = 78;
+      if (asm.tandaInfeksi) {
+        setTandaInfeksi({
+          dolorNyeri: asm.tandaInfeksi.dolorNyeri,
+          calorHangat: asm.tandaInfeksi.calorHangat,
+          ruborKemerahan: asm.tandaInfeksi.ruborKemerahan,
+          tumorBengkak: asm.tandaInfeksi.tumorBengkak,
+          functioLaesa: asm.tandaInfeksi.functioLaesa,
+        });
       }
+      setSkorNyeri(asm.skorNyeri ?? 4);
 
-      const newPin: TitikLukaPeta = {
-        id: `PIN-${selectedPatient.id}-1`,
-        nomor: 1,
-        label: 'Luka Utama',
-        view: defaultView,
-        x: defX,
-        y: defY,
-        regioAnatomi: defaultLokasi,
-      };
-      setTitikLukaList([newPin]);
-      setActiveTitikId(newPin.id);
-      setLokasiLuka(defaultLokasi);
-      setTipeLuka(defaultTipe);
-      setStadiumLuka(defaultStadium);
-      setPanjangCm(3.0);
-      setLebarCm(2.0);
-      setKedalamanMm(3);
-      setUnderminingCm(0);
-      setGranulasi(80);
-      setSlough(10);
-      setNekrotik(0);
-      setEpitelisasi(10);
-      setEksudatJumlah('Sedikit');
-      setEksudatWarna('Serous');
-      setEksudatBau('Tidak Berbau');
-      setKulitSekitar('Sehat');
-      setTepiLuka('Menyatu');
-      setTandaInfeksi({
-        dolorNyeri: true,
-        calorHangat: false,
-        ruborKemerahan: true,
-        tumorBengkak: false,
-        functioLaesa: false,
-      });
-      setSkorNyeri(2);
-      setCairanPencuci('NaCl 0.9% steril irigasi lembut');
-      setTeknikDebridement('Mechanical cleansing & debridement tepi luka');
-      setPrimaryDressing('Hydrogel dressing + Non-adherent wound contact layer');
-      setSecondaryDressing('Sterile gauze pad + cohesive bandage');
-      setTargetEvaluasi('Penutupan epitelial tepi luka dalam 5 hari');
+      if (asm.tindakanWoundCare) {
+        setCairanPencuci(asm.tindakanWoundCare.cairanPencuci);
+        setTeknikDebridement(asm.tindakanWoundCare.teknikDebridement);
+        setPrimaryDressing(asm.tindakanWoundCare.primaryDressing);
+        setSecondaryDressing(asm.tindakanWoundCare.secondaryDressing);
+      }
+      setTargetEvaluasi(asm.targetEvaluasi || '');
     }
-  }, [selectedPasienId, selectedPatient]);
+  }, [selectedPatient]);
 
-  // Photo Upload Handler
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Synchronize field values when active pin changes
+  const handleActiveTitikChange = (newTitikId: string) => {
+    setActiveTitikId(newTitikId);
+    const pin = titikLukaList.find((p) => p.id === newTitikId);
+    if (pin) {
+      setLokasiLuka(pin.regioAnatomi);
+    }
+  };
+
+  // Photo Upload States
+  const [photoFase, setPhotoFase] = useState<'Sebelum Tindakan' | 'Sesudah Debridement' | 'Setelah Balutan Selesai'>('Sebelum Tindakan');
+  const [photoCatatan, setPhotoCatatan] = useState('');
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      setPreviewPhoto(result);
-    };
-    reader.readAsDataURL(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSavePhoto = () => {
-    if (!selectedPatient || !previewPhoto) return;
+    if (!previewPhoto || !selectedPasienId) return;
 
-    addWoundPhoto({
-      pasienId: selectedPatient.id,
+    const newPhoto: FotoPerkembanganLuka = {
+      id: `FOTO-${Date.now()}`,
+      pasienId: selectedPasienId,
       tanggal: new Date().toISOString().split('T')[0],
       fase: photoFase,
       dataUrl: previewPhoto,
-      catatan: photoCatatan || `Dokumentasi luka ${photoFase}`,
+      catatan: photoCatatan || (photoFase === 'Sebelum Tindakan' ? 'Kondisi luka sebelum debridement' : 'Hasil pasca dressing'),
       perawat: currentUser.nama,
-    });
+    };
 
+    addWoundPhoto(newPhoto);
     setPreviewPhoto(null);
     setPhotoCatatan('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Real-time Clinical Safety Allergy Detector
-  const detectedAllergyKeyword = React.useMemo(() => {
+  // Real-time Allergy Cross-Check Guard
+  const allergyCheck = () => {
     if (!selectedPatient?.riwayatAlergi || selectedPatient.riwayatAlergi === 'Tidak Ada') return null;
     const allergyLower = selectedPatient.riwayatAlergi.toLowerCase();
-    const dressingCombined = `${primaryDressing} ${secondaryDressing} ${cairanPencuci}`.toLowerCase();
+    const prescriptionText = `${primaryDressing} ${secondaryDressing} ${cairanPencuci}`.toLowerCase();
 
-    const dangerKeywords = ['plester', 'karet', 'latex', 'lateks', 'iodine', 'betadine', 'penisilin', 'sulfa'];
-    for (const kw of dangerKeywords) {
-      if (allergyLower.includes(kw) && dressingCombined.includes(kw)) {
-        return kw;
+    const dangerKeywords = [
+      { key: 'karet', label: 'Plester Karet / Perekat Karet' },
+      { key: 'latex', label: 'Latex / Karet' },
+      { key: 'plester', label: 'Plester Perekat Standar' },
+      { key: 'iodine', label: 'Iodine / Betadine / Cadexomer' },
+      { key: 'silver', label: 'Silver / Perak' },
+      { key: 'sulfa', label: 'Sulfadiazine / Sulfa' },
+    ];
+
+    for (const item of dangerKeywords) {
+      if (allergyLower.includes(item.key) && prescriptionText.includes(item.key)) {
+        return item.label;
       }
     }
     return null;
-  }, [selectedPatient, primaryDressing, secondaryDressing, cairanPencuci]);
+  };
+
+  const detectedAllergyKeyword = allergyCheck();
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPatient) return;
+    if (!selectedPasienId) return;
 
     const activePin = titikLukaList.find((p) => p.id === activeTitikId) || titikLukaList[0];
 
-    addAssessment(selectedPatient.id, {
-      pasienId: selectedPatient.id,
+    const assessmentPayload = {
+      pasienId: selectedPasienId,
       perawatPemeriksa: currentUser.nama,
       lokasiLuka,
-      lokasiKoordinat: activePin ? { x: activePin.x, y: activePin.y, view: activePin.view } : undefined,
       daftarTitikLuka: titikLukaList,
+      lokasiKoordinat: {
+        x: activePin?.x ?? 50,
+        y: activePin?.y ?? 50,
+        view: activePin?.view || 'foot',
+      },
       tipeLuka,
       stadiumLuka,
       ukuran: {
-        panjangCm: Number(panjangCm),
-        lebarCm: Number(lebarCm),
-        kedalamanMm: Number(kedalamanMm),
-        underminingGoaCm: Number(underminingCm),
+        panjangCm,
+        lebarCm,
+        kedalamanMm,
+        underminingGoaCm: underminingCm,
       },
       dasarLuka: {
-        persenGranulasi: Number(granulasi),
-        persenSlough: Number(slough),
-        persenNekrotik: Number(nekrotik),
-        persenEpitelisasi: Number(epitelisasi),
+        persenGranulasi: granulasi,
+        persenSlough: slough,
+        persenNekrotik: nekrotik,
+        persenEpitelisasi: epitelisasi,
       },
       eksudat: {
         jumlah: eksudatJumlah,
@@ -349,42 +325,92 @@ function AsesmenContent() {
       kulitSekitar,
       tepiLuka,
       tandaInfeksi,
-      skorNyeri: Number(skorNyeri),
+      skorNyeri,
       tindakanWoundCare: {
         cairanPencuci,
         teknikDebridement,
         primaryDressing,
         secondaryDressing,
       },
-      intervensiKeperawatan: `Rawat luka modern dengan protokol TIME. Pembersihan biofilm dan maserasi peri-wound.`,
+      intervensiKeperawatan: `Perawatan luka modern pada ${lokasiLuka} (${tipeLuka} - ${stadiumLuka})`,
       targetEvaluasi,
-    });
+      fotoLukaUrl: patientPhotos.length > 0 ? patientPhotos[0].dataUrl : undefined,
+    };
 
+    addAssessment(selectedPasienId, assessmentPayload);
     setIsSaved(true);
     setTimeout(() => {
-      router.push(`/rekam-medis?pasienId=${selectedPatient.id}`);
-    }, 1200);
+      setIsSaved(false);
+      router.push(`/rekam-medis?pasienId=${selectedPasienId}`);
+    }, 1500);
   };
 
+  const steps = [
+    { id: 1, title: 'Peta Anatomi', subtitle: 'Lokasi & Titik Tubuh' },
+    { id: 2, title: 'Etiologi & Dimensi', subtitle: 'Ukuran P×L×T & Derajat' },
+    { id: 3, title: 'Jaringan & Infeksi', subtitle: 'TIME, Eksudat & VAS' },
+    { id: 4, title: 'Dressing & Foto', subtitle: 'Balutan & Dokumentasi' },
+  ];
+
   return (
-    <div className="w-full px-4 sm:px-6 py-5 space-y-5">
-      {/* Patient Selector Bar with Searchable Combobox */}
-      <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="relative w-full lg:w-[480px]" ref={patientDropdownRef}>
-          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+    <div className="space-y-6 max-w-6xl mx-auto pb-16">
+      {/* Page Title & View Switcher */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <Activity className="w-6 h-6 text-blue-600" />
+            <span>Asesmen Luka & Peta Anatomi</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Alur pengkajian klinis terstruktur standar spesialis perawatan luka modern (Wound Care).
+          </p>
+        </div>
+
+        {/* View Mode Switcher: Mode Bertahap (Fokus) vs Tampilkan Semua */}
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl self-start md:self-auto border border-slate-200">
+          <button
+            type="button"
+            onClick={() => setViewMode('wizard')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              viewMode === 'wizard'
+                ? 'bg-white text-blue-700 shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Mode Bertahap (1 Halaman / Tahap)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              viewMode === 'all'
+                ? 'bg-white text-blue-700 shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <LayoutList className="w-3.5 h-3.5" />
+            <span>Tampilkan Semua Section</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Patient Selection Bar */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative w-full md:w-96" ref={dropdownRef}>
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
             Pilih Pasien Pemeriksaan:
           </label>
-          
           <button
             type="button"
             onClick={() => setIsPatientDropdownOpen(!isPatientDropdownOpen)}
-            className="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl text-xs transition flex items-center justify-between gap-2 cursor-pointer shadow-2xs"
+            className="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl text-left text-xs font-medium text-slate-800 transition flex items-center justify-between gap-2 shadow-2xs"
           >
             {selectedPatient ? (
-              <div className="min-w-0 flex-1">
+              <div className="truncate">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-900 truncate">{selectedPatient.nama}</span>
-                  <span className="font-mono text-[11px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 shrink-0">
+                  <span className="font-bold text-slate-900">{selectedPatient.nama}</span>
+                  <span className="font-mono text-[10px] text-blue-700 bg-blue-100/70 px-1.5 py-0.5 rounded font-semibold">
                     {selectedPatient.noRm}
                   </span>
                 </div>
@@ -400,8 +426,7 @@ function AsesmenContent() {
 
           {/* Search Dropdown Popover */}
           {isPatientDropdownOpen && (
-            <div className="absolute top-full left-0 mt-1.5 w-full bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-              {/* Quick Filter Search Box */}
+            <div className="absolute top-full left-0 mt-1.5 w-full bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
               <div className="p-2.5 border-b border-slate-100 bg-slate-50/70">
                 <div className="relative">
                   <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -416,7 +441,6 @@ function AsesmenContent() {
                 </div>
               </div>
 
-              {/* Patient List */}
               <div className="max-h-60 overflow-y-auto divide-y divide-slate-100">
                 {filteredPatients.length === 0 ? (
                   <div className="p-4 text-center text-xs text-slate-400">
@@ -441,7 +465,7 @@ function AsesmenContent() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-slate-900 truncate">{p.nama}</span>
-                            <span className="font-mono text-[10px] text-blue-700 bg-blue-100/60 px-1.5 py-0.5 rounded">
+                            <span className="font-mono text-[10px] text-blue-700 bg-blue-100/60 px-1.5 py-0.5 rounded font-semibold">
                               {p.noRm}
                             </span>
                           </div>
@@ -472,620 +496,827 @@ function AsesmenContent() {
         )}
       </div>
 
+      {/* Stepper Navigation Bar (Always Visible to Guide the Clinician) */}
+      <div className="bg-white p-2 sm:p-3 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          {steps.map((step) => {
+            const isActive = activeStep === step.id;
+            const isCompleted = activeStep > step.id;
+            return (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => {
+                  setActiveStep(step.id);
+                  if (viewMode === 'all') {
+                    const el = document.getElementById(`section-${step.id}`);
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className={`p-3 rounded-xl text-left transition flex items-center gap-3 border ${
+                  isActive
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                    : isCompleted
+                    ? 'bg-blue-50/60 text-blue-900 border-blue-200 hover:bg-blue-100/60'
+                    : 'bg-slate-50/70 text-slate-600 border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                    isActive
+                      ? 'bg-white text-blue-700'
+                      : isCompleted
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-slate-600 border border-slate-200'
+                  }`}
+                >
+                  {isCompleted ? <Check className="w-4 h-4 stroke-[3]" /> : step.id}
+                </div>
+                <div className="min-w-0">
+                  <div className={`text-xs font-bold truncate ${isActive ? 'text-white' : 'text-slate-900'}`}>
+                    {step.title}
+                  </div>
+                  <div className={`text-[10px] truncate ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
+                    {step.subtitle}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {isSaved && (
-        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 px-4 py-3 rounded-lg text-xs font-semibold flex items-center gap-2">
-          <Check className="w-4 h-4 text-emerald-600" />
+        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 px-4 py-3 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-xs">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           <span>Hasil asesmen berhasil disimpan dan otomatis tersinkron ke lembar rekam medis CPPT! Mengalihkan...</span>
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6">
-        {/* SECTION 1: PETA ANATOMI & KARAKTERISTIK FISIK LUKA (Lokasi, Etiologi, Dimensi) */}
-        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-5">
-          <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-blue-600" />
-                <span>Peta Anatomi & Karakteristik Fisik Luka</span>
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Tentukan posisi luka pada diagram tubuh, jenis etiologi klinis, dan pengukuran dimensi luka.
-              </p>
-            </div>
-            {activeTitikId && (
-              <span className="text-xs font-mono font-bold bg-blue-50 text-blue-800 px-2.5 py-1 rounded-lg border border-blue-200 self-start sm:self-auto">
-                Target Aktif: {titikLukaList.find((p) => p.id === activeTitikId)?.label || 'Luka Utama'}
-              </span>
-            )}
-          </div>
+      {/* Main Form Content */}
+      <form onSubmit={handleSave} className="space-y-8">
+        
+        {/* ========================================================= */}
+        {/* STEP 1: PETA ANATOMI & TITIK LUKA (LEBAR & LEGA PENUH)    */}
+        {/* ========================================================= */}
+        {(viewMode === 'all' || activeStep === 1) && (
+          <div id="section-1" className="bg-white p-5 sm:p-7 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
+            <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-blue-600" />
+                  <span>Tahap 1: Peta Anatomi & Pemetaan Titik Luka</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Klik langsung pada diagram telapak kaki atau tubuh untuk menandai posisi luka pasien secara presisi.
+                </p>
+              </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Sisi Kiri: Peta Anatomi Canvas & Pin (6 cols) */}
-            <div className="lg:col-span-6">
+              {activeTitikId && (
+                <span className="text-xs font-mono font-bold bg-blue-50 text-blue-800 px-3 py-1.5 rounded-lg border border-blue-200 self-start sm:self-auto">
+                  Target Pin Aktif: {titikLukaList.find((p) => p.id === activeTitikId)?.label || 'Luka Utama'}
+                </span>
+              )}
+            </div>
+
+            {/* Interactive Anatomical Body Map - Full Width Container */}
+            <div className="max-w-4xl mx-auto">
               <InteractiveBodyMap
                 lokasiLuka={lokasiLuka}
                 onLokasiLukaChange={setLokasiLuka}
                 titikLukaList={titikLukaList}
                 onTitikLukaListChange={setTitikLukaList}
                 activeTitikId={activeTitikId}
-                onActiveTitikIdChange={setActiveTitikId}
+                onActiveTitikIdChange={handleActiveTitikChange}
               />
             </div>
 
-            {/* Sisi Kanan: Etiologi, Stadium, Dimensi Luka, & Peri-Wound (6 cols) */}
-            <div className="lg:col-span-6 space-y-4">
-              {/* Box 1: Etiologi & Derajat Luka */}
-              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
-                <div className="border-b border-slate-200/80 pb-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                    1. Etiologi & Derajat Luka
-                  </h4>
+            {/* Step 1 Footer Action Bar (Wizard Mode) */}
+            {viewMode === 'wizard' && (
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="text-xs text-slate-500">
+                  Lokasi terdeteksi: <strong className="text-slate-800">{lokasiLuka}</strong>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(2)}
+                  className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2"
+                >
+                  <span>Lanjut ke Etiologi & Dimensi Luka</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Tipe / Etiologi Luka</label>
-                    <select
-                      value={tipeLuka}
-                      onChange={(e) => setTipeLuka(e.target.value as any)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 text-slate-800"
-                    >
-                      <option value="Ulkus Diabetikum (Diabetic Foot)">Ulkus Diabetikum (Diabetic Foot)</option>
-                      <option value="Luka Tekan (Pressure Injury / Decubitus)">Luka Tekan (Decubitus)</option>
-                      <option value="Ulkus Venosum / Arteriosum">Ulkus Venosum / Arteriosum</option>
-                      <option value="Luka Bedah / Post Operasi">Luka Bedah / Post Operasi</option>
-                      <option value="Luka Bakar (Combustio)">Luka Bakar (Combustio)</option>
-                      <option value="Luka Trauma / Laserasi">Luka Trauma / Laserasi</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Stadium / Derajat Luka</label>
-                    <input
-                      type="text"
-                      value={stadiumLuka}
-                      onChange={(e) => setStadiumLuka(e.target.value)}
-                      placeholder="Contoh: Wagner Grade 3 / Stadium 2"
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 text-slate-800"
-                    />
-                  </div>
-                </div>
+        {/* ========================================================= */}
+        {/* STEP 2: ETIOLOGI & DIMENSI LUKA (SETELAH PETA ANATOMI)   */}
+        {/* ========================================================= */}
+        {(viewMode === 'all' || activeStep === 2) && (
+          <div id="section-2" className="bg-white p-5 sm:p-7 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
+            <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Ruler className="w-5 h-5 text-blue-600" />
+                  <span>Tahap 2: Etiologi, Derajat & Dimensi Fisik Luka</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Pengukuran dimensi luka secara objektif dan klasifikasi klinis untuk lokasi terpilih.
+                </p>
               </div>
 
-              {/* Box 2: Pengukuran Dimensi Fisik Luka */}
-              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
-                <div className="border-b border-slate-200/80 pb-2 flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                    2. Dimensi Fisik Luka
-                  </h4>
-                  <span className="text-[10px] text-slate-500 font-mono">
-                    Luas Estimasi: {(panjangCm * lebarCm).toFixed(1)} cm²
-                  </span>
+              <div className="text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 font-medium self-start sm:self-auto">
+                Lokasi: <span className="font-bold text-slate-900">{lokasiLuka}</span>
+              </div>
+            </div>
+
+            {/* Sub-Section A: Etiologi & Derajat Klinis */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>A. Klasifikasi & Stadium Klinis</span>
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Tipe / Etiologi Luka</label>
+                  <select
+                    value={tipeLuka}
+                    onChange={(e) => setTipeLuka(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs font-medium"
+                  >
+                    <option value="Ulkus Diabetikum (Diabetic Foot)">Ulkus Diabetikum (Diabetic Foot)</option>
+                    <option value="Luka Tekan (Pressure Injury / Decubitus)">Luka Tekan (Pressure Injury / Decubitus)</option>
+                    <option value="Ulkus Venosum / Arteriosum">Ulkus Venosum / Arteriosum</option>
+                    <option value="Luka Bedah / Post Operasi">Luka Bedah / Post Operasi</option>
+                    <option value="Luka Bakar (Combustio)">Luka Bakar (Combustio)</option>
+                    <option value="Luka Trauma / Laserasi">Luka Trauma / Laserasi</option>
+                  </select>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Panjang (cm)</label>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Stadium / Derajat Luka</label>
+                  <input
+                    type="text"
+                    value={stadiumLuka}
+                    onChange={(e) => setStadiumLuka(e.target.value)}
+                    placeholder="Contoh: Wagner Grade 3 (Ulkus dalam dengan abses)"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs font-medium"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Sub-Section B: Pengukuran Dimensi Fisik (3D) */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                  <span>B. Pengukuran Dimensi Fisik 3D</span>
+                </h4>
+                <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                  Estimasi Luas: {(panjangCm * lebarCm).toFixed(1)} cm²
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <label className="block font-semibold text-slate-700 mb-1">Panjang (cm)</label>
+                  <div className="flex items-center gap-1.5">
                     <input
                       type="number"
                       step="0.1"
+                      min="0"
                       value={panjangCm}
                       onChange={(e) => setPanjangCm(Number(e.target.value))}
-                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-800 text-center"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 text-center text-sm"
                     />
+                    <span className="text-slate-500 font-bold">cm</span>
                   </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Lebar (cm)</label>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <label className="block font-semibold text-slate-700 mb-1">Lebar (cm)</label>
+                  <div className="flex items-center gap-1.5">
                     <input
                       type="number"
                       step="0.1"
+                      min="0"
                       value={lebarCm}
                       onChange={(e) => setLebarCm(Number(e.target.value))}
-                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-800 text-center"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 text-center text-sm"
                     />
+                    <span className="text-slate-500 font-bold">cm</span>
                   </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Kedalaman (mm)</label>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <label className="block font-semibold text-slate-700 mb-1">Kedalaman (mm)</label>
+                  <div className="flex items-center gap-1.5">
                     <input
                       type="number"
                       step="1"
+                      min="0"
                       value={kedalamanMm}
                       onChange={(e) => setKedalamanMm(Number(e.target.value))}
-                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-800 text-center"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 text-center text-sm"
                     />
+                    <span className="text-slate-500 font-bold">mm</span>
                   </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Goa / Undermining</label>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <label className="block font-semibold text-slate-700 mb-1">Goa / Undermining (cm)</label>
+                  <div className="flex items-center gap-1.5">
                     <input
                       type="number"
                       step="0.1"
+                      min="0"
                       value={underminingCm}
                       onChange={(e) => setUnderminingCm(Number(e.target.value))}
-                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-800 text-center"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 text-center text-sm"
                     />
-                  </div>
-                </div>
-              </div>
-
-              {/* Box 3: Tepi Luka & Kulit Sekitar (Peri-wound) */}
-              <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
-                <div className="border-b border-slate-200/80 pb-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                    3. Karakteristik Tepi & Kulit Sekitar
-                  </h4>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Kondisi Tepi Luka</label>
-                    <select
-                      value={tepiLuka}
-                      onChange={(e) => setTepiLuka(e.target.value as any)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 text-slate-800"
-                    >
-                      <option value="Menyatu">Menyatu</option>
-                      <option value="Menebal / Kalus">Menebal / Kalus</option>
-                      <option value="Menggulung (Epibole)">Menggulung (Epibole)</option>
-                      <option value="Nekrotik">Nekrotik</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Kulit Sekitar (Peri-wound)</label>
-                    <select
-                      value={kulitSekitar}
-                      onChange={(e) => setKulitSekitar(e.target.value as any)}
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 text-slate-800"
-                    >
-                      <option value="Sehat">Sehat</option>
-                      <option value="Maserasi">Maserasi (Lembap Berlebih)</option>
-                      <option value="Eritema / Kemerahan">Eritema / Kemerahan</option>
-                      <option value="Kering / Hiperkeratosis">Kering / Hiperkeratosis</option>
-                      <option value="Oedema">Oedema (Bengkak)</option>
-                    </select>
+                    <span className="text-slate-500 font-bold">cm</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* SECTION 2: EVALUASI JARINGAN TIME & TANDA INFEKSI / NYERI */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Card Kiri: Dasar Jaringan Luka (TIME) & Eksudat */}
-          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-blue-600" />
-                  <span>Dasar Jaringan Luka (TIME) & Eksudat</span>
-                </h3>
-                <p className="text-xs text-slate-500">Proporsi jaringan granulasi, slough, nekrotik, epitel & cairan luka</p>
+            {/* Sub-Section C: Karakteristik Tepi Luka & Kulit Sekitar */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>C. Karakteristik Tepi Luka & Kulit Sekitar (Peri-Wound)</span>
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Kondisi Tepi Luka (Edge)</label>
+                  <select
+                    value={tepiLuka}
+                    onChange={(e) => setTepiLuka(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs font-medium"
+                  >
+                    <option value="Menyatu">Menyatu (Epitelisasi Baik)</option>
+                    <option value="Menebal / Kalus">Menebal / Kalus (Hiperkeratosis)</option>
+                    <option value="Menggulung (Epibole)">Menggulung (Epibole / Non-advancing)</option>
+                    <option value="Nekrotik">Nekrotik / Iskemik</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Kulit Sekitar Luka (Peri-Wound)</label>
+                  <select
+                    value={kulitSekitar}
+                    onChange={(e) => setKulitSekitar(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs font-medium"
+                  >
+                    <option value="Sehat">Sehat / Intak</option>
+                    <option value="Maserasi">Maserasi (Lembap Berlebih / Keputihan)</option>
+                    <option value="Eritema / Kemerahan">Eritema / Kemerahan (Inflamasi)</option>
+                    <option value="Kering / Hiperkeratosis">Kering / Hiperkeratosis / Bersisik</option>
+                    <option value="Oedema">Oedema (Bengkak Perifer)</option>
+                  </select>
+                </div>
               </div>
-              <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
+            </div>
+
+            {/* Step 2 Footer Navigation (Wizard Mode) */}
+            {viewMode === 'wizard' && (
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(1)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Kembali ke Peta Anatomi</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(3)}
+                  className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2"
+                >
+                  <span>Lanjut ke Dasar Jaringan (TIME) & Infeksi</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* STEP 3: DASAR JARINGAN (TIME) & TANDA INFEKSI / NYERI     */}
+        {/* ========================================================= */}
+        {(viewMode === 'all' || activeStep === 3) && (
+          <div id="section-3" className="bg-white p-5 sm:p-7 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
+            <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-blue-600" />
+                  <span>Tahap 3: Dasar Jaringan (TIME), Eksudat & Tanda Kardinal Infeksi</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Proporsi jaringan dasar luka (Wound Bed), karakter cairan, tanda inflamasi, dan evaluasi nyeri VAS.
+                </p>
+              </div>
+
+              <span className={`text-xs font-mono font-bold px-3 py-1 rounded-lg border self-start sm:self-auto ${
                 granulasi + slough + nekrotik + epitelisasi === 100 
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-                  : 'bg-amber-50 text-amber-800 border border-amber-200'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                  : 'bg-amber-50 text-amber-800 border-amber-200'
               }`}>
-                Total: {granulasi + slough + nekrotik + epitelisasi}%
+                Total Proporsi: {granulasi + slough + nekrotik + epitelisasi}% {granulasi + slough + nekrotik + epitelisasi === 100 ? '✓ Seimbang' : '(Wajib 100%)'}
               </span>
             </div>
 
-            {/* Visual TIME Bar */}
-            <div className="h-4 rounded-lg overflow-hidden flex bg-slate-200 text-[10px] font-bold text-white text-center leading-4 shadow-inner">
-              <div style={{ width: `${granulasi}%` }} className="bg-red-600 truncate" title="Granulasi (Merah)">
-                {granulasi > 10 ? `${granulasi}%` : ''}
+            {/* Sub-Section A: Wound Bed (TIME) Proportion Bar */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>A. Proporsi Dasar Jaringan Luka (Wound Bed)</span>
+              </h4>
+
+              {/* Visual Proportion Bar */}
+              <div className="h-5 rounded-xl overflow-hidden flex bg-slate-200 text-xs font-bold text-white text-center leading-5 shadow-inner">
+                <div style={{ width: `${granulasi}%` }} className="bg-red-600 truncate transition-all duration-300" title="Granulasi (Merah)">
+                  {granulasi > 10 ? `Granulasi ${granulasi}%` : granulasi > 0 ? `${granulasi}%` : ''}
+                </div>
+                <div style={{ width: `${slough}%` }} className="bg-amber-400 text-slate-900 truncate transition-all duration-300" title="Slough (Kuning)">
+                  {slough > 10 ? `Slough ${slough}%` : slough > 0 ? `${slough}%` : ''}
+                </div>
+                <div style={{ width: `${nekrotik}%` }} className="bg-slate-900 truncate transition-all duration-300" title="Nekrotik (Hitam)">
+                  {nekrotik > 10 ? `Nekrotik ${nekrotik}%` : nekrotik > 0 ? `${nekrotik}%` : ''}
+                </div>
+                <div style={{ width: `${epitelisasi}%` }} className="bg-pink-400 text-slate-900 truncate transition-all duration-300" title="Epitel (Pink)">
+                  {epitelisasi > 10 ? `Epitel ${epitelisasi}%` : epitelisasi > 0 ? `${epitelisasi}%` : ''}
+                </div>
               </div>
-              <div style={{ width: `${slough}%` }} className="bg-amber-400 text-slate-900 truncate" title="Slough (Kuning)">
-                {slough > 10 ? `${slough}%` : ''}
-              </div>
-              <div style={{ width: `${nekrotik}%` }} className="bg-slate-900 truncate" title="Nekrotik (Hitam)">
-                {nekrotik > 10 ? `${nekrotik}%` : ''}
-              </div>
-              <div style={{ width: `${epitelisasi}%` }} className="bg-pink-400 text-slate-900 truncate" title="Epitel (Pink)">
-                {epitelisasi > 10 ? `${epitelisasi}%` : ''}
+
+              {/* 4 Proportion Inputs */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div className="p-3 bg-red-50/70 rounded-xl border border-red-200">
+                  <span className="font-bold text-red-900 block text-xs">Granulasi (Merah)</span>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={granulasi}
+                      onChange={(e) => setGranulasi(Number(e.target.value))}
+                      className="w-full px-2.5 py-1.5 bg-white border border-red-300 rounded-lg font-mono font-bold text-red-900 text-center"
+                    />
+                    <span className="font-bold text-red-800">%</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200">
+                  <span className="font-bold text-amber-900 block text-xs">Slough (Kuning)</span>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={slough}
+                      onChange={(e) => setSlough(Number(e.target.value))}
+                      className="w-full px-2.5 py-1.5 bg-white border border-amber-300 rounded-lg font-mono font-bold text-amber-900 text-center"
+                    />
+                    <span className="font-bold text-amber-800">%</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-100 rounded-xl border border-slate-300">
+                  <span className="font-bold text-slate-900 block text-xs">Nekrotik (Hitam)</span>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={nekrotik}
+                      onChange={(e) => setNekrotik(Number(e.target.value))}
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg font-mono font-bold text-slate-900 text-center"
+                    />
+                    <span className="font-bold text-slate-800">%</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-pink-50/70 rounded-xl border border-pink-200">
+                  <span className="font-bold text-pink-900 block text-xs">Epitel (Pink)</span>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={epitelisasi}
+                      onChange={(e) => setEpitelisasi(Number(e.target.value))}
+                      className="w-full px-2.5 py-1.5 bg-white border border-pink-300 rounded-lg font-mono font-bold text-pink-900 text-center"
+                    />
+                    <span className="font-bold text-pink-800">%</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* 4 Proportion Inputs */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-              <div className="p-2.5 bg-red-50/70 rounded-xl border border-red-200">
-                <span className="font-bold text-red-900 block text-[11px]">Granulasi (Merah)</span>
-                <div className="flex items-center gap-1 mt-1">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={granulasi}
-                    onChange={(e) => setGranulasi(Number(e.target.value))}
-                    className="w-full px-2 py-1 bg-white border border-red-300 rounded font-mono font-bold text-red-900 text-center"
-                  />
-                  <span className="font-bold text-red-800">%</span>
-                </div>
-              </div>
+            {/* Sub-Section B: Eksudat Luka */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>B. Karakteristik Cairan Luka (Eksudat)</span>
+              </h4>
 
-              <div className="p-2.5 bg-amber-50/70 rounded-xl border border-amber-200">
-                <span className="font-bold text-amber-900 block text-[11px]">Slough (Kuning)</span>
-                <div className="flex items-center gap-1 mt-1">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={slough}
-                    onChange={(e) => setSlough(Number(e.target.value))}
-                    className="w-full px-2 py-1 bg-white border border-amber-300 rounded font-mono font-bold text-amber-900 text-center"
-                  />
-                  <span className="font-bold text-amber-800">%</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Jumlah Eksudat</label>
+                  <select
+                    value={eksudatJumlah}
+                    onChange={(e) => setEksudatJumlah(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                  >
+                    <option value="Tidak Ada">Tidak Ada (Kering)</option>
+                    <option value="Sedikit">Sedikit (Moist)</option>
+                    <option value="Sedang">Sedang (Wet)</option>
+                    <option value="Banyak">Banyak (Saturated / Banjir)</option>
+                  </select>
                 </div>
-              </div>
 
-              <div className="p-2.5 bg-slate-100 rounded-xl border border-slate-300">
-                <span className="font-bold text-slate-900 block text-[11px]">Nekrotik (Hitam)</span>
-                <div className="flex items-center gap-1 mt-1">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={nekrotik}
-                    onChange={(e) => setNekrotik(Number(e.target.value))}
-                    className="w-full px-2 py-1 bg-white border border-slate-300 rounded font-mono font-bold text-slate-900 text-center"
-                  />
-                  <span className="font-bold text-slate-800">%</span>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Warna Eksudat</label>
+                  <select
+                    value={eksudatWarna}
+                    onChange={(e) => setEksudatWarna(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                  >
+                    <option value="Serous">Serous (Bening / Kuning Jernih)</option>
+                    <option value="Haemoserous">Haemoserous (Merah Muda Encer)</option>
+                    <option value="Sanguineous">Sanguineous (Merah Darah Segar)</option>
+                    <option value="Purulent (Nanah)">Purulent (Keruh / Nanah Kuning-Hijau)</option>
+                  </select>
                 </div>
-              </div>
 
-              <div className="p-2.5 bg-pink-50/70 rounded-xl border border-pink-200">
-                <span className="font-bold text-pink-900 block text-[11px]">Epitel (Pink)</span>
-                <div className="flex items-center gap-1 mt-1">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={epitelisasi}
-                    onChange={(e) => setEpitelisasi(Number(e.target.value))}
-                    className="w-full px-2 py-1 bg-white border border-pink-300 rounded font-mono font-bold text-pink-900 text-center"
-                  />
-                  <span className="font-bold text-pink-800">%</span>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Aroma / Bau Eksudat</label>
+                  <select
+                    value={eksudatBau}
+                    onChange={(e) => setEksudatBau(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                  >
+                    <option value="Tidak Berbau">Tidak Berbau</option>
+                    <option value="Khas">Khas (Khas Luka Lembut)</option>
+                    <option value="Berbau Busuk">Berbau Busuk / Malodour (Indikasi Anaerob)</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            {/* Karakteristik Eksudat */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2 border-t border-slate-100">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Jumlah Eksudat</label>
-                <select
-                  value={eksudatJumlah}
-                  onChange={(e) => setEksudatJumlah(e.target.value as any)}
-                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                >
-                  <option value="Tidak Ada">Tidak Ada</option>
-                  <option value="Sedikit">Sedikit</option>
-                  <option value="Sedang">Sedang</option>
-                  <option value="Banyak">Banyak</option>
-                </select>
+            {/* Sub-Section C: Tanda Kardinal Infeksi Lokal & Sensasi Nyeri */}
+            <div className="space-y-4 pt-3 border-t border-slate-100">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+                <span>C. Tanda Kardinal Infeksi Lokal & Skala Nyeri</span>
+              </h4>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 text-xs">
+                {[
+                  { key: 'dolorNyeri', label: 'Dolor (Rasa Nyeri)' },
+                  { key: 'calorHangat', label: 'Calor (Kulit Hangat)' },
+                  { key: 'ruborKemerahan', label: 'Rubor (Kemerahan)' },
+                  { key: 'tumorBengkak', label: 'Tumor (Edema Bengkak)' },
+                  { key: 'functioLaesa', label: 'Functio Laesa (Gangguan Fungsi)' },
+                ].map((inf) => (
+                  <label key={inf.key} className="flex items-center gap-2 p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200 cursor-pointer select-none transition">
+                    <input
+                      type="checkbox"
+                      checked={tandaInfeksi[inf.key as keyof typeof tandaInfeksi]}
+                      onChange={(e) =>
+                        setTandaInfeksi({ ...tandaInfeksi, [inf.key]: e.target.checked })
+                      }
+                      className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 w-4 h-4"
+                    />
+                    <span className="text-xs text-slate-700 font-semibold">{inf.label}</span>
+                  </label>
+                ))}
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Warna Eksudat</label>
-                <select
-                  value={eksudatWarna}
-                  onChange={(e) => setEksudatWarna(e.target.value as any)}
-                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                >
-                  <option value="Serous">Serous (Bening)</option>
-                  <option value="Haemoserous">Haemoserous (Merah muda)</option>
-                  <option value="Sanguineous">Sanguineous (Berdarah)</option>
-                  <option value="Purulent (Nanah)">Purulent (Nanah)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Aroma / Bau</label>
-                <select
-                  value={eksudatBau}
-                  onChange={(e) => setEksudatBau(e.target.value as any)}
-                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                >
-                  <option value="Tidak Berbau">Tidak Berbau</option>
-                  <option value="Khas">Khas</option>
-                  <option value="Berbau Busuk">Berbau Busuk</option>
-                </select>
+              {/* Skor Nyeri Slider */}
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-bold text-slate-800">Tingkat Nyeri Pasien (VAS 0 - 10):</span>
+                  <span className={`font-bold font-mono px-3 py-1 rounded-lg text-xs ${
+                    skorNyeri <= 3 
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                      : skorNyeri <= 6 
+                      ? 'bg-amber-100 text-amber-800 border border-amber-300' 
+                      : 'bg-rose-100 text-rose-800 border border-rose-300'
+                  }`}>
+                    {skorNyeri} / 10 ({skorNyeri <= 3 ? 'Nyeri Ringan' : skorNyeri <= 6 ? 'Nyeri Sedang' : 'Nyeri Berat'})
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={skorNyeri}
+                  onChange={(e) => setSkorNyeri(Number(e.target.value))}
+                  className="w-full accent-blue-600 cursor-pointer h-2.5 bg-slate-200 rounded-lg"
+                />
+                <div className="flex justify-between text-[11px] text-slate-500 font-mono">
+                  <span>0 (Bebas Nyeri)</span>
+                  <span>5 (Nyeri Sedang)</span>
+                  <span>10 (Nyeri Tak Tertahankan)</span>
+                </div>
               </div>
             </div>
+
+            {/* Step 3 Footer Navigation (Wizard Mode) */}
+            {viewMode === 'wizard' && (
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(2)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Kembali ke Dimensi Luka</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(4)}
+                  className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2"
+                >
+                  <span>Lanjut ke Resep Balutan & Foto</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
+        )}
 
-          {/* Card Kanan: Tanda Kardinal Infeksi Lokal & Nyeri */}
-          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        {/* ========================================================= */}
+        {/* STEP 4: RESEP DRESSING, RENCANA & FOTO DOKUMENTASI       */}
+        {/* ========================================================= */}
+        {(viewMode === 'all' || activeStep === 4) && (
+          <div id="section-4" className="bg-white p-5 sm:p-7 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
+            <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                  <Thermometer className="w-4 h-4 text-rose-600" />
-                  <span>Tanda Kardinal Infeksi & Sensasi Nyeri</span>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-blue-600" />
+                  <span>Tahap 4: Resep Modern Dressing, Rencana & Foto Dokumentasi</span>
                 </h3>
-                <p className="text-xs text-slate-500">Pemeriksaan tanda inflamasi lokal dan skala intensitas nyeri</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Protokol pencucian luka, debridement, pemilihan balutan primer-sekunder, serta arsip foto Before-After.
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {[
-                { key: 'dolorNyeri', label: 'Dolor (Rasa Nyeri)' },
-                { key: 'calorHangat', label: 'Calor (Kulit Hangat)' },
-                { key: 'ruborKemerahan', label: 'Rubor (Kemerahan)' },
-                { key: 'tumorBengkak', label: 'Tumor (Edema Bengkak)' },
-                { key: 'functioLaesa', label: 'Functio Laesa (Gangguan Fungsi)' },
-              ].map((inf) => (
-                <label key={inf.key} className="flex items-center gap-2 p-2 bg-slate-50/80 hover:bg-slate-100/80 rounded-lg border border-slate-200 cursor-pointer select-none transition">
-                  <input
-                    type="checkbox"
-                    checked={tandaInfeksi[inf.key as keyof typeof tandaInfeksi]}
-                    onChange={(e) =>
-                      setTandaInfeksi({ ...tandaInfeksi, [inf.key]: e.target.checked })
-                    }
-                    className="rounded border-slate-300 text-rose-600 focus:ring-rose-500"
-                  />
-                  <span className="text-xs text-slate-700 font-medium">{inf.label}</span>
-                </label>
-              ))}
-            </div>
-
-            {/* Skor Nyeri Slider */}
-            <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-slate-700">Skor Nyeri (VAS 0 - 10):</span>
-                <span className={`font-bold font-mono px-2.5 py-0.5 rounded text-xs ${
-                  skorNyeri <= 3 
-                    ? 'bg-emerald-100 text-emerald-800' 
-                    : skorNyeri <= 6 
-                    ? 'bg-amber-100 text-amber-800' 
-                    : 'bg-rose-100 text-rose-800'
-                }`}>
-                  {skorNyeri} / 10 ({skorNyeri <= 3 ? 'Ringan' : skorNyeri <= 6 ? 'Sedang' : 'Berat'})
+            {/* Real-time Clinical Safety Alert Guard */}
+            {detectedAllergyKeyword ? (
+              <div className="p-4 bg-rose-50 border-2 border-rose-500 rounded-xl flex items-start gap-3 shadow-xs">
+                <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <h5 className="text-xs font-black text-rose-900 uppercase tracking-wide flex items-center gap-2">
+                    <span>PERINGATAN BAHAYA ALERGI PASIEN!</span>
+                    <span className="bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded font-mono font-bold">
+                      DANGER
+                    </span>
+                  </h5>
+                  <p className="text-xs text-rose-800 mt-1 leading-snug">
+                    Terdeteksi kata kunci <strong>&quot;{detectedAllergyKeyword.toUpperCase()}&quot;</strong> pada resep balutan Anda! Pasien ini memiliki riwayat alergi: <strong>{selectedPatient?.riwayatAlergi}</strong>.
+                  </p>
+                  <p className="text-[11px] text-rose-700 font-semibold mt-1.5 bg-white/70 p-2.5 rounded-lg border border-rose-200">
+                    Rekomendasi Aman: Ganti perekat karet dengan <strong>Silicone Adhesive Border Foam</strong> atau fiksasi <strong>Kasa Gulung Non-Adhesive / Tubular Bandage</strong> untuk mencegah kulit melepuh dan maserasi parah.
+                  </p>
+                </div>
+              </div>
+            ) : selectedPatient?.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada' ? (
+              <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl flex items-center gap-2 text-xs text-amber-900">
+                <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
+                <span>
+                  <strong>Peringatan Pasien Berisiko:</strong> Pasien tercatat alergi terhadap <strong>{selectedPatient.riwayatAlergi}</strong>. Pastikan tidak meresepkan plester/balutan dengan perekat karet atau bahan pemicu alergi.
                 </span>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                value={skorNyeri}
-                onChange={(e) => setSkorNyeri(Number(e.target.value))}
-                className="w-full accent-blue-700 cursor-pointer h-2 bg-slate-200 rounded-lg"
-              />
-              <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-                <span>0 (Bebas Nyeri)</span>
-                <span>5 (Sedang)</span>
-                <span>10 (Nyeri Sangat Berat)</span>
-              </div>
-            </div>
-          </div>
-        </div>
+            ) : null}
 
-        {/* SECTION 3: RESEP MODERN DRESSING & RENCANA TINDAKAN */}
-        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-          <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-blue-600" />
-                <span>Resep Modern Dressing & Rencana Tindakan</span>
-              </h3>
-              <p className="text-xs text-slate-500">Pemberian cairan pencuci, debridement, dan balutan luka primer/sekunder</p>
-            </div>
-          </div>
-
-          {/* Real-time Clinical Safety Alert Guard */}
-          {detectedAllergyKeyword ? (
-            <div className="p-4 bg-rose-50 border-2 border-rose-500 rounded-xl flex items-start gap-3 shadow-xs">
-              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-              <div>
-                <h5 className="text-xs font-black text-rose-900 uppercase tracking-wide flex items-center gap-2">
-                  <span>PERINGATAN BAHAYA ALERGI PASIEN!</span>
-                  <span className="bg-rose-600 text-white text-[10px] px-1.5 py-0.2 rounded font-mono font-bold">
-                    DANGER
-                  </span>
-                </h5>
-                <p className="text-[11px] text-rose-800 mt-1 leading-snug">
-                  Terdeteksi kata kunci <strong>&quot;{detectedAllergyKeyword.toUpperCase()}&quot;</strong> pada resep balutan Anda! Pasien ini memiliki riwayat alergi: <strong>{selectedPatient?.riwayatAlergi}</strong>.
-                </p>
-                <p className="text-[10px] text-rose-700 font-semibold mt-1 bg-white/70 p-2 rounded border border-rose-200">
-                  Rekomendasi Aman: Ganti perekat karet dengan <strong>Silicone Adhesive Border Foam</strong> atau fiksasi <strong>Kasa Gulung Non-Adhesive / Tubular Bandage</strong> untuk mencegah kulit melepuh dan maserasi parah.
-                </p>
-              </div>
-            </div>
-          ) : selectedPatient?.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada' ? (
-            <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-lg flex items-center gap-2 text-xs text-amber-900">
-              <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
-              <span>
-                <strong>Peringatan Pasien Berisiko:</strong> Pasien tercatat alergi terhadap <strong>{selectedPatient.riwayatAlergi}</strong>. Pastikan tidak meresepkan plester/balutan dengan perekat karet atau bahan pemicu.
-              </span>
-            </div>
-          ) : null}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Cairan Pencuci Luka</label>
-              <input
-                type="text"
-                value={cairanPencuci}
-                onChange={(e) => setCairanPencuci(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Teknik Debridement</label>
-              <input
-                type="text"
-                value={teknikDebridement}
-                onChange={(e) => setTeknikDebridement(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Primary Dressing (Kontak Luka)</label>
-              <input
-                type="text"
-                value={primaryDressing}
-                onChange={(e) => setPrimaryDressing(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Secondary Dressing (Penutup & Fiksasi)</label>
-              <input
-                type="text"
-                value={secondaryDressing}
-                onChange={(e) => setSecondaryDressing(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800"
-              />
-            </div>
-          </div>
-
-          <div className="text-xs pt-1">
-            <label className="block font-semibold text-slate-700 mb-1">Target Evaluasi & Jadwal Kontrol Ganti Balutan</label>
-            <input
-              type="text"
-              value={targetEvaluasi}
-              onChange={(e) => setTargetEvaluasi(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800"
-            />
-          </div>
-        </div>
-
-        {/* SECTION 4: DOKUMENTASI FOTO PERKEMBANGAN LUKA (Before-After) */}
-        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <Camera className="w-4 h-4 text-blue-600" />
-              <h4 className="text-sm font-bold text-slate-900">
-                Foto Perkembangan Luka (Before-After)
+            {/* Sub-Section A: Modern Dressing Formulation */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>A. Rincian Resep & Tindakan Perawatan</span>
               </h4>
-            </div>
-            <span className="text-xs font-mono font-bold bg-blue-50 text-blue-800 px-2.5 py-0.5 rounded border border-blue-200">
-              {patientPhotos.length} Foto Tersimpan
-            </span>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-            {/* Upload Box (5 cols) */}
-            <div className="md:col-span-5 space-y-3 bg-slate-50/70 p-4 rounded-xl border border-slate-200">
-              <div className="text-xs font-semibold text-slate-700">Unggah Dokumentasi Foto:</div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="text-xs w-full file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-              />
-
-              {previewPhoto && (
-                <div className="space-y-2 pt-2 border-t border-slate-200">
-                  <div className="relative h-36 w-full rounded-lg overflow-hidden bg-slate-900/5 border border-slate-200 flex items-center justify-center">
-                    <img src={previewPhoto} alt="Preview Luka" className="max-h-full max-w-full object-contain" />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Fase Dokumentasi:</label>
-                      <select
-                        value={photoFase}
-                        onChange={(e) => setPhotoFase(e.target.value as any)}
-                        className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                      >
-                        <option value="Sebelum Tindakan">Sebelum Tindakan</option>
-                        <option value="Sesudah Debridement">Sesudah Debridement</option>
-                        <option value="Setelah Balutan Selesai">Setelah Balutan Selesai</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Catatan Foto:</label>
-                      <input
-                        type="text"
-                        value={photoCatatan}
-                        onChange={(e) => setPhotoCatatan(e.target.value)}
-                        placeholder="Misal: Slough diangkat..."
-                        className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setPreviewPhoto(null)}
-                      className="px-2.5 py-1 text-[11px] text-slate-600 hover:bg-slate-200 rounded"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSavePhoto}
-                      className="px-3 py-1 text-[11px] bg-blue-600 text-white font-bold rounded hover:bg-blue-700 shadow-xs flex items-center gap-1"
-                    >
-                      <UploadCloud className="w-3.5 h-3.5" />
-                      <span>Simpan Foto</span>
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Cairan Pencuci Luka (Wound Cleanser)</label>
+                  <input
+                    type="text"
+                    value={cairanPencuci}
+                    onChange={(e) => setCairanPencuci(e.target.value)}
+                    placeholder="Contoh: NaCl 0.9% hangat + PHMB Prontosan"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                  />
                 </div>
-              )}
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Teknik Debridement</label>
+                  <input
+                    type="text"
+                    value={teknikDebridement}
+                    onChange={(e) => setTeknikDebridement(e.target.value)}
+                    placeholder="Contoh: Sharp debridement kalus tebal + autolytic"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Primary Dressing (Kontak Langsung Luka)</label>
+                  <input
+                    type="text"
+                    value={primaryDressing}
+                    onChange={(e) => setPrimaryDressing(e.target.value)}
+                    placeholder="Contoh: Cadexomer Iodine Ointment / Hydrogel Alginate"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Secondary Dressing (Penutup & Fiksasi)</label>
+                  <input
+                    type="text"
+                    value={secondaryDressing}
+                    onChange={(e) => setSecondaryDressing(e.target.value)}
+                    placeholder="Contoh: Polyurethane Foam + Perban Elastis"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="text-xs pt-1">
+                <label className="block font-semibold text-slate-700 mb-1.5">Target Evaluasi & Jadwal Kontrol Ganti Balutan</label>
+                <input
+                  type="text"
+                  value={targetEvaluasi}
+                  onChange={(e) => setTargetEvaluasi(e.target.value)}
+                  placeholder="Contoh: Kontrol ganti balutan 3 hari lagi (target slough berkurang 50%)"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                />
+              </div>
             </div>
 
-            {/* Gallery Thumbnails (7 cols) */}
-            <div className="md:col-span-7">
-              {patientPhotos.length === 0 ? (
-                <div className="text-center py-10 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-xs">
-                  Belum ada foto luka yang diunggah untuk pasien ini.
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-64 overflow-y-auto pr-1">
-                  {patientPhotos.map((photo) => (
-                    <div key={photo.id} className="p-2 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5 relative group shadow-2xs">
-                      <div className="h-24 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
-                        <img src={photo.dataUrl} alt={photo.fase} className="max-h-full max-w-full object-contain" />
+            {/* Sub-Section B: Photo Documentation */}
+            <div className="space-y-4 pt-3 border-t border-slate-100">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>B. Dokumentasi Foto Perkembangan Luka</span>
+              </h4>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Upload Form (5 cols) */}
+                <div className="lg:col-span-5 p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Camera className="w-4 h-4 text-blue-600" />
+                    <span className="text-xs font-bold text-slate-800">Unggah Foto Luka Baru</span>
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer w-full"
+                  />
+
+                  {previewPhoto && (
+                    <div className="space-y-2 pt-2 border-t border-slate-200">
+                      <div className="h-32 rounded-lg bg-white overflow-hidden border border-slate-200 flex items-center justify-center">
+                        <img src={previewPhoto} alt="Preview" className="max-h-full max-w-full object-contain" />
                       </div>
-                      <div className="flex items-center justify-between text-[9px]">
-                        <span className={`px-1.5 py-0.5 rounded font-bold ${
-                          photo.fase === 'Sebelum Tindakan' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
-                        }`}>
-                          {photo.fase}
-                        </span>
-                        <span className="text-slate-400 font-mono">{photo.tanggal}</span>
-                      </div>
-                      {photo.catatan && (
-                        <p className="text-[10px] text-slate-600 truncate" title={photo.catatan}>
-                          {photo.catatan}
-                        </p>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => deleteWoundPhoto(photo.id)}
-                        className="absolute top-3 right-3 p-1 bg-white/95 text-slate-400 hover:text-rose-600 rounded-md shadow-xs opacity-0 group-hover:opacity-100 transition"
-                        title="Hapus Foto"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
 
-        {/* SECTION 5: TOMBOL SIMPAN FINAL */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs text-slate-500">
-            Pastikan seluruh data luka, koordinat titik, dan rencana balutan telah terisi dengan benar sebelum menyimpan.
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 mb-1">Fase Pengambilan:</label>
+                          <select
+                            value={photoFase}
+                            onChange={(e) => setPhotoFase(e.target.value as any)}
+                            className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                          >
+                            <option value="Sebelum Tindakan">Sebelum Tindakan</option>
+                            <option value="Sesudah Debridement">Sesudah Debridement</option>
+                            <option value="Setelah Balutan Selesai">Setelah Balutan Selesai</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 mb-1">Catatan Foto:</label>
+                          <input
+                            type="text"
+                            value={photoCatatan}
+                            onChange={(e) => setPhotoCatatan(e.target.value)}
+                            placeholder="Misal: Slough diangkat..."
+                            className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewPhoto(null)}
+                          className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-200 rounded-lg transition"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSavePhoto}
+                          className="px-3.5 py-1.5 text-xs bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-xs flex items-center gap-1.5 transition"
+                        >
+                          <UploadCloud className="w-3.5 h-3.5" />
+                          <span>Simpan Foto</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Gallery Thumbnails (7 cols) */}
+                <div className="lg:col-span-7">
+                  {patientPhotos.length === 0 ? (
+                    <div className="text-center py-10 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-xs">
+                      Belum ada foto luka yang diunggah untuk pasien ini.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-64 overflow-y-auto pr-1">
+                      {patientPhotos.map((photo) => (
+                        <div key={photo.id} className="p-2 rounded-xl border border-slate-200 bg-slate-50/60 space-y-1.5 relative group shadow-2xs">
+                          <div className="h-24 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                            <img src={photo.dataUrl} alt={photo.fase} className="max-h-full max-w-full object-contain" />
+                          </div>
+                          <div className="flex items-center justify-between text-[9px]">
+                            <span className={`px-1.5 py-0.5 rounded font-bold ${
+                              photo.fase === 'Sebelum Tindakan' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                            }`}>
+                              {photo.fase}
+                            </span>
+                            <span className="text-slate-400 font-mono">{photo.tanggal}</span>
+                          </div>
+                          {photo.catatan && (
+                            <p className="text-[10px] text-slate-600 truncate" title={photo.catatan}>
+                              {photo.catatan}
+                            </p>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => deleteWoundPhoto(photo.id)}
+                            className="absolute top-3 right-3 p-1 bg-white/95 text-slate-400 hover:text-rose-600 rounded-md shadow-xs opacity-0 group-hover:opacity-100 transition"
+                            title="Hapus Foto"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Step 4 Footer Navigation (Wizard Mode) */}
+            {viewMode === 'wizard' && (
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveStep(3)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Kembali ke Jaringan TIME</span>
+                </button>
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Simpan Asesmen & Sinkronkan ke Lembar CPPT</span>
+                </button>
+              </div>
+            )}
           </div>
-          <button
-            type="submit"
-            className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            <span>Simpan Asesmen & Sinkronkan ke Lembar CPPT</span>
-          </button>
-        </div>
+        )}
+
+        {/* Global Save Button (Always Available in View Mode All) */}
+        {viewMode === 'all' && (
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-4 z-20">
+            <div className="text-xs text-slate-500">
+              Pastikan seluruh parameter luka, titik lokasi, dan rencana balutan telah lengkap sebelum menyimpan ke rekam medis.
+            </div>
+            <button
+              type="submit"
+              className="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              <span>Simpan Asesmen & Sinkronkan ke Lembar CPPT</span>
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

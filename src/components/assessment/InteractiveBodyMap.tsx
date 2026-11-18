@@ -327,30 +327,31 @@ export function InteractiveBodyMap({
       </div>
 
       {/* Main Interactive Anatomy Canvas Area */}
-      <div className="relative bg-slate-900/[0.02] border border-slate-200 rounded-2xl overflow-hidden p-4 select-none flex flex-col items-center justify-center min-h-[400px]">
-        {/* Active View Label Watermark */}
-        <div className="absolute top-3 left-4 text-left pointer-events-none">
-          <span className="text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase block">
-            PERSPEKTIF AKTIF:
-          </span>
-          <span className="text-xs font-extrabold text-slate-800">
-            {activeView === 'foot' && 'Peta Telapak Kaki (Plantar Bilateral)'}
-            {activeView === 'anterior' && 'Tubuh Tampak Depan (Anterior)'}
-            {activeView === 'posterior' && 'Tubuh Tampak Belakang (Posterior / Sakrum)'}
-          </span>
-        </div>
-
-        {/* Current Active Pin Coordinate Indicator */}
-        {activePin && (
-          <div className="absolute top-3 right-4 bg-white/90 backdrop-blur-xs border border-slate-200 px-2.5 py-1 rounded-lg text-[10px] font-mono font-semibold text-slate-700 pointer-events-none shadow-xs">
-            Pin #{activePin.nomor}: X {activePin.x}% • Y {activePin.y}%
+      <div className="bg-slate-50/70 border border-slate-200 rounded-2xl overflow-hidden p-4 sm:p-5 select-none flex flex-col items-center justify-center">
+        {/* Top Info Bar inside canvas card */}
+        <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-2 border-b border-slate-200/80 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono font-bold tracking-wider text-slate-500 uppercase">
+              Perspektif:
+            </span>
+            <span className="font-bold text-slate-800 text-xs sm:text-sm">
+              {activeView === 'foot' && 'Peta Telapak Kaki (Plantar Bilateral)'}
+              {activeView === 'anterior' && 'Tubuh Tampak Depan (Anterior)'}
+              {activeView === 'posterior' && 'Tubuh Tampak Belakang (Posterior / Sakrum)'}
+            </span>
           </div>
-        )}
+
+          {activePin && (
+            <div className="bg-white border border-slate-200 px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold text-slate-700 shadow-2xs self-start sm:self-auto">
+              Pin #{activePin.nomor} ({activePin.label}): X {activePin.x}% • Y {activePin.y}%
+            </div>
+          )}
+        </div>
 
         {/* Clickable Anatomy Canvas Container */}
         <div
           onClick={handleCanvasClick}
-          className="relative w-full max-w-[340px] h-[340px] cursor-crosshair flex items-center justify-center"
+          className="relative w-full max-w-[380px] h-[350px] cursor-crosshair flex items-center justify-center my-1"
         >
           {/* VIEW 1: DIABETIC FOOT BILATERAL (PLANTER PEDIS DEXTRA & SINISTRA) */}
           {activeView === 'foot' && (
