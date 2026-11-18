@@ -22,7 +22,6 @@ import {
   FileCheck,
   ArrowLeft,
   CheckCircle2,
-  SlidersHorizontal,
   X
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
@@ -107,20 +106,21 @@ function RekamMedisContent() {
   return (
     <div className="space-y-4 max-w-5xl mx-auto pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200 no-print">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             <FileText className="w-5 h-5 text-blue-600" />
             <span>Rekam Medis & Lembar CPPT Terpadu</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Catatan Perkembangan Pasien Terintegrasi (SOAP), riwayat luka kronis, dan verifikasi tindakan PPA.
+            Catatan Perkembangan Pasien Terintegrasi (SOAP) dan riwayat tindakan klinis PPA.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+        {/* Action Controls in One Unified Row */}
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap sm:flex-nowrap">
           {/* Mode Switcher */}
-          <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-1">
+          <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={() => setViewMode('interactive')}
@@ -143,7 +143,7 @@ function RekamMedisContent() {
               }`}
             >
               <FileCheck className="w-3.5 h-3.5" />
-              <span>Format Dokumen Resmi</span>
+              <span>Format Cetak</span>
             </button>
           </div>
 
@@ -151,7 +151,7 @@ function RekamMedisContent() {
             <button
               type="button"
               onClick={() => setShowAddForm(!showAddForm)}
-              className="px-3.5 py-1.5 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl hover:bg-blue-100 transition border border-blue-200 flex items-center gap-1.5 shadow-2xs"
+              className="px-3.5 py-1.5 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl hover:bg-blue-100 transition border border-blue-200 flex items-center gap-1.5 shadow-2xs shrink-0"
             >
               <PlusCircle className="w-4 h-4 text-blue-700" />
               <span>{showAddForm ? 'Tutup Form' : '+ Catatan SOAP'}</span>
@@ -161,111 +161,183 @@ function RekamMedisContent() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center gap-1.5"
+            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center gap-1.5 shrink-0"
           >
             <Printer className="w-4 h-4" />
-            <span>Cetak Dokumen CPPT</span>
+            <span>Cetak Dokumen</span>
           </button>
         </div>
       </div>
 
-      {/* Patient Selection Bar (Sama seperti halaman Asesmen - Luas & Praktis) */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 no-print">
-        <div className="relative w-full md:w-96" ref={dropdownRef}>
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-            Pilih Pasien Rekam Medis:
-          </label>
-          <button
-            type="button"
-            onClick={() => setIsPatientDropdownOpen(!isPatientDropdownOpen)}
-            className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-lg text-left text-xs font-medium text-slate-800 transition flex items-center justify-between gap-2 shadow-2xs"
-          >
-            {selectedPatient ? (
-              <div className="truncate">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-900">{selectedPatient.nama}</span>
-                  <span className="font-mono text-[10px] text-blue-700 bg-blue-100/70 px-1.5 py-0.5 rounded font-semibold">
-                    {selectedPatient.noRm}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                  {selectedPatient.diagnosisMedisUtama}
-                </p>
+      {/* UNIFIED PATIENT HEADER CARD (Tanpa Kartu Bertumpuk / Duplikat) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4 no-print">
+        {/* Top Row: Patient Selector Combobox on Left & Quick Clinical Action on Right */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          {/* Patient Selector + Identity */}
+          <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+            {selectedPatient && (
+              <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg font-mono shrink-0 shadow-xs">
+                {selectedPatient.nama.charAt(0)}
               </div>
-            ) : (
-              <span className="text-slate-400">Pilih pasien untuk membuka rekam medis...</span>
             )}
-            <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${isPatientDropdownOpen ? 'rotate-90' : ''}`} />
-          </button>
 
-          {/* Search Dropdown Popover */}
-          {isPatientDropdownOpen && (
-            <div className="absolute top-full left-0 mt-1.5 w-full bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
-              <div className="p-2.5 border-b border-slate-100 bg-slate-50/70">
-                <div className="relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder="Ketik Nama, No. RM, NIK, atau Diagnosis..."
-                    value={patientSearchQuery}
-                    onChange={(e) => setPatientSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600 text-slate-800"
-                  />
-                </div>
-              </div>
-
-              <div className="max-h-60 overflow-y-auto divide-y divide-slate-100">
-                {filteredPatients.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-slate-400">
-                    Tidak ditemukan pasien dengan kata kunci &quot;{patientSearchQuery}&quot;
-                  </div>
-                ) : (
-                  filteredPatients.map((p) => {
-                    const isSelected = p.id === selectedPasienId;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedPasienId(p.id);
-                          setIsPatientDropdownOpen(false);
-                          setPatientSearchQuery('');
-                        }}
-                        className={`w-full text-left px-3 py-2 hover:bg-blue-50/60 transition flex items-center justify-between gap-3 text-xs ${
-                          isSelected ? 'bg-blue-50/80 font-bold' : ''
-                        }`}
-                      >
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-slate-900 truncate">{p.nama}</span>
-                            <span className="font-mono text-[10px] text-blue-700 bg-blue-100/60 px-1.5 py-0.5 rounded font-semibold">
-                              {p.noRm}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                            {p.diagnosisMedisUtama}
-                          </p>
-                        </div>
-                        {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
-                      </button>
-                    );
-                  })
+            <div className="flex-1 min-w-0" ref={dropdownRef}>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  Pasien Pemeriksaan:
+                </span>
+                {selectedPatient && (
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Status: {selectedPatient.statusKunjungan}
+                  </span>
                 )}
               </div>
+
+              {/* Combobox Dropdown Trigger */}
+              <div className="relative max-w-lg">
+                <button
+                  type="button"
+                  onClick={() => setIsPatientDropdownOpen(!isPatientDropdownOpen)}
+                  className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100/90 border border-slate-200 rounded-xl text-left text-xs transition flex items-center justify-between gap-2 shadow-2xs group"
+                >
+                  {selectedPatient ? (
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="font-bold text-slate-900 text-sm truncate">{selectedPatient.nama}</span>
+                      <span className="font-mono text-[11px] text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded font-semibold shrink-0">
+                        {selectedPatient.noRm}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-slate-400">Pilih pasien untuk membuka rekam medis...</span>
+                  )}
+                  <ChevronRight className={`w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-transform duration-200 shrink-0 ${isPatientDropdownOpen ? 'rotate-90' : ''}`} />
+                </button>
+
+                {/* Popover */}
+                {isPatientDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1.5 w-full bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+                    <div className="p-2.5 border-b border-slate-100 bg-slate-50/70">
+                      <div className="relative">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          autoFocus
+                          placeholder="Ketik Nama, No. RM, NIK, atau Diagnosis..."
+                          value={patientSearchQuery}
+                          onChange={(e) => setPatientSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-600 text-slate-800"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="max-h-60 overflow-y-auto divide-y divide-slate-100">
+                      {filteredPatients.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-slate-400">
+                          Tidak ditemukan pasien dengan kata kunci &quot;{patientSearchQuery}&quot;
+                        </div>
+                      ) : (
+                        filteredPatients.map((p) => {
+                          const isSelected = p.id === selectedPasienId;
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedPasienId(p.id);
+                                setIsPatientDropdownOpen(false);
+                                setPatientSearchQuery('');
+                              }}
+                              className={`w-full text-left px-3.5 py-2.5 hover:bg-blue-50/60 transition flex items-center justify-between gap-3 text-xs ${
+                                isSelected ? 'bg-blue-50/80 font-bold' : ''
+                              }`}
+                            >
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-slate-900 truncate">{p.nama}</span>
+                                  <span className="font-mono text-[10px] text-blue-700 bg-blue-100/60 px-1.5 py-0.5 rounded font-semibold">
+                                    {p.noRm}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                                  {p.diagnosisMedisUtama}
+                                </p>
+                              </div>
+                              {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {selectedPatient && (
+                <p className="text-xs text-slate-500 mt-1.5 font-mono truncate">
+                  NIK: {selectedPatient.nik || '-'} • {selectedPatient.jenisKelamin} • Lahir: {selectedPatient.tanggalLahir} • Gol: {selectedPatient.golonganDarah || '-'}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Action Link */}
+          {selectedPatient && (
+            <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
+              <Link
+                href={`/asesmen?pasienId=${selectedPatient.id}`}
+                className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-900 text-xs font-bold rounded-xl border border-blue-200 transition flex items-center gap-1.5 shadow-2xs"
+              >
+                <Bandage className="w-3.5 h-3.5 text-blue-700" />
+                <span>Buka Lembar Asesmen</span>
+              </Link>
             </div>
           )}
         </div>
 
+        {/* Clinical Info 3-Card Grid */}
         {selectedPatient && (
-          <div className="text-xs text-slate-600 flex items-center gap-3.5 flex-wrap">
-            <span>Usia/Lahir: <strong className="text-slate-800">{selectedPatient.tanggalLahir}</strong></span>
-            {selectedPatient.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada' && (
-              <span className="text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                Alergi: {selectedPatient.riwayatAlergi}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Diagnosa Utama:</span>
+              <strong className="text-slate-900 text-xs block mt-1">{selectedPatient.diagnosisMedisUtama}</strong>
+            </div>
+
+            <div className={`p-3.5 rounded-xl border ${
+              selectedPatient.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada'
+                ? 'bg-rose-50/70 border-rose-200 text-rose-900'
+                : 'bg-slate-50/80 border-slate-200 text-slate-700'
+            }`}>
+              <span className="text-[10px] font-bold uppercase tracking-wider block">Riwayat Alergi:</span>
+              <strong className="text-xs block mt-1">
+                {selectedPatient.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada'
+                  ? selectedPatient.riwayatAlergi
+                  : 'Tidak Ada Riwayat Alergi'}
+              </strong>
+            </div>
+
+            <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Komorbiditas / Penyakit:</span>
+              <span className="text-slate-800 text-xs block mt-1">
+                {selectedPatient.riwayatPenyakit.length > 0 ? selectedPatient.riwayatPenyakit.join(', ') : 'Tidak ada catatan komorbid'}
               </span>
-            )}
-            <span>Pemeriksa: <strong className="text-blue-700">{currentUser.nama}</strong></span>
+            </div>
+          </div>
+        )}
+
+        {/* Latest Wound Assessment Strip */}
+        {selectedPatient?.asesmenTerakhir && (
+          <div className="pt-2 border-t border-slate-100">
+            <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-200/70 text-xs flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+              <div>
+                <span className="text-[10px] font-bold uppercase text-blue-900 tracking-wider">Asesmen Luka Terakhir:</span>
+                <div className="font-bold text-slate-900 mt-0.5">
+                  {selectedPatient.asesmenTerakhir.lokasiLuka} ({selectedPatient.asesmenTerakhir.tipeLuka}) • {selectedPatient.asesmenTerakhir.ukuran.panjangCm}×{selectedPatient.asesmenTerakhir.ukuran.lebarCm} cm, dalam {selectedPatient.asesmenTerakhir.ukuran.kedalamanMm} mm
+                </div>
+              </div>
+              <div className="text-slate-700 font-mono text-[11px] bg-white px-3 py-1 rounded-lg border border-blue-200 self-start md:self-auto shrink-0">
+                Granulasi: <strong className="text-red-700">{selectedPatient.asesmenTerakhir.dasarLuka.persenGranulasi}%</strong> | Slough: <strong className="text-amber-700">{selectedPatient.asesmenTerakhir.dasarLuka.persenSlough}%</strong> | Nyeri: <strong className="text-blue-700">{selectedPatient.asesmenTerakhir.skorNyeri}/10</strong>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -326,94 +398,13 @@ function RekamMedisContent() {
         </div>
       ) : (
         /* SCREEN VIEW 2: FORMULIR KERJA (1 Halaman Penuh Lega & Elegan) */
-        <div className="space-y-5 no-print">
+        <div className="space-y-4 no-print">
           {!selectedPatient ? (
             <div className="bg-white p-12 text-center rounded-xl border border-slate-200 text-slate-400 text-xs">
               Silakan pilih pasien pada dropdown di atas untuk membuka lembar rekam medis terpadu.
             </div>
           ) : (
             <>
-              {/* Patient Profile Header Card (1 Halaman Lebar Penuh) */}
-              <div className="bg-white rounded-xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg font-mono shrink-0 shadow-xs">
-                      {selectedPatient.nama.charAt(0)}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h2 className="text-base sm:text-lg font-bold text-slate-900">{selectedPatient.nama}</h2>
-                        <span className="text-xs font-mono font-bold bg-blue-100/70 text-blue-950 px-2 py-0.5 rounded">
-                          {selectedPatient.noRm}
-                        </span>
-                        <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          {selectedPatient.statusKunjungan}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5 font-mono">
-                        NIK: {selectedPatient.nik || '-'} • {selectedPatient.jenisKelamin} • Lahir: {selectedPatient.tanggalLahir} • Gol: {selectedPatient.golonganDarah || '-'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => setViewMode('document')}
-                      className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200 transition flex items-center gap-1.5 shadow-2xs"
-                    >
-                      <FileCheck className="w-3.5 h-3.5 text-blue-700" />
-                      <span>Lihat Dokumen</span>
-                    </button>
-                    <Link
-                      href={`/asesmen?pasienId=${selectedPatient.id}`}
-                      className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-900 text-xs font-semibold rounded-lg border border-blue-200 transition flex items-center gap-1.5 shadow-2xs"
-                    >
-                      <Bandage className="w-3.5 h-3.5" />
-                      <span>Buka Lembar Asesmen</span>
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs">
-                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Diagnosa Utama:</span>
-                    <strong className="text-slate-800 text-xs block mt-1">{selectedPatient.diagnosisMedisUtama}</strong>
-                  </div>
-                  <div className="bg-rose-50/60 p-3 rounded-lg border border-rose-200">
-                    <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Riwayat Alergi:</span>
-                    <strong className="text-rose-900 text-xs block mt-1">
-                      {selectedPatient.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada'
-                        ? selectedPatient.riwayatAlergi
-                        : 'Tidak Ada Riwayat Alergi'}
-                    </strong>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Komorbiditas:</span>
-                    <span className="text-slate-800 text-xs block mt-1">
-                      {selectedPatient.riwayatPenyakit.join(', ') || 'Tidak ada catatan komorbid'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Latest Assessment Summary */}
-                {selectedPatient.asesmenTerakhir && (
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="bg-slate-50/70 p-3.5 rounded-lg border border-slate-200 text-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Asesmen Luka Terakhir:</span>
-                        <div className="font-bold text-slate-900 mt-0.5">
-                          {selectedPatient.asesmenTerakhir.lokasiLuka} ({selectedPatient.asesmenTerakhir.tipeLuka}) • Dimensi: {selectedPatient.asesmenTerakhir.ukuran.panjangCm}×{selectedPatient.asesmenTerakhir.ukuran.lebarCm} cm, kedalaman {selectedPatient.asesmenTerakhir.ukuran.kedalamanMm} mm
-                        </div>
-                      </div>
-                      <div className="text-slate-700 font-mono text-[11px] bg-white px-3 py-1 rounded-md border border-slate-200 self-start md:self-auto shrink-0">
-                        Granulasi: <strong className="text-red-700">{selectedPatient.asesmenTerakhir.dasarLuka.persenGranulasi}%</strong> | Slough: <strong className="text-amber-700">{selectedPatient.asesmenTerakhir.dasarLuka.persenSlough}%</strong> | Nyeri: <strong className="text-blue-700">{selectedPatient.asesmenTerakhir.skorNyeri}/10</strong>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* Form Input SOAP Baru (Full Width Card) */}
               {showAddForm && (
                 <div className="bg-white rounded-xl border-2 border-blue-500/80 p-5 sm:p-6 shadow-sm space-y-4">
