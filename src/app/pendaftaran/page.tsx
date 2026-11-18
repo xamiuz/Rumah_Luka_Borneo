@@ -322,8 +322,107 @@ function DirektoriPasienContent() {
           </div>
         </div>
 
-        {/* Directory Table (5 Proportional Columns, Exactly 100% Full Width, Zero Overlap, Zero Scrollbar) */}
-        <div className="w-full">
+        {/* 1. MOBILE ANDROID CARD LIST (block md:hidden) */}
+        <div className="block md:hidden p-3 space-y-3 bg-slate-50/50">
+          {filteredPatients.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200 text-xs">
+              Tidak ditemukan data pasien yang sesuai dengan kata kunci atau filter.
+            </div>
+          ) : (
+            filteredPatients.map((p) => {
+              const statusBadge = {
+                'Antrean': 'bg-amber-50 text-amber-800 border-amber-200',
+                'Sedang Diperiksa': 'bg-blue-50 text-blue-800 border-blue-200',
+                'Selesai': 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                'Jadwal Kontrol': 'bg-slate-100 text-slate-700 border-slate-200',
+              }[p.statusKunjungan];
+
+              return (
+                <div key={p.id} className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-3.5 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="font-bold text-sm text-slate-900 leading-tight">{p.nama}</h3>
+                        <span className="text-[10px] font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/80">
+                          {p.noRm}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                        {p.jenisKelamin === 'Laki-laki' ? 'L' : 'P'} • Lahir {p.tanggalLahir}
+                      </p>
+                    </div>
+
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border shrink-0 ${statusBadge}`}>
+                      {p.statusKunjungan}
+                    </span>
+                  </div>
+
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1 text-xs">
+                    <p className="font-semibold text-slate-800 leading-snug">
+                      {p.diagnosisMedisUtama}
+                    </p>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-600 font-mono">
+                      <span className="flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-blue-600" />
+                        {p.noHp}
+                      </span>
+                      <span>•</span>
+                      <span>NIK: {p.nik}</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 truncate">
+                      {p.alamat}
+                    </p>
+                    {p.riwayatAlergi && p.riwayatAlergi !== 'Tidak Ada' && (
+                      <div className="pt-0.5">
+                        <span className="inline-flex items-center gap-1 text-[10px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                          <span>Alergi:</span>
+                          <span className="font-normal">{p.riwayatAlergi}</span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                    <Link
+                      href={`/asesmen?pasienId=${p.id}`}
+                      className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      <Bandage className="w-3.5 h-3.5" />
+                      <span>Asesmen</span>
+                    </Link>
+                    <Link
+                      href={`/rekam-medis?pasienId=${p.id}`}
+                      className="flex-1 py-2 px-3 bg-white hover:bg-slate-50 active:scale-98 border border-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-slate-500" />
+                      <span>CPPT</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const confirmed = await showConfirm(
+                          `Hapus rekam medis pasien ${p.nama}? Seluruh data asesmen luka dan CPPT terkait akan ikut terhapus.`,
+                          'Hapus Rekam Medis Pasien',
+                          { type: 'danger', confirmLabel: 'Ya, Hapus Pasien' }
+                        );
+                        if (confirmed) {
+                          deletePatient(p.id);
+                        }
+                      }}
+                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition border border-slate-200 shrink-0"
+                      title="Hapus Rekam Medis"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* 2. DESKTOP TABLE VIEW (hidden md:block) */}
+        <div className="hidden md:block w-full">
           <table className="w-full text-left text-xs table-fixed">
             <thead className="bg-slate-50/90 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
