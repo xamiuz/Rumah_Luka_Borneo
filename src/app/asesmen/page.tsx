@@ -350,7 +350,7 @@ function AsesmenContent() {
   ];
 
   return (
-    <div className="space-y-4 max-w-5xl mx-auto pb-12">
+    <div className="w-full px-4 sm:px-6 py-4 sm:py-5 space-y-4 max-w-5xl mx-auto pb-12">
       {/* Page Title Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
