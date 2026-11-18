@@ -363,7 +363,7 @@ function AsesmenContent() {
       </div>
 
       {/* Patient Selection Bar */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)] flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative w-full md:w-96" ref={dropdownRef}>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
             Pilih Pasien Pemeriksaan:
@@ -464,7 +464,7 @@ function AsesmenContent() {
       </div>
 
       {/* Stepper Navigation Bar (Clickable tabs to switch steps) */}
-      <div className="bg-white p-2 rounded-xl border border-slate-200/80 shadow-xs">
+      <div className="bg-white p-2 sm:p-2.5 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)]">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {steps.map((step) => {
             const isActive = activeStep === step.id;
@@ -521,7 +521,7 @@ function AsesmenContent() {
         {/* STEP 1: PETA ANATOMI & TITIK LUKA (LEBAR & LEGA PENUH)    */}
         {/* ========================================================= */}
         {activeStep === 1 && (
-          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200/80 shadow-xs space-y-5">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-5 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
             <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
@@ -573,7 +573,7 @@ function AsesmenContent() {
         {/* STEP 2: ETIOLOGI & DIMENSI LUKA (SETELAH PETA ANATOMI)   */}
         {/* ========================================================= */}
         {activeStep === 2 && (
-          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200/80 shadow-xs space-y-5">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-5 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
             <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
@@ -767,7 +767,7 @@ function AsesmenContent() {
         {/* STEP 3: DASAR JARINGAN (TIME) & TANDA INFEKSI / NYERI     */}
         {/* ========================================================= */}
         {activeStep === 3 && (
-          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200/80 shadow-xs space-y-5">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-5 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
             <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
@@ -1011,7 +1011,7 @@ function AsesmenContent() {
         {/* STEP 4: RESEP DRESSING, RENCANA & FOTO DOKUMENTASI       */}
         {/* ========================================================= */}
         {activeStep === 4 && (
-          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200/80 shadow-xs space-y-5">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-5 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
             <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">

@@ -156,19 +156,19 @@ export function Sidebar() {
                   key={item.href}
                   href={item.href}
                   title={!isExpanded ? item.label : undefined}
-                  className={`flex items-center rounded-lg text-xs font-semibold transition-all relative ${
+                  className={`flex items-center rounded-xl text-xs font-semibold transition-all relative ${
                     isExpanded ? 'px-3 py-2.5' : 'w-11 h-11 mx-auto justify-center p-0'
                   } ${
                     isActive
-                      ? 'bg-blue-50 text-blue-900 border border-blue-200/80 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-gradient-to-r from-blue-50 via-blue-50/60 to-white text-blue-900 border-l-[3.5px] border-l-blue-600 border-y border-r border-slate-200/70 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-blue-700' : 'text-slate-400'}`} />
+                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
                   <span
                     className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
                       isExpanded
-                        ? 'opacity-100 max-w-[140px] ml-3 flex-1'
+                        ? 'opacity-100 max-w-[140px] ml-3 flex-1 font-bold'
                         : 'opacity-0 max-w-0 ml-0 pointer-events-none'
                     }`}
                   >
@@ -202,19 +202,19 @@ export function Sidebar() {
                   key={item.href}
                   href={item.href}
                   title={!isExpanded ? item.label : undefined}
-                  className={`flex items-center rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex items-center rounded-xl text-xs font-semibold transition-all relative ${
                     isExpanded ? 'px-3 py-2.5' : 'w-11 h-11 mx-auto justify-center p-0'
                   } ${
                     isActive
-                      ? 'bg-blue-50 text-blue-900 border border-blue-200/80 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-gradient-to-r from-blue-50 via-blue-50/60 to-white text-blue-900 border-l-[3.5px] border-l-blue-600 border-y border-r border-slate-200/70 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-blue-700' : 'text-slate-400'}`} />
+                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
                   <span
                     className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
                       isExpanded
-                        ? 'opacity-100 max-w-[150px] ml-3 flex-1'
+                        ? 'opacity-100 max-w-[150px] ml-3 flex-1 font-bold'
                         : 'opacity-0 max-w-0 ml-0 pointer-events-none'
                     }`}
                   >

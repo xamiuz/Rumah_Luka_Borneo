@@ -173,7 +173,7 @@ function RekamMedisContent() {
       </div>
 
       {/* UNIFIED PATIENT HEADER CARD */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-3.5 no-print">
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-3.5 no-print relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
         {/* Top Row: Patient Identity + Switcher */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -547,8 +547,8 @@ function RekamMedisContent() {
               )}
 
               {/* CPPT Timeline Entries (1 Halaman Lebar Penuh) */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-                <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] overflow-hidden">
+                <div className="p-4 sm:p-5 border-b border-slate-200/80 flex items-center justify-between bg-gradient-to-r from-slate-50/90 via-white to-slate-50/60">
                   <div>
                     <h3 className="text-sm sm:text-base font-bold text-slate-900">
                       Catatan Perkembangan Pasien Terintegrasi (CPPT)

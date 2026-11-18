@@ -214,53 +214,53 @@ function DirektoriPasienContent() {
         </div>
       )}
 
-      {/* Quick Summary KPI Cards (Compact Medical Row) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      {/* Quick Summary KPI Cards (Layered Tactile Row) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)] hover:shadow-md hover:border-blue-300 transition-all relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600 flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Total Terdaftar</span>
-            <span className="text-xl font-extrabold text-slate-900 mt-0.5 block">{patients.length} <span className="text-xs font-normal text-slate-500">pasien</span></span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Terdaftar</span>
+            <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">{patients.length} <span className="text-xs font-semibold text-slate-400">pasien</span></span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center font-bold text-xs shadow-2xs">
             {patients.length}
           </div>
         </div>
 
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)] hover:shadow-md hover:border-amber-300 transition-all relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-amber-500 flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Antrean Aktif</span>
-            <span className="text-xl font-extrabold text-amber-600 mt-0.5 block">{antreanCount} <span className="text-xs font-normal text-slate-500">pasien</span></span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Antrean Aktif</span>
+            <span className="text-xl sm:text-2xl font-black text-amber-600 mt-0.5 block">{antreanCount} <span className="text-xs font-semibold text-slate-400">pasien</span></span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center font-bold text-xs shadow-2xs">
             {antreanCount}
           </div>
         </div>
 
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)] hover:shadow-md hover:border-rose-300 transition-all relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-rose-500 flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Peringatan Alergi</span>
-            <span className="text-xl font-extrabold text-rose-600 mt-0.5 block">{alergiCount} <span className="text-xs font-normal text-slate-500">kasus</span></span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Peringatan Alergi</span>
+            <span className="text-xl sm:text-2xl font-black text-rose-600 mt-0.5 block">{alergiCount} <span className="text-xs font-semibold text-slate-400">kasus</span></span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs">
+          <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center font-bold text-xs shadow-2xs">
             {alergiCount}
           </div>
         </div>
 
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)] hover:shadow-md hover:border-emerald-300 transition-all relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-emerald-600 flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Komorbid Diabetes</span>
-            <span className="text-xl font-extrabold text-emerald-600 mt-0.5 block">{dmCount} <span className="text-xs font-normal text-slate-500">pasien</span></span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ulkus Diabetikum</span>
+            <span className="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5 block">{dmCount} <span className="text-xs font-semibold text-slate-400">pasien</span></span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold text-xs shadow-2xs">
             {dmCount}
           </div>
         </div>
       </div>
 
       {/* Directory Main Card */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] overflow-hidden">
         {/* Search & Filter Toolbar */}
-        <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 border-b border-slate-200/80 bg-gradient-to-r from-slate-50/90 via-white to-slate-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Global Search Input */}
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -269,12 +269,12 @@ function DirektoriPasienContent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama pasien, No. RM, NIK, alamat..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white text-slate-800 transition"
+              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-100/80 hover:bg-slate-100 border border-slate-200/90 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 focus:bg-white text-slate-800 transition shadow-inner"
             />
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold self-start sm:self-auto bg-slate-100/90 p-1 rounded-xl border border-slate-200/60 shadow-inner">
             <button
               type="button"
               onClick={() => setFilterCategory('semua')}
@@ -450,18 +450,25 @@ function DirektoriPasienContent() {
                   }[p.statusKunjungan];
 
                   return (
-                    <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
+                    <tr key={p.id} className="hover:bg-blue-50/40 transition-colors group">
                       {/* 1. Nama & RM */}
                       <td className="px-4 py-3.5 align-middle">
-                        <div className="font-bold text-sm text-slate-900 leading-snug">
-                          {p.nama}
-                        </div>
-                        <div className="text-[11px] text-slate-500 font-mono mt-0.5 flex items-center gap-1.5 flex-wrap">
-                          <span className="font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/80">
-                            {p.noRm}
-                          </span>
-                          <span>•</span>
-                          <span>{p.jenisKelamin === 'Laki-laki' ? 'L' : 'P'}, Lahir {p.tanggalLahir}</span>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-blue-100/80 text-blue-800 border border-blue-200/70 flex items-center justify-center font-bold text-xs font-mono shrink-0 shadow-2xs">
+                            {p.nama.charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-sm text-slate-900 leading-snug group-hover:text-blue-900 transition-colors">
+                              {p.nama}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-mono mt-0.5 flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/80">
+                                {p.noRm}
+                              </span>
+                              <span>•</span>
+                              <span>{p.jenisKelamin === 'Laki-laki' ? 'L' : 'P'}, Lahir {p.tanggalLahir}</span>
+                            </div>
+                          </div>
                         </div>
                       </td>
 
