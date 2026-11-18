@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   description: 'Platform Manajemen Pelayanan Perawatan Luka Modern, Asesmen Klinis, dan Rekam Medis Terintegrasi Rumah Luka Borneo.',
 };
 
+export const instant = false;
+
 export default function RootLayout({
   children,
 }: {
