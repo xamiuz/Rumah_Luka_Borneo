@@ -350,38 +350,45 @@ function AsesmenContent() {
   ];
 
   return (
-    <div className="w-full px-4 sm:px-6 py-4 sm:py-5 space-y-4 max-w-5xl mx-auto pb-12">
+    <div className="w-full px-4 sm:px-6 py-5 space-y-5 max-w-[1440px] mx-auto pb-16">
       {/* Page Title Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-          <Activity className="w-5 h-5 text-blue-600" />
-          <span>Asesmen Luka & Peta Anatomi</span>
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Alur pengkajian klinis bertahap spesialis perawatan luka modern (Wound Care).
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+            <Activity className="w-6 h-6 text-blue-600" />
+            <span>Asesmen Luka & Peta Anatomi</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Alur pengkajian klinis bertahap spesialis perawatan luka modern (Wound Care) terstandar.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <span className="text-xs font-bold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+            Alur 4 Tahap Klinis
+          </span>
+        </div>
       </div>
 
       {/* Patient Selection Bar */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)] flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="relative w-full md:w-96" ref={dropdownRef}>
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="relative w-full lg:w-[480px]" ref={dropdownRef}>
+          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
             Pilih Pasien Pemeriksaan:
           </label>
           <button
             type="button"
             onClick={() => setIsPatientDropdownOpen(!isPatientDropdownOpen)}
-            className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-lg text-left text-xs font-medium text-slate-800 transition flex items-center justify-between gap-2 shadow-2xs"
+            className="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl text-left text-xs font-medium text-slate-800 transition flex items-center justify-between gap-2 shadow-2xs"
           >
             {selectedPatient ? (
               <div className="truncate">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-900">{selectedPatient.nama}</span>
-                  <span className="font-mono text-[10px] text-blue-700 bg-blue-100/70 px-1.5 py-0.5 rounded font-semibold">
+                  <span className="font-bold text-slate-900 text-sm">{selectedPatient.nama}</span>
+                  <span className="font-mono text-[11px] text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded font-semibold">
                     {selectedPatient.noRm}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                <p className="text-xs text-slate-500 truncate mt-0.5">
                   {selectedPatient.diagnosisMedisUtama}
                 </p>
               </div>
@@ -425,7 +432,7 @@ function AsesmenContent() {
                           setIsPatientDropdownOpen(false);
                           setPatientSearchQuery('');
                         }}
-                        className={`w-full text-left px-3 py-2 hover:bg-blue-50/60 transition flex items-center justify-between gap-3 text-xs ${
+                        className={`w-full text-left px-3 py-2.5 hover:bg-blue-50/60 transition flex items-center justify-between gap-3 text-xs ${
                           isSelected ? 'bg-blue-50/80 font-bold' : ''
                         }`}
                       >
@@ -452,20 +459,25 @@ function AsesmenContent() {
 
         {selectedPatient && (
           <div className="text-xs text-slate-600 flex items-center gap-3.5 flex-wrap">
-            <span>Usia/Lahir: <strong className="text-slate-800">{selectedPatient.tanggalLahir}</strong></span>
+            <span className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              Lahir / Usia: <strong className="text-slate-800">{selectedPatient.tanggalLahir}</strong>
+            </span>
             {selectedPatient.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada' && (
-              <span className="text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                Alergi: {selectedPatient.riwayatAlergi}
+              <span className="text-rose-700 font-bold bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                <span>Alergi: {selectedPatient.riwayatAlergi}</span>
               </span>
             )}
-            <span>Pemeriksa: <strong className="text-blue-700">{currentUser.nama}</strong></span>
+            <span className="bg-blue-50/70 px-3 py-1.5 rounded-xl border border-blue-200 text-blue-900">
+              Pemeriksa: <strong className="text-blue-700">{currentUser.nama}</strong>
+            </span>
           </div>
         )}
       </div>
 
       {/* Stepper Navigation Bar (Clickable tabs to switch steps) */}
-      <div className="bg-white p-2 sm:p-2.5 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)]">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {steps.map((step) => {
             const isActive = activeStep === step.id;
             const isCompleted = activeStep > step.id;
@@ -474,16 +486,16 @@ function AsesmenContent() {
                 key={step.id}
                 type="button"
                 onClick={() => setActiveStep(step.id)}
-                className={`p-2.5 rounded-lg text-left transition flex items-center gap-2.5 border ${
+                className={`p-3 sm:p-3.5 rounded-xl text-left transition flex items-center gap-3 border ${
                   isActive
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                     : isCompleted
                     ? 'bg-blue-50/70 text-blue-900 border-blue-200 hover:bg-blue-100/70'
                     : 'bg-slate-50/70 text-slate-600 border-slate-200 hover:bg-slate-100'
                 }`}
               >
                 <div
-                  className={`w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-xs sm:text-sm shrink-0 ${
                     isActive
                       ? 'bg-white text-blue-700'
                       : isCompleted
@@ -491,13 +503,13 @@ function AsesmenContent() {
                       : 'bg-white text-slate-600 border border-slate-200'
                   }`}
                 >
-                  {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : step.id}
+                  {isCompleted ? <Check className="w-4 h-4 stroke-[3]" /> : step.id}
                 </div>
                 <div className="min-w-0">
-                  <div className={`text-xs font-bold truncate ${isActive ? 'text-white' : 'text-slate-900'}`}>
+                  <div className={`text-xs sm:text-sm font-bold truncate ${isActive ? 'text-white' : 'text-slate-900'}`}>
                     {step.title}
                   </div>
-                  <div className={`text-[10px] truncate ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
+                  <div className={`text-[11px] sm:text-xs truncate ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
                     {step.subtitle}
                   </div>
                 </div>
@@ -521,11 +533,11 @@ function AsesmenContent() {
         {/* STEP 1: PETA ANATOMI & TITIK LUKA (LEBAR & LEGA PENUH)    */}
         {/* ========================================================= */}
         {activeStep === 1 && (
-          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-5 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
+          <div className="bg-white p-5 sm:p-6 lg:p-7 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-6 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
             <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-600" />
+                  <MapPin className="w-5 h-5 text-blue-600" />
                   <span>Tahap 1: Peta Anatomi & Pemetaan Titik Luka</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -534,14 +546,15 @@ function AsesmenContent() {
               </div>
 
               {activeTitikId && (
-                <span className="text-xs font-mono font-bold bg-blue-50 text-blue-800 px-3 py-1 rounded-lg border border-blue-200 self-start sm:self-auto">
-                  Target Pin: {titikLukaList.find((p) => p.id === activeTitikId)?.label || 'Luka Utama'}
+                <span className="text-xs font-mono font-bold bg-blue-50 text-blue-800 px-3.5 py-1.5 rounded-xl border border-blue-200 self-start sm:self-auto flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                  <span>Target Pin: {titikLukaList.find((p) => p.id === activeTitikId)?.label || 'Luka Utama'}</span>
                 </span>
               )}
             </div>
 
-            {/* Interactive Body Map */}
-            <div className="max-w-3xl mx-auto">
+            {/* Interactive Body Map (Spacious Full Width) */}
+            <div className="w-full">
               <InteractiveBodyMap
                 lokasiLuka={lokasiLuka}
                 onLokasiLukaChange={setLokasiLuka}
@@ -553,14 +566,14 @@ function AsesmenContent() {
             </div>
 
             {/* Step 1 Navigation */}
-            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="text-xs text-slate-500">
-                Lokasi terdeteksi: <strong className="text-slate-800">{lokasiLuka}</strong>
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-xs sm:text-sm text-slate-500">
+                Lokasi terdeteksi: <strong className="text-slate-900">{lokasiLuka}</strong>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveStep(2)}
-                className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-2"
               >
                 <span>Lanjut ke Etiologi & Dimensi Luka</span>
                 <ArrowRight className="w-4 h-4" />
@@ -573,7 +586,7 @@ function AsesmenContent() {
         {/* STEP 2: ETIOLOGI & DIMENSI LUKA (SETELAH PETA ANATOMI)   */}
         {/* ========================================================= */}
         {activeStep === 2 && (
-          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-5 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
+          <div className="bg-white p-5 sm:p-6 lg:p-7 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-6 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
             <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
@@ -585,7 +598,7 @@ function AsesmenContent() {
                 </p>
               </div>
 
-              <div className="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200 font-medium self-start sm:self-auto">
+              <div className="text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200 font-medium self-start sm:self-auto">
                 Lokasi: <span className="font-bold text-slate-900">{lokasiLuka}</span>
               </div>
             </div>
@@ -597,13 +610,13 @@ function AsesmenContent() {
                 <span>A. Klasifikasi & Stadium Klinis</span>
               </h4>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Tipe / Etiologi Luka</label>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Tipe / Etiologi Luka</label>
                   <select
                     value={tipeLuka}
                     onChange={(e) => setTipeLuka(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs sm:text-sm font-medium"
                   >
                     <option value="Ulkus Diabetikum (Diabetic Foot)">Ulkus Diabetikum (Diabetic Foot)</option>
                     <option value="Luka Tekan (Pressure Injury / Decubitus)">Luka Tekan (Pressure Injury / Decubitus)</option>
@@ -615,13 +628,13 @@ function AsesmenContent() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Stadium / Derajat Luka</label>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Stadium / Derajat Luka</label>
                   <input
                     type="text"
                     value={stadiumLuka}
                     onChange={(e) => setStadiumLuka(e.target.value)}
                     placeholder="Contoh: Wagner Grade 3 (Ulkus dalam dengan abses)"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs sm:text-sm font-medium"
                   />
                 </div>
               </div>
@@ -634,13 +647,13 @@ function AsesmenContent() {
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                   <span>B. Pengukuran Dimensi Fisik 3D</span>
                 </h4>
-                <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200">
+                <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
                   Estimasi Luas: {(panjangCm * lebarCm).toFixed(1)} cm²
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 text-xs">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <label className="block font-semibold text-slate-700 mb-1">Panjang (cm)</label>
                   <div className="flex items-center gap-1.5">
                     <input
@@ -649,13 +662,13 @@ function AsesmenContent() {
                       min="0"
                       value={panjangCm}
                       onChange={(e) => setPanjangCm(Number(e.target.value))}
-                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded font-mono font-bold text-slate-900 text-center text-sm"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 text-center text-sm sm:text-base"
                     />
                     <span className="text-slate-500 font-bold">cm</span>
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <label className="block font-semibold text-slate-700 mb-1">Lebar (cm)</label>
                   <div className="flex items-center gap-1.5">
                     <input
@@ -664,13 +677,13 @@ function AsesmenContent() {
                       min="0"
                       value={lebarCm}
                       onChange={(e) => setLebarCm(Number(e.target.value))}
-                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded font-mono font-bold text-slate-900 text-center text-sm"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 text-center text-sm sm:text-base"
                     />
                     <span className="text-slate-500 font-bold">cm</span>
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <label className="block font-semibold text-slate-700 mb-1">Kedalaman (mm)</label>
                   <div className="flex items-center gap-1.5">
                     <input
@@ -679,13 +692,13 @@ function AsesmenContent() {
                       min="0"
                       value={kedalamanMm}
                       onChange={(e) => setKedalamanMm(Number(e.target.value))}
-                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded font-mono font-bold text-slate-900 text-center text-sm"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 text-center text-sm sm:text-base"
                     />
                     <span className="text-slate-500 font-bold">mm</span>
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <label className="block font-semibold text-slate-700 mb-1">Goa / Undermining</label>
                   <div className="flex items-center gap-1.5">
                     <input
@@ -694,7 +707,7 @@ function AsesmenContent() {
                       min="0"
                       value={underminingCm}
                       onChange={(e) => setUnderminingCm(Number(e.target.value))}
-                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded font-mono font-bold text-slate-900 text-center text-sm"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 text-center text-sm sm:text-base"
                     />
                     <span className="text-slate-500 font-bold">cm</span>
                   </div>
@@ -709,13 +722,13 @@ function AsesmenContent() {
                 <span>C. Karakteristik Tepi Luka & Kulit Sekitar (Peri-Wound)</span>
               </h4>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Kondisi Tepi Luka (Edge)</label>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Kondisi Tepi Luka (Edge)</label>
                   <select
                     value={tepiLuka}
                     onChange={(e) => setTepiLuka(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs sm:text-sm font-medium"
                   >
                     <option value="Menyatu">Menyatu (Epitelisasi Baik)</option>
                     <option value="Menebal / Kalus">Menebal / Kalus (Hiperkeratosis)</option>
@@ -725,11 +738,11 @@ function AsesmenContent() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Kulit Sekitar Luka (Peri-Wound)</label>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Kulit Sekitar Luka (Peri-Wound)</label>
                   <select
                     value={kulitSekitar}
                     onChange={(e) => setKulitSekitar(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 text-xs sm:text-sm font-medium"
                   >
                     <option value="Sehat">Sehat / Intak</option>
                     <option value="Maserasi">Maserasi (Lembap Berlebih / Keputihan)</option>
@@ -742,11 +755,11 @@ function AsesmenContent() {
             </div>
 
             {/* Step 2 Navigation */}
-            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setActiveStep(1)}
-                className="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Kembali ke Peta Anatomi</span>
@@ -754,7 +767,7 @@ function AsesmenContent() {
               <button
                 type="button"
                 onClick={() => setActiveStep(3)}
-                className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-2"
               >
                 <span>Lanjut ke Dasar Jaringan (TIME) & Infeksi</span>
                 <ArrowRight className="w-4 h-4" />
@@ -767,7 +780,7 @@ function AsesmenContent() {
         {/* STEP 3: DASAR JARINGAN (TIME) & TANDA INFEKSI / NYERI     */}
         {/* ========================================================= */}
         {activeStep === 3 && (
-          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-5 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
+          <div className="bg-white p-5 sm:p-6 lg:p-7 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-6 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
             <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
@@ -779,7 +792,7 @@ function AsesmenContent() {
                 </p>
               </div>
 
-              <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-md border self-start sm:self-auto ${
+              <span className={`text-xs font-mono font-bold px-3 py-1 rounded-xl border self-start sm:self-auto ${
                 granulasi + slough + nekrotik + epitelisasi === 100 
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
                   : 'bg-amber-50 text-amber-800 border-amber-200'
@@ -796,7 +809,7 @@ function AsesmenContent() {
               </h4>
 
               {/* Visual Proportion Bar */}
-              <div className="h-5 rounded-lg overflow-hidden flex bg-slate-200 text-xs font-bold text-white text-center leading-5 shadow-inner">
+              <div className="h-7 sm:h-8 rounded-xl overflow-hidden flex bg-slate-200 text-xs font-bold text-white text-center leading-7 sm:leading-8 shadow-inner">
                 <div style={{ width: `${granulasi}%` }} className="bg-red-600 truncate transition-all duration-300" title="Granulasi (Merah)">
                   {granulasi > 10 ? `Granulasi ${granulasi}%` : granulasi > 0 ? `${granulasi}%` : ''}
                 </div>
@@ -812,62 +825,62 @@ function AsesmenContent() {
               </div>
 
               {/* 4 Proportion Inputs */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
-                <div className="p-2.5 bg-red-50/70 rounded-lg border border-red-200">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div className="p-3 bg-red-50/70 rounded-xl border border-red-200">
                   <span className="font-bold text-red-900 block text-xs">Granulasi (Merah)</span>
-                  <div className="flex items-center gap-1.5 mt-1">
+                  <div className="flex items-center gap-1.5 mt-1.5">
                     <input
                       type="number"
                       min="0"
                       max="100"
                       value={granulasi}
                       onChange={(e) => setGranulasi(Number(e.target.value))}
-                      className="w-full px-2 py-1 bg-white border border-red-300 rounded font-mono font-bold text-red-900 text-center"
+                      className="w-full px-2.5 py-1.5 bg-white border border-red-300 rounded-lg font-mono font-bold text-red-900 text-center text-sm"
                     />
                     <span className="font-bold text-red-800">%</span>
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-amber-50/70 rounded-lg border border-amber-200">
+                <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200">
                   <span className="font-bold text-amber-900 block text-xs">Slough (Kuning)</span>
-                  <div className="flex items-center gap-1.5 mt-1">
+                  <div className="flex items-center gap-1.5 mt-1.5">
                     <input
                       type="number"
                       min="0"
                       max="100"
                       value={slough}
                       onChange={(e) => setSlough(Number(e.target.value))}
-                      className="w-full px-2 py-1 bg-white border border-amber-300 rounded font-mono font-bold text-amber-900 text-center"
+                      className="w-full px-2.5 py-1.5 bg-white border border-amber-300 rounded-lg font-mono font-bold text-amber-900 text-center text-sm"
                     />
                     <span className="font-bold text-amber-800">%</span>
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-slate-100 rounded-lg border border-slate-300">
+                <div className="p-3 bg-slate-100 rounded-xl border border-slate-300">
                   <span className="font-bold text-slate-900 block text-xs">Nekrotik (Hitam)</span>
-                  <div className="flex items-center gap-1.5 mt-1">
+                  <div className="flex items-center gap-1.5 mt-1.5">
                     <input
                       type="number"
                       min="0"
                       max="100"
                       value={nekrotik}
                       onChange={(e) => setNekrotik(Number(e.target.value))}
-                      className="w-full px-2 py-1 bg-white border border-slate-300 rounded font-mono font-bold text-slate-900 text-center"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg font-mono font-bold text-slate-900 text-center text-sm"
                     />
                     <span className="font-bold text-slate-800">%</span>
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-pink-50/70 rounded-lg border border-pink-200">
+                <div className="p-3 bg-pink-50/70 rounded-xl border border-pink-200">
                   <span className="font-bold text-pink-900 block text-xs">Epitel (Pink)</span>
-                  <div className="flex items-center gap-1.5 mt-1">
+                  <div className="flex items-center gap-1.5 mt-1.5">
                     <input
                       type="number"
                       min="0"
                       max="100"
                       value={epitelisasi}
                       onChange={(e) => setEpitelisasi(Number(e.target.value))}
-                      className="w-full px-2 py-1 bg-white border border-pink-300 rounded font-mono font-bold text-pink-900 text-center"
+                      className="w-full px-2.5 py-1.5 bg-white border border-pink-300 rounded-lg font-mono font-bold text-pink-900 text-center text-sm"
                     />
                     <span className="font-bold text-pink-800">%</span>
                   </div>
@@ -882,13 +895,13 @@ function AsesmenContent() {
                 <span>B. Karakteristik Cairan Luka (Eksudat)</span>
               </h4>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Jumlah Eksudat</label>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Jumlah Eksudat</label>
                   <select
                     value={eksudatJumlah}
                     onChange={(e) => setEksudatJumlah(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium text-xs sm:text-sm"
                   >
                     <option value="Tidak Ada">Tidak Ada (Kering)</option>
                     <option value="Sedikit">Sedikit (Moist)</option>
@@ -898,11 +911,11 @@ function AsesmenContent() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Warna Eksudat</label>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Warna Eksudat</label>
                   <select
                     value={eksudatWarna}
                     onChange={(e) => setEksudatWarna(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium text-xs sm:text-sm"
                   >
                     <option value="Serous">Serous (Bening / Kuning Jernih)</option>
                     <option value="Haemoserous">Haemoserous (Merah Muda Encer)</option>
@@ -912,11 +925,11 @@ function AsesmenContent() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Aroma / Bau Eksudat</label>
+                  <label className="block font-semibold text-slate-700 mb-1.5">Aroma / Bau Eksudat</label>
                   <select
                     value={eksudatBau}
                     onChange={(e) => setEksudatBau(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-900 font-medium text-xs sm:text-sm"
                   >
                     <option value="Tidak Berbau">Tidak Berbau</option>
                     <option value="Khas">Khas (Khas Luka Lembut)</option>
@@ -933,7 +946,7 @@ function AsesmenContent() {
                 <span>C. Tanda Kardinal Infeksi Lokal & Skala Nyeri</span>
               </h4>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 text-xs">
                 {[
                   { key: 'dolorNyeri', label: 'Dolor (Rasa Nyeri)' },
                   { key: 'calorHangat', label: 'Calor (Kulit Hangat)' },
@@ -941,25 +954,25 @@ function AsesmenContent() {
                   { key: 'tumorBengkak', label: 'Tumor (Edema Bengkak)' },
                   { key: 'functioLaesa', label: 'Functio Laesa (Gangguan Fungsi)' },
                 ].map((inf) => (
-                  <label key={inf.key} className="flex items-center gap-2 p-2 bg-slate-50 hover:bg-slate-100/80 rounded-lg border border-slate-200 cursor-pointer select-none transition">
+                  <label key={inf.key} className="flex items-center gap-2 p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200 cursor-pointer select-none transition">
                     <input
                       type="checkbox"
                       checked={tandaInfeksi[inf.key as keyof typeof tandaInfeksi]}
                       onChange={(e) =>
                         setTandaInfeksi({ ...tandaInfeksi, [inf.key]: e.target.checked })
                       }
-                      className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 w-3.5 h-3.5"
+                      className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 w-4 h-4"
                     />
-                    <span className="text-[11px] text-slate-700 font-semibold">{inf.label}</span>
+                    <span className="text-[11px] sm:text-xs text-slate-700 font-semibold">{inf.label}</span>
                   </label>
                 ))}
               </div>
 
               {/* Skor Nyeri Slider */}
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-slate-800">Tingkat Nyeri Pasien (VAS 0 - 10):</span>
-                  <span className={`font-bold font-mono px-2.5 py-0.5 rounded text-xs ${
+                  <span className="font-bold text-slate-800 text-xs sm:text-sm">Tingkat Nyeri Pasien (VAS 0 - 10):</span>
+                  <span className={`font-bold font-mono px-3 py-1 rounded-lg text-xs ${
                     skorNyeri <= 3 
                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
                       : skorNyeri <= 6 
@@ -977,7 +990,7 @@ function AsesmenContent() {
                   onChange={(e) => setSkorNyeri(Number(e.target.value))}
                   className="w-full accent-blue-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
                 />
-                <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                <div className="flex justify-between text-[11px] text-slate-500 font-mono">
                   <span>0 (Bebas Nyeri)</span>
                   <span>5 (Nyeri Sedang)</span>
                   <span>10 (Nyeri Tak Tertahankan)</span>
@@ -986,11 +999,11 @@ function AsesmenContent() {
             </div>
 
             {/* Step 3 Navigation */}
-            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setActiveStep(2)}
-                className="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Kembali ke Dimensi Luka</span>
@@ -998,7 +1011,7 @@ function AsesmenContent() {
               <button
                 type="button"
                 onClick={() => setActiveStep(4)}
-                className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-2"
               >
                 <span>Lanjut ke Resep Balutan & Foto</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1011,7 +1024,7 @@ function AsesmenContent() {
         {/* STEP 4: RESEP DRESSING, RENCANA & FOTO DOKUMENTASI       */}
         {/* ========================================================= */}
         {activeStep === 4 && (
-          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-5 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
+          <div className="bg-white p-5 sm:p-6 lg:p-7 rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.06)] space-y-6 relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-blue-600">
             <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
@@ -1235,18 +1248,18 @@ function AsesmenContent() {
             </div>
 
             {/* Step 4 Navigation & Save Button */}
-            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setActiveStep(3)}
-                className="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Kembali ke Jaringan TIME</span>
               </button>
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 <span>Simpan Asesmen & Sinkronkan ke Lembar CPPT</span>

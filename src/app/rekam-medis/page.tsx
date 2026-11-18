@@ -104,7 +104,7 @@ function RekamMedisContent() {
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 py-4 sm:py-5 space-y-4 max-w-5xl mx-auto pb-12">
+    <div className="w-full px-4 sm:px-6 py-5 space-y-5 max-w-[1440px] mx-auto pb-16">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200 no-print">
         <div>
