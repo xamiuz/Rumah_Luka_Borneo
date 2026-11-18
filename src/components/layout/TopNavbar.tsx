@@ -134,11 +134,16 @@ export function TopNavbar() {
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2.5 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer text-left select-none group"
+            className="flex items-center gap-2 sm:gap-2.5 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer text-left select-none group"
             title="Klik untuk beralih akun / peran petugas"
           >
-            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center justify-center text-xs font-bold font-mono shrink-0 group-hover:ring-2 group-hover:ring-blue-300 transition">
-              {currentUser.nama.charAt(currentUser.nama.startsWith('Ns.') || currentUser.nama.startsWith('dr.') ? 4 : 0)}
+            <div className="flex items-center gap-1.5">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white border border-blue-700 flex items-center justify-center text-xs font-bold font-mono shrink-0 shadow-2xs group-hover:ring-2 group-hover:ring-blue-300 transition">
+                {currentUser.nama.charAt(currentUser.nama.startsWith('Ns.') || currentUser.nama.startsWith('dr.') ? 4 : 0)}
+              </div>
+              <span className="sm:hidden text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                {currentUser.role}
+              </span>
             </div>
             <div className="hidden sm:block text-left text-xs">
               <div className="flex items-center gap-1">

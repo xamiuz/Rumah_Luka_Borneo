@@ -117,14 +117,14 @@ function RekamMedisContent() {
           </p>
         </div>
 
-        {/* Action Controls in One Unified Row */}
-        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap sm:flex-nowrap">
+        {/* Action Controls: 2 Balanced Blocks on Mobile, 1 Inline Row on Desktop */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
           {/* Mode Switcher */}
-          <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-1 shrink-0">
+          <div className="grid grid-cols-2 sm:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
               type="button"
               onClick={() => setViewMode('interactive')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                 viewMode === 'interactive'
                   ? 'bg-white text-blue-900 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -136,7 +136,7 @@ function RekamMedisContent() {
             <button
               type="button"
               onClick={() => setViewMode('document')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                 viewMode === 'document'
                   ? 'bg-white text-blue-900 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -147,36 +147,38 @@ function RekamMedisContent() {
             </button>
           </div>
 
-          {viewMode === 'interactive' && (
+          {/* Action Buttons: 2 cols on mobile */}
+          <div className="grid grid-cols-2 sm:flex items-center gap-2">
+            {viewMode === 'interactive' && (
+              <button
+                type="button"
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="py-2 px-3 sm:px-3.5 sm:py-1.5 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl hover:bg-blue-100 transition border border-blue-200 flex items-center justify-center gap-1.5 shadow-2xs"
+              >
+                <PlusCircle className="w-4 h-4 text-blue-700 shrink-0" />
+                <span>{showAddForm ? 'Tutup Form' : '+ Catatan SOAP'}</span>
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="px-3.5 py-1.5 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl hover:bg-blue-100 transition border border-blue-200 flex items-center gap-1.5 shadow-2xs shrink-0"
+              onClick={() => window.print()}
+              className="py-2 px-3 sm:px-4 sm:py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-1.5"
             >
-              <PlusCircle className="w-4 h-4 text-blue-700" />
-              <span>{showAddForm ? 'Tutup Form' : '+ Catatan SOAP'}</span>
+              <Printer className="w-4 h-4 shrink-0" />
+              <span>Cetak Dokumen</span>
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center gap-1.5 shrink-0"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Cetak Dokumen</span>
-          </button>
+          </div>
         </div>
       </div>
 
-      {/* UNIFIED PATIENT HEADER CARD (Tanpa Kartu Bertumpuk / Duplikat) */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4 no-print">
-        {/* Top Row: Patient Selector Combobox on Left & Quick Clinical Action on Right */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-          {/* Patient Selector + Identity */}
-          <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+      {/* UNIFIED PATIENT HEADER CARD */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-3.5 no-print">
+        {/* Top Row: Patient Identity + Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             {selectedPatient && (
-              <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg font-mono shrink-0 shadow-xs">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-base sm:text-lg font-mono shrink-0 shadow-xs">
                 {selectedPatient.nama.charAt(0)}
               </div>
             )}
@@ -273,8 +275,8 @@ function RekamMedisContent() {
               </div>
 
               {selectedPatient && (
-                <p className="text-xs text-slate-500 mt-1.5 font-mono truncate">
-                  NIK: {selectedPatient.nik || '-'} • {selectedPatient.jenisKelamin} • Lahir: {selectedPatient.tanggalLahir} • Gol: {selectedPatient.golonganDarah || '-'}
+                <p className="text-[11px] text-slate-500 mt-1 font-mono truncate">
+                  NIK: {selectedPatient.nik || '-'} • {selectedPatient.jenisKelamin} • Lahir: {selectedPatient.tanggalLahir}
                 </p>
               )}
             </div>
@@ -282,10 +284,10 @@ function RekamMedisContent() {
 
           {/* Quick Action Link */}
           {selectedPatient && (
-            <div className="flex items-center gap-2 self-start lg:self-center shrink-0">
+            <div className="flex items-center gap-2 self-start sm:self-center shrink-0 w-full sm:w-auto">
               <Link
                 href={`/asesmen?pasienId=${selectedPatient.id}`}
-                className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-900 text-xs font-bold rounded-xl border border-blue-200 transition flex items-center gap-1.5 shadow-2xs"
+                className="w-full sm:w-auto px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-900 text-xs font-bold rounded-xl border border-blue-200 transition flex items-center justify-center gap-1.5 shadow-2xs"
               >
                 <Bandage className="w-3.5 h-3.5 text-blue-700" />
                 <span>Buka Lembar Asesmen</span>
@@ -294,9 +296,33 @@ function RekamMedisContent() {
           )}
         </div>
 
-        {/* Clinical Info 3-Card Grid */}
+        {/* 1. MOBILE CLINICAL CHIPS BAR (block sm:hidden) */}
         {selectedPatient && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="block sm:hidden bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1.5 text-xs">
+            <div className="flex items-start gap-1.5">
+              <span className="font-bold text-slate-700 text-[10px] uppercase shrink-0 mt-0.5">Diagnosa:</span>
+              <span className="font-semibold text-slate-900 text-xs leading-snug">{selectedPatient.diagnosisMedisUtama}</span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+              {selectedPatient.riwayatAlergi && selectedPatient.riwayatAlergi !== 'Tidak Ada' ? (
+                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                  Alergi: {selectedPatient.riwayatAlergi}
+                </span>
+              ) : (
+                <span className="text-[10px] text-slate-400">Tanpa riwayat alergi</span>
+              )}
+              {selectedPatient.riwayatPenyakit.length > 0 && (
+                <span className="text-[10px] text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                  {selectedPatient.riwayatPenyakit.join(', ')}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 2. DESKTOP CLINICAL INFO 3-CARD GRID (hidden sm:grid) */}
+        {selectedPatient && (
+          <div className="hidden sm:grid grid-cols-3 gap-3 text-xs">
             <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Diagnosa Utama:</span>
               <strong className="text-slate-900 text-xs block mt-1">{selectedPatient.diagnosisMedisUtama}</strong>
@@ -561,22 +587,22 @@ function RekamMedisContent() {
                           </div>
                         </div>
 
-                        {/* Clean Clinical SOAP View - Spacious Grid */}
-                        <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-2.5 text-xs">
-                          <div className="flex items-start gap-3">
-                            <span className="font-bold text-slate-900 w-28 shrink-0">S (Subjective):</span>
+                        {/* Clean Clinical SOAP View - Responsive Grid */}
+                        <div className="bg-slate-50/70 p-3.5 sm:p-4 rounded-xl border border-slate-200 space-y-2.5 text-xs">
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
+                            <span className="font-bold text-blue-900 sm:text-slate-900 sm:w-28 shrink-0">S (Subjective):</span>
                             <span className="text-slate-800 leading-relaxed flex-1">{item.soap.subjective}</span>
                           </div>
-                          <div className="flex items-start gap-3">
-                            <span className="font-bold text-slate-900 w-28 shrink-0">O (Objective):</span>
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
+                            <span className="font-bold text-blue-900 sm:text-slate-900 sm:w-28 shrink-0">O (Objective):</span>
                             <span className="text-slate-800 leading-relaxed flex-1">{item.soap.objective}</span>
                           </div>
-                          <div className="flex items-start gap-3">
-                            <span className="font-bold text-slate-900 w-28 shrink-0">A (Assessment):</span>
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
+                            <span className="font-bold text-blue-900 sm:text-slate-900 sm:w-28 shrink-0">A (Assessment):</span>
                             <span className="text-slate-800 leading-relaxed flex-1">{item.soap.assessment}</span>
                           </div>
-                          <div className="flex items-start gap-3">
-                            <span className="font-bold text-slate-900 w-28 shrink-0">P (Plan):</span>
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
+                            <span className="font-bold text-blue-900 sm:text-slate-900 sm:w-28 shrink-0">P (Plan):</span>
                             <span className="text-slate-800 leading-relaxed flex-1">{item.soap.plan}</span>
                           </div>
                         </div>
