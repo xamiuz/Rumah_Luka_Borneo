@@ -3,19 +3,19 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    // Ping MySQL database
+    // Ping database Supabase / PostgreSQL
     await prisma.$queryRaw`SELECT 1`;
     return NextResponse.json({
       status: 'connected',
-      database: 'mysql',
-      message: 'Koneksi ke database MySQL berhasil',
+      database: 'supabase',
+      message: 'Koneksi ke database Supabase (PostgreSQL) berhasil',
     });
   } catch (error: any) {
     return NextResponse.json(
       {
         status: 'offline',
-        database: 'mysql',
-        message: 'Koneksi ke MySQL belum aktif (menggunakan fallback memori/localStorage)',
+        database: 'supabase',
+        message: 'Koneksi ke database Supabase belum terhubung (menggunakan fallback memori/localStorage)',
         error: error.message,
       },
       { status: 200 } // Kembalikan 200 agar frontend bisa membaca status tanpa throwing network error

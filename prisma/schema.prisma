@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // 1. Pengguna & Tenaga Medis (Admin, Dokter, Perawat)
@@ -139,7 +140,7 @@ model FotoLuka {
   pasienId  String
   tanggal   String
   fase      String   // Sebelum Tindakan, Sesudah Debridement, Setelah Balutan Selesai
-  dataUrl   String   @db.LongText
+  dataUrl   String   @db.Text
   catatan   String?  @db.Text
   perawat   String
   createdAt DateTime @default(now())
@@ -264,7 +265,7 @@ model HomecareParaf {
   tanggal          String
   namaKeluarga     String
   hubungan         String
-  signatureDataUrl String   @db.LongText
+  signatureDataUrl String   @db.Text
   waktuTtd         String
   perawatJaga      String
   createdAt        DateTime @default(now())
