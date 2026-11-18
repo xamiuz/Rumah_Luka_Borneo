@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useClinic } from '@/context/ClinicContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNavbar } from '@/components/layout/TopNavbar';
+import { AndroidBottomNav } from '@/components/layout/AndroidBottomNav';
 import { Loader2 } from 'lucide-react';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -60,11 +61,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ) : null}
 
           {/* Render children continuously to avoid segment dropping */}
-          <div className={!isReady ? 'hidden' : 'block'}>
+          <div className={!isReady ? 'hidden' : 'block pb-20 md:pb-6'}>
             {children}
           </div>
         </main>
       </div>
+
+      {/* Mobile Android Bottom Navigation & Drawer */}
+      {isReady ? <AndroidBottomNav /> : null}
     </div>
   );
 }

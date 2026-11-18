@@ -100,7 +100,7 @@ export function Sidebar() {
     <aside
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`h-screen sticky top-0 bg-white text-slate-700 flex flex-col shrink-0 border-r border-slate-200 transition-[width,box-shadow] duration-300 ease-in-out z-40 select-none overflow-hidden ${
+      className={`hidden md:flex h-screen sticky top-0 bg-white text-slate-700 flex-col shrink-0 border-r border-slate-200 transition-[width,box-shadow] duration-300 ease-in-out z-40 select-none overflow-hidden ${
         isExpanded ? 'w-64 shadow-xl' : 'w-20 shadow-xs'
       }`}
     >

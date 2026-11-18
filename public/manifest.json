@@ -1,0 +1,24 @@
+{
+  "name": "Rumah Luka Borneo - Wound Care EHR",
+  "short_name": "RLB Care",
+  "description": "Sistem Rekam Medis Elektronik Terpadu & Perawatan Luka Modern Rumah Luka Borneo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

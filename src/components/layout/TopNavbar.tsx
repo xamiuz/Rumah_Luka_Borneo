@@ -82,12 +82,12 @@ export function TopNavbar() {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+    <header className="h-14 sm:h-16 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
       {/* Branch & Shift Badge */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2.5 text-slate-800">
-          <img src="/logo.png" alt="Rumah Luka Borneo" className="h-9 w-auto object-contain" />
-          <span className="text-slate-300">|</span>
+      <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 text-slate-800">
+          <img src="/logo.png" alt="Rumah Luka Borneo" className="h-7 sm:h-9 w-auto object-contain" />
+          <span className="hidden sm:inline text-slate-300">|</span>
         </div>
 
         <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
@@ -103,16 +103,16 @@ export function TopNavbar() {
       </div>
 
       {/* Global Search & Quick Actions */}
-      <div className="flex items-center gap-3">
-        {/* Search */}
-        <div className="relative w-64 md:w-80">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Search Input (Visible on sm and up) */}
+        <div className="relative hidden sm:block sm:w-52 md:w-72">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Cari pasien (Nama, No. RM, NIK)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-12 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white text-slate-800 transition placeholder:text-slate-400"
+            className="w-full pl-9 pr-10 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white text-slate-800 transition placeholder:text-slate-400"
           />
           <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 pointer-events-none">
             /
@@ -124,13 +124,13 @@ export function TopNavbar() {
           type="button"
           onClick={handleReset}
           title="Reset ke data awal"
-          className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg border border-transparent hover:border-slate-200 transition"
+          className="hidden sm:flex p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg border border-transparent hover:border-slate-200 transition"
         >
           <RotateCcw className="w-4 h-4" />
         </button>
 
         {/* Staff Profile Capsule & Account Switcher Dropdown */}
-        <div className="relative pl-3 border-l border-slate-200" ref={dropdownRef}>
+        <div className="relative pl-2 sm:pl-3 border-l border-slate-200" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
