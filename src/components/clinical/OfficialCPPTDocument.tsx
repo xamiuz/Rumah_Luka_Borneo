@@ -6,7 +6,7 @@ import { Pasien, CatatanCPPT, User } from '@/types';
 interface OfficialCPPTDocumentProps {
   patient: Pasien;
   records: CatatanCPPT[];
-  currentUser: User;
+  currentUser?: User;
 }
 
 function calculateAge(birthDateString: string): number {
@@ -29,7 +29,7 @@ function formatDateIndo(date: Date): string {
   return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
-export function OfficialCPPTDocument({ patient, records, currentUser }: OfficialCPPTDocumentProps) {
+export function OfficialCPPTDocument({ patient, records }: OfficialCPPTDocumentProps) {
   const currentDateFormatted = formatDateIndo(new Date());
   const printTimestamp = new Date().toLocaleString('id-ID', {
     day: '2-digit',
@@ -41,7 +41,7 @@ export function OfficialCPPTDocument({ patient, records, currentUser }: Official
 
   return (
     <div className="bg-white text-black font-sans leading-snug p-4 sm:p-6 max-w-[850px] mx-auto print:p-0 print:max-w-full print:leading-tight">
-      {/* 1. KOP SURAT RESMI KLINIK (Compact) */}
+      {/* 1. KOP SURAT RESMI KLINIK (Alamat & Izin Operasional dikosongi sesuai permintaan) */}
       <div className="border-b-2 border-slate-900 pb-1.5 mb-0.5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -56,17 +56,11 @@ export function OfficialCPPTDocument({ patient, records, currentUser }: Official
               <p className="text-[10px] font-bold text-slate-800 leading-tight">
                 Pusat Pelayanan Perawatan Luka Modern & Home Care Terpadu
               </p>
-              <p className="text-[8.5px] text-slate-600 leading-tight">
-                Jl. Pupuk Raya Blok D-12, Bontang Barat, Kota Bontang • Telp: (0548) 22341 • WA: 0812-5544-3321
-              </p>
             </div>
           </div>
 
-          <div className="text-right text-[8px] text-slate-600 font-mono leading-tight shrink-0">
-            <div className="font-bold text-slate-900 uppercase">Izin Operasional:</div>
-            <div>445/082/DPMPTSP/KES/2024</div>
-            <div className="text-slate-500">Kode Faskes: 647401-RLB</div>
-          </div>
+          {/* Sisi Kanan Kop Surat (Izin Operasional Dikosongi) */}
+          <div className="text-right text-[8px] text-slate-600 font-mono leading-tight shrink-0"></div>
         </div>
       </div>
       {/* Garis Ganda Tipis */}
@@ -215,15 +209,8 @@ export function OfficialCPPTDocument({ patient, records, currentUser }: Official
                       {item.instruksiPPA || '-'}
                     </td>
 
-                    {/* Kolom 5: Paraf / Verifikasi */}
-                    <td className="py-1 px-1 text-center align-middle">
-                      <div className="inline-block border border-slate-800 bg-slate-50 px-1 py-0.5 rounded text-[7.5px] font-mono font-bold text-slate-900 uppercase">
-                        ✓ TTE SAH
-                      </div>
-                      <div className="text-[7px] text-slate-500 font-mono mt-0.5">
-                        {item.namaTenagaMedis.split(',')[0]}
-                      </div>
-                    </td>
+                    {/* Kolom 5: Paraf (Dikosongi sesuai instruksi) */}
+                    <td className="py-1 px-1 text-center align-middle h-10"></td>
                   </tr>
                 );
               })
@@ -232,35 +219,25 @@ export function OfficialCPPTDocument({ patient, records, currentUser }: Official
         </table>
       </div>
 
-      {/* 5. LEMBAR PENGESAHAN DOKUMEN & LEGALITAS HUKUM (Compact) */}
-      <div className="pt-1.5 border-t border-slate-400 print-avoid-break">
+      {/* 5. LEMBAR PENGESAHAN DOKUMEN (Legalitas, Kota Bontang, dan TTD Dikosongi) */}
+      <div className="pt-2 border-t border-slate-400 print-avoid-break">
         <div className="flex justify-between items-end gap-4 text-[8.5px] sm:text-[9px]">
-          {/* Legalitas PMK */}
-          <div className="w-[60%] text-slate-600 leading-tight space-y-0.5">
-            <p className="font-bold text-slate-900 uppercase text-[8px]">Legalitas Rekam Medis Elektronik:</p>
-            <p>
-              Dokumen ini sah dan berkekuatan hukum sesuai <strong>Permenkes RI No. 24 Tahun 2022</strong> serta UU ITE.
-            </p>
-            <p className="font-mono text-[7.5px] text-slate-400">
-              Sistem Terintegrasi Klinik Rumah Luka Borneo • ID: RLB-MED-{patient.id}
-            </p>
-          </div>
+          {/* Sisi Kiri (Legalitas Dikosongi sesuai permintaan) */}
+          <div className="w-[50%]"></div>
 
-          {/* Tanda Tangan DPJP / Petugas */}
-          <div className="w-[38%] text-right flex flex-col items-end">
-            <p className="text-slate-700">Kota Bontang, {currentDateFormatted}</p>
+          {/* Sisi Kanan: Tanda Tangan PPA (Dikosongi untuk tanda tangan manual) */}
+          <div className="w-[45%] text-right flex flex-col items-end">
+            <p className="text-slate-700">{currentDateFormatted}</p>
             <p className="text-slate-800 font-semibold">Penanggung Jawab Pelayanan (PPA),</p>
             
-            {/* Digital Stamp Compact */}
-            <div className="my-1 border border-slate-800 bg-slate-50/80 px-2 py-0.5 rounded text-center w-48">
-              <span className="block text-[7.5px] font-mono font-bold uppercase text-slate-700">
-                ✓ TANDA TANGAN ELEKTRONIK TERSERTIFIKASI
-              </span>
-            </div>
+            {/* Area Kosong Tanda Tangan Manual */}
+            <div className="h-16 w-44"></div>
 
-            <p className="font-bold underline text-slate-900 text-[10px]">{currentUser.nama}</p>
-            <p className="font-mono text-[8px] text-slate-600">
-              {currentUser.strNip ? `NIP/STR: ${currentUser.strNip}` : `Peran: ${currentUser.role}`}
+            <p className="font-bold text-slate-900 text-[9.5px]">
+              (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)
+            </p>
+            <p className="font-mono text-[8px] text-slate-500">
+              SIP / STR: .......................................
             </p>
           </div>
         </div>
