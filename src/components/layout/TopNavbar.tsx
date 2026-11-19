@@ -8,7 +8,6 @@ import {
   UserPlus, 
   Building2, 
   Clock, 
-  RotateCcw,
   Database,
   ChevronDown,
   UserCheck,
@@ -23,7 +22,7 @@ import { useDialog } from '@/context/DialogContext';
 
 export function TopNavbar() {
   const router = useRouter();
-  const { searchTerm, setSearchTerm, currentUser, switchUser, users, resetAllData, logout } = useClinic();
+  const { searchTerm, setSearchTerm, currentUser, switchUser, users, logout } = useClinic();
   const { showConfirm } = useDialog();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,17 +56,6 @@ export function TopNavbar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleReset = async () => {
-    const confirmed = await showConfirm(
-      'Reset ulang data sample klinik untuk demonstrasi? Seluruh data baru akan dikembalikan ke kondisi awal.',
-      'Reset Data Klinik',
-      { type: 'warning', confirmLabel: 'Ya, Reset Data' }
-    );
-    if (confirmed) {
-      resetAllData();
-    }
-  };
 
   const handleLogout = async () => {
     const confirmed = await showConfirm(
@@ -120,16 +108,6 @@ export function TopNavbar() {
             /
           </kbd>
         </div>
-
-        {/* Reset sample */}
-        <button
-          type="button"
-          onClick={handleReset}
-          title="Reset ke data awal"
-          className="hidden sm:flex p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg border border-transparent hover:border-slate-200 transition"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </button>
 
         {/* Staff Profile Capsule & Account Switcher Dropdown */}
         <div className="relative pl-2 sm:pl-3 border-l border-slate-200" ref={dropdownRef}>

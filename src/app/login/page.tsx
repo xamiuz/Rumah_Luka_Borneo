@@ -20,7 +20,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, users } = useClinic();
 
-  const [username, setUsername] = useState('hendra_rlb');
+  const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('123');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,12 +47,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickLogin = (uname: string) => {
-    setUsername(uname);
-    setPassword('123');
-    setErrorMessage('');
   };
 
   return (
@@ -191,55 +185,17 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Presets */}
+          {/* Security & Admin Notice */}
           <div className="mt-8 pt-6 border-t border-slate-200">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Login Instan (Akun Tim Medis Demo):</span>
+            <div className="p-3.5 bg-blue-50/80 rounded-xl border border-blue-100 flex items-start gap-3">
+              <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-slate-600 leading-relaxed">
+                <span className="font-semibold text-slate-900 block">Sistem Terintegrasi Klinik & Home Care</span>
+                <p className="mt-0.5 text-slate-500">
+                  Login menggunakan akun resmi staf atau Administrator (<span className="font-mono font-bold text-blue-700">admin</span>). Administrator memiliki wewenang penuh untuk mendaftarkan dan mengelola akun dokter serta perawat.
+                </p>
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('hendra_rlb')}
-                className={`text-left p-2.5 rounded-lg border text-xs transition-all ${
-                  username === 'hendra_rlb'
-                    ? 'border-blue-500 bg-blue-50/60 font-semibold text-blue-900'
-                    : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
-                }`}
-              >
-                <div className="font-medium text-slate-900 truncate">Ns. Hendra</div>
-                <div className="text-[10px] text-blue-600 font-medium">Perawat Luka</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin_kolifah')}
-                className={`text-left p-2.5 rounded-lg border text-xs transition-all ${
-                  username === 'admin_kolifah'
-                    ? 'border-purple-500 bg-purple-50/60 font-semibold text-purple-900'
-                    : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
-                }`}
-              >
-                <div className="font-medium text-slate-900 truncate">Bu Kolifah</div>
-                <div className="text-[10px] text-purple-600 font-medium">Admin Klinik</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('dr_siti')}
-                className={`text-left p-2.5 rounded-lg border text-xs transition-all ${
-                  username === 'dr_siti'
-                    ? 'border-emerald-500 bg-emerald-50/60 font-semibold text-emerald-900'
-                    : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
-                }`}
-              >
-                <div className="font-medium text-slate-900 truncate">dr. Siti Sp.B</div>
-                <div className="text-[10px] text-emerald-600 font-medium">Dokter Bedah</div>
-              </button>
-            </div>
-            <p className="text-[11px] text-slate-500 mt-2.5 leading-relaxed">
-              Klik salah satu akun di atas untuk mengisi username secara instan, lalu klik tombol <strong>Masuk ke Dashboard</strong>.
-            </p>
           </div>
         </div>
       </div>

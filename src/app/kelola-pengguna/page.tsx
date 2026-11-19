@@ -27,11 +27,13 @@ import {
   Hospital,
   Edit3,
   Phone,
-  Save
+  Save,
+  Search,
+  Filter
 } from 'lucide-react';
 import { useClinic } from '@/context/ClinicContext';
 import { useDialog } from '@/context/DialogContext';
-import { Role } from '@/types';
+import { Role, User } from '@/types';
 import { useRouter } from 'next/navigation';
 
 export default function KelolaPenggunaPage() {
@@ -83,6 +85,67 @@ export default function KelolaPenggunaPage() {
   const [resetModalUser, setResetModalUser] = useState<{ id: string; nama: string; username: string } | null>(null);
   const [adminNewPass, setAdminNewPass] = useState('');
   const [adminResetMsg, setAdminResetMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Search & Filter Staf Medis
+  const [searchStaff, setSearchStaff] = useState('');
+  const [filterRole, setFilterRole] = useState<string>('Semua');
+  const [filterStatus, setFilterStatus] = useState<string>('Semua');
+
+  // Modal Edit Staf Medis (Akses Admin)
+  const [editingStaff, setEditingStaff] = useState<User | null>(null);
+  const [staffNama, setStaffNama] = useState('');
+  const [staffUsername, setStaffUsername] = useState('');
+  const [staffRole, setStaffRole] = useState<Role>('Perawat');
+  const [staffStrNip, setStaffStrNip] = useState('');
+  const [staffNoHp, setStaffNoHp] = useState('');
+  const [staffEmail, setStaffEmail] = useState('');
+  const [staffStatus, setStaffStatus] = useState<'Aktif' | 'Nonaktif'>('Aktif');
+  const [editStaffFeedback, setEditStaffFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const handleOpenEditStaff = (staff: User) => {
+    setEditingStaff(staff);
+    setStaffNama(staff.nama || '');
+    setStaffUsername(staff.username || '');
+    setStaffRole(staff.role);
+    setStaffStrNip(staff.strNip || '');
+    setStaffNoHp(staff.noHp || '');
+    setStaffEmail(staff.email || '');
+    setStaffStatus(staff.status);
+    setEditStaffFeedback(null);
+  };
+
+  const handleSaveEditStaff = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStaff) return;
+    if (!staffNama.trim() || !staffUsername.trim()) {
+      setEditStaffFeedback({ type: 'error', message: 'Nama dan username wajib diisi.' });
+      return;
+    }
+
+    if (
+      staffUsername.trim().toLowerCase() !== editingStaff.username.toLowerCase() &&
+      users.some((u) => u.id !== editingStaff.id && u.username.toLowerCase() === staffUsername.trim().toLowerCase())
+    ) {
+      setEditStaffFeedback({ type: 'error', message: 'Username sudah digunakan oleh akun lain.' });
+      return;
+    }
+
+    updateUser(editingStaff.id, {
+      nama: staffNama.trim(),
+      username: staffUsername.trim(),
+      role: staffRole,
+      strNip: staffStrNip.trim() || '-',
+      noHp: staffNoHp.trim() || '-',
+      email: staffEmail.trim() || '-',
+      status: staffStatus,
+    });
+
+    setEditStaffFeedback({ type: 'success', message: 'Data akun staf medis berhasil diperbarui!' });
+    setTimeout(() => {
+      setEditingStaff(null);
+      setEditStaffFeedback(null);
+    }, 1000);
+  };
 
   // Buka Modal Edit Profil Pribadi dengan Data Terisi
   const handleOpenEditProfile = () => {
@@ -420,234 +483,348 @@ export default function KelolaPenggunaPage() {
       )}
 
       {/* TAB 2: MANAJEMEN TENAGA MEDIS (HANYA UNTUK HAK AKSES ADMIN) */}
-      {activeTab === 'manajemen' && currentUser.role === 'Admin' && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <p className="text-xs text-slate-600">
-              Menampilkan <strong className="text-slate-900">{users.length}</strong> akun staf medis terdaftar.
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>{showAddForm ? 'Tutup Formulir' : '+ Tambah Tenaga Medis'}</span>
-            </button>
-          </div>
+      {activeTab === 'manajemen' && currentUser.role === 'Admin' && (() => {
+        const filteredUsers = users.filter((u) => {
+          const term = searchStaff.toLowerCase().trim();
+          const matchSearch =
+            !term ||
+            u.nama.toLowerCase().includes(term) ||
+            u.username.toLowerCase().includes(term) ||
+            (u.strNip && u.strNip.toLowerCase().includes(term)) ||
+            (u.noHp && u.noHp.includes(term));
+          const matchRole = filterRole === 'Semua' || u.role === filterRole;
+          const matchStatus = filterStatus === 'Semua' || u.status === filterStatus;
+          return matchSearch && matchRole && matchStatus;
+        });
 
-          {/* Form Registrasi Petugas Baru */}
-          {showAddForm && (
-            <div className="bg-white rounded-xl border border-blue-200 p-6 shadow-xs space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h2 className="text-sm font-bold text-slate-900">Registrasi Akun Tenaga Medis / Staf Baru</h2>
-                <p className="text-xs text-slate-500">Tentukan kredensial login, peran klinis, dan password awal petugas.</p>
+        const countDokter = users.filter((u) => u.role === 'Dokter').length;
+        const countPerawat = users.filter((u) => u.role === 'Perawat').length;
+        const countAdmin = users.filter((u) => u.role === 'Admin').length;
+        const countAdminStaff = users.filter((u) => u.role === 'Petugas Administrasi').length;
+
+        return (
+          <div className="space-y-4">
+            {/* Staff Metric Overview Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Total Staf</span>
+                <div className="text-2xl font-bold text-slate-900 mt-1">{users.length}</div>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Akun terdaftar</span>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider block">Dokter</span>
+                <div className="text-2xl font-bold text-emerald-800 mt-1">{countDokter}</div>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Penanggung Jawab</span>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <span className="text-[11px] font-semibold text-blue-700 uppercase tracking-wider block">Perawat Luka</span>
+                <div className="text-2xl font-bold text-blue-800 mt-1">{countPerawat}</div>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">CWCCA Specialist</span>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <span className="text-[11px] font-semibold text-purple-700 uppercase tracking-wider block">Admin & Staf</span>
+                <div className="text-2xl font-bold text-purple-800 mt-1">{countAdmin + countAdminStaff}</div>
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Klinik & Homecare</span>
+              </div>
+            </div>
+
+            {/* Action Bar: Search, Filter, and Add Staff Button */}
+            <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama, NIP, username, no hp..."
+                    value={searchStaff}
+                    onChange={(e) => setSearchStaff(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                  />
+                  {searchStaff && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchStaff('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <select
+                    value={filterRole}
+                    onChange={(e) => setFilterRole(e.target.value)}
+                    className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium text-slate-700"
+                  >
+                    <option value="Semua">Semua Peran</option>
+                    <option value="Dokter">Dokter</option>
+                    <option value="Perawat">Perawat</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Petugas Administrasi">Administrasi</option>
+                  </select>
+
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium text-slate-700"
+                  >
+                    <option value="Semua">Semua Status</option>
+                    <option value="Aktif">Aktif</option>
+                    <option value="Nonaktif">Nonaktif</option>
+                  </select>
+                </div>
               </div>
 
-              <form onSubmit={handleAddUser} className="space-y-4 text-xs">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Nama Lengkap & Gelar *</label>
-                    <input
-                      type="text"
-                      required
-                      value={nama}
-                      onChange={(e) => setNama(e.target.value)}
-                      placeholder="Contoh: Ns. Ahmad Ridwan, S.Kep., CWCCA"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Username Login *</label>
-                    <input
-                      type="text"
-                      required
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Contoh: ahmad_nurse"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Password Awal *</label>
-                    <input
-                      type="text"
-                      required
-                      value={initialPassword}
-                      onChange={(e) => setInitialPassword(e.target.value)}
-                      placeholder="Default: 123"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-mono"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Peran / Hak Akses (RBAC) *</label>
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value as Role)}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
-                    >
-                      <option value="Perawat">Perawat (CWCCA / Wound Care Specialist)</option>
-                      <option value="Dokter">Dokter (Sp.B / Umum Penanggung Jawab)</option>
-                      <option value="Admin">Admin (Home Care Coordinator / Keuangan)</option>
-                      <option value="Petugas Administrasi">Petugas Administrasi / Rekam Medis</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Nomor STR / NIP Petugas</label>
-                    <input
-                      type="text"
-                      value={strNip}
-                      onChange={(e) => setStrNip(e.target.value)}
-                      placeholder="Contoh: 19890123 201502 1 004"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">No. WhatsApp / HP</label>
-                    <input
-                      type="text"
-                      value={noHp}
-                      onChange={(e) => setNoHp(e.target.value)}
-                      placeholder="Contoh: 0812-3456-7890"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddForm(false)}
-                    className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-lg transition cursor-pointer"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-xs cursor-pointer"
-                  >
-                    Simpan Petugas Medis
-                  </button>
-                </div>
-              </form>
+              <button
+                type="button"
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>{showAddForm ? 'Tutup Formulir' : '+ Tambah Tenaga Medis'}</span>
+              </button>
             </div>
-          )}
 
-          {/* Tabel Pengguna */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
-                    <th className="py-3 px-4">Nama Lengkap & NIP</th>
-                    <th className="py-3 px-4">Kontak / No. HP</th>
-                    <th className="py-3 px-4">Username</th>
-                    <th className="py-3 px-4">Peran (Role)</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-center">Status Sesi</th>
-                    <th className="py-3 px-4 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {users.map((u) => {
-                    const isCurrent = currentUser.id === u.id || currentUser.username === u.username;
-                    return (
-                      <tr key={u.id} className={`hover:bg-slate-50/70 transition ${isCurrent ? 'bg-blue-50/40' : ''}`}>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-slate-900">{u.nama}</div>
-                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                            {u.strNip || 'Tanpa STR/NIP'}
-                          </div>
-                        </td>
+            {/* Form Registrasi Petugas Baru */}
+            {showAddForm && (
+              <div className="bg-white rounded-xl border border-blue-200 p-6 shadow-xs space-y-4">
+                <div className="border-b border-slate-100 pb-3">
+                  <h2 className="text-sm font-bold text-slate-900">Registrasi Akun Tenaga Medis / Staf Baru</h2>
+                  <p className="text-xs text-slate-500">Tentukan kredensial login, peran klinis, dan password awal petugas.</p>
+                </div>
 
-                        <td className="py-3.5 px-4 font-mono text-slate-700">
-                          {u.noHp || '-'}
-                        </td>
+                <form onSubmit={handleAddUser} className="space-y-4 text-xs">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">Nama Lengkap & Gelar *</label>
+                      <input
+                        type="text"
+                        required
+                        value={nama}
+                        onChange={(e) => setNama(e.target.value)}
+                        placeholder="Contoh: Ns. Ahmad Ridwan, S.Kep., CWCCA"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
 
-                        <td className="py-3.5 px-4 font-mono text-slate-700">
-                          @{u.username}
-                        </td>
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">Username Login *</label>
+                      <input
+                        type="text"
+                        required
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Contoh: ahmad_nurse"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
 
-                        <td className="py-3.5 px-4">
-                          <span className={`inline-block px-2 py-0.5 rounded-md font-bold text-[10px] uppercase ${
-                            u.role === 'Admin'
-                              ? 'bg-purple-100 text-purple-800'
-                              : u.role === 'Dokter'
-                              ? 'bg-rose-100 text-rose-800'
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {u.role}
-                          </span>
-                        </td>
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">Password Awal *</label>
+                      <input
+                        type="text"
+                        required
+                        value={initialPassword}
+                        onChange={(e) => setInitialPassword(e.target.value)}
+                        placeholder="Default: 123"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-mono"
+                      />
+                    </div>
 
-                        <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                            {u.status}
-                          </span>
-                        </td>
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">Peran / Hak Akses (RBAC) *</label>
+                      <select
+                        value={role}
+                        onChange={(e) => setRole(e.target.value as Role)}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                      >
+                        <option value="Perawat">Perawat (CWCCA / Wound Care Specialist)</option>
+                        <option value="Dokter">Dokter (Sp.B / Umum Penanggung Jawab)</option>
+                        <option value="Admin">Admin (Home Care Coordinator / Keuangan)</option>
+                        <option value="Petugas Administrasi">Petugas Administrasi / Rekam Medis</option>
+                      </select>
+                    </div>
 
-                        <td className="py-3.5 px-4 text-center">
-                          {isCurrent ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[10px] rounded-full">
-                              <Check className="w-3 h-3" /> Akun Anda
-                            </span>
-                          ) : (
-                            <span className="text-[11px] text-slate-400">Offline</span>
-                          )}
-                        </td>
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">Nomor STR / NIP Petugas</label>
+                      <input
+                        type="text"
+                        value={strNip}
+                        onChange={(e) => setStrNip(e.target.value)}
+                        placeholder="Contoh: 19890123 201502 1 004"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
 
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setResetModalUser({ id: u.id, nama: u.nama, username: u.username });
-                                setAdminNewPass('');
-                                setAdminResetMsg(null);
-                              }}
-                              title="Reset Password Petugas"
-                              className="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition cursor-pointer flex items-center gap-1 border border-slate-200 hover:border-blue-300"
-                            >
-                              <KeyRound className="w-3.5 h-3.5" />
-                              <span className="text-[10px] font-medium hidden sm:inline">Reset Sandi</span>
-                            </button>
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">No. WhatsApp / HP</label>
+                      <input
+                        type="text"
+                        value={noHp}
+                        onChange={(e) => setNoHp(e.target.value)}
+                        placeholder="Contoh: 0812-3456-7890"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
+                  </div>
 
-                            {!isCurrent && users.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={async () => {
-                                  const confirmed = await showConfirm(
-                                    `Yakin ingin menghapus akun ${u.nama}? Akses login untuk staf ini akan dicabut.`,
-                                    'Hapus Akun Tenaga Medis',
-                                    { type: 'danger', confirmLabel: 'Ya, Hapus' }
-                                  );
-                                  if (confirmed) {
-                                    deleteUser(u.id);
-                                  }
-                                }}
-                                title="Hapus Akun"
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
+                  <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddForm(false)}
+                      className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-lg transition cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-xs cursor-pointer"
+                    >
+                      Simpan Petugas Medis
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Tabel Pengguna */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
+                      <th className="py-3 px-4">Nama Lengkap & NIP</th>
+                      <th className="py-3 px-4">Kontak / No. HP</th>
+                      <th className="py-3 px-4">Username</th>
+                      <th className="py-3 px-4">Peran (Role)</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-center">Status Sesi</th>
+                      <th className="py-3 px-4 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-slate-400">
+                          Tidak ada data staf medis yang cocok dengan kriteria filter.
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    ) : (
+                      filteredUsers.map((u) => {
+                        const isCurrent = currentUser.id === u.id || currentUser.username === u.username;
+                        return (
+                          <tr key={u.id} className={`hover:bg-slate-50/70 transition ${isCurrent ? 'bg-blue-50/40' : ''}`}>
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-slate-900">{u.nama}</div>
+                              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                                {u.strNip || 'Tanpa STR/NIP'}
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4 font-mono text-slate-700">
+                              {u.noHp || '-'}
+                            </td>
+
+                            <td className="py-3.5 px-4 font-mono text-slate-700">
+                              @{u.username}
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <span className={`inline-block px-2 py-0.5 rounded-md font-bold text-[10px] uppercase ${
+                                u.role === 'Admin'
+                                  ? 'bg-purple-100 text-purple-800'
+                                  : u.role === 'Dokter'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : u.role === 'Petugas Administrasi'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {u.role}
+                              </span>
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded ${
+                                u.status === 'Aktif'
+                                  ? 'text-emerald-700 bg-emerald-50'
+                                  : 'text-slate-500 bg-slate-100'
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                  u.status === 'Aktif' ? 'bg-emerald-600' : 'bg-slate-400'
+                                }`} />
+                                {u.status}
+                              </span>
+                            </td>
+
+                            <td className="py-3.5 px-4 text-center">
+                              {isCurrent ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-600 text-white font-bold text-[10px] rounded-full">
+                                  <Check className="w-3 h-3" /> Akun Anda
+                                </span>
+                              ) : (
+                                <span className="text-[11px] text-slate-400">Offline</span>
+                              )}
+                            </td>
+
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditStaff(u)}
+                                  title="Edit Profil & Akses Staf"
+                                  className="p-1.5 text-blue-700 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition cursor-pointer flex items-center gap-1 border border-blue-200 hover:border-blue-300"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                  <span className="text-[10px] font-semibold hidden sm:inline">Edit</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setResetModalUser({ id: u.id, nama: u.nama, username: u.username });
+                                    setAdminNewPass('');
+                                    setAdminResetMsg(null);
+                                  }}
+                                  title="Reset Password Petugas"
+                                  className="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition cursor-pointer flex items-center gap-1 border border-slate-200 hover:border-blue-300"
+                                >
+                                  <KeyRound className="w-3.5 h-3.5" />
+                                  <span className="text-[10px] font-medium hidden sm:inline">Reset Sandi</span>
+                                </button>
+
+                                {!isCurrent && users.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      const confirmed = await showConfirm(
+                                        `Yakin ingin menghapus akun ${u.nama}? Akses login untuk staf ini akan dicabut secara permanen.`,
+                                        'Hapus Akun Tenaga Medis',
+                                        { type: 'danger', confirmLabel: 'Ya, Hapus' }
+                                      );
+                                      if (confirmed) {
+                                        deleteUser(u.id);
+                                      }
+                                    }}
+                                    title="Hapus Akun"
+                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* MODAL / POPOUT UBAH DATA PRIBADI (Edit Nomor, Nama, Username, STR/NIP, Email) */}
       {showEditProfileModal && (
@@ -957,6 +1134,167 @@ export default function KelolaPenggunaPage() {
                   className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-xs cursor-pointer"
                 >
                   Terapkan Reset
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit Detail Staf Medis (Akses Admin) */}
+      {editingStaff && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-white rounded-xl shadow-xl border border-slate-200 p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Edit Akun & Kredensial Staf Medis</h3>
+                  <p className="text-[11px] text-slate-500">ID Akun: {editingStaff.id} • @{editingStaff.username}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingStaff(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Feedback Alert */}
+            {editStaffFeedback && (
+              <div className={`p-3 rounded-lg text-xs flex items-start gap-2.5 ${
+                editStaffFeedback.type === 'success'
+                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                  : 'bg-rose-50 border border-rose-200 text-rose-800'
+              }`}>
+                {editStaffFeedback.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+                )}
+                <div className="leading-relaxed font-medium">{editStaffFeedback.message}</div>
+              </div>
+            )}
+
+            {/* Form Fields */}
+            <form onSubmit={handleSaveEditStaff} className="space-y-3.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="sm:col-span-2">
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Nama Lengkap & Gelar *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={staffNama}
+                    onChange={(e) => setStaffNama(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Username Login *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={staffUsername}
+                    onChange={(e) => setStaffUsername(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Peran / Hak Akses (Role) *
+                  </label>
+                  <select
+                    value={staffRole}
+                    onChange={(e) => setStaffRole(e.target.value as Role)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-semibold"
+                  >
+                    <option value="Perawat">Perawat (CWCCA)</option>
+                    <option value="Dokter">Dokter Penanggung Jawab</option>
+                    <option value="Admin">Administrator Sistem</option>
+                    <option value="Petugas Administrasi">Petugas Administrasi</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Nomor STR / NIP Petugas
+                  </label>
+                  <input
+                    type="text"
+                    value={staffStrNip}
+                    onChange={(e) => setStaffStrNip(e.target.value)}
+                    placeholder="Contoh: 19870514 201101 1 003"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Status Akun
+                  </label>
+                  <select
+                    value={staffStatus}
+                    onChange={(e) => setStaffStatus(e.target.value as 'Aktif' | 'Nonaktif')}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium"
+                  >
+                    <option value="Aktif">Aktif (Dapat Login & Melayani)</option>
+                    <option value="Nonaktif">Nonaktif (Akses Dinonaktifkan)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    No. Telepon / WhatsApp
+                  </label>
+                  <input
+                    type="text"
+                    value={staffNoHp}
+                    onChange={(e) => setStaffNoHp(e.target.value)}
+                    placeholder="Contoh: 0812-5544-3321"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Alamat Email
+                  </label>
+                  <input
+                    type="email"
+                    value={staffEmail}
+                    onChange={(e) => setStaffEmail(e.target.value)}
+                    placeholder="Contoh: perawat@rumahluka.id"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+
+              {/* Actions Footer */}
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingStaff(null)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-lg transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Simpan Perubahan</span>
                 </button>
               </div>
             </form>

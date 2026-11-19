@@ -109,24 +109,31 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
           fetch('/api/homecare').then((r) => r.json()).catch(() => null),
         ]);
 
-        if (usersRes?.success && usersRes.data?.length > 0) {
+        if (usersRes?.success && Array.isArray(usersRes.data) && usersRes.data.length > 0) {
           setUsers(usersRes.data);
+          const validCurrent = usersRes.data.find((u: User) => u.id === currentUser.id || u.username === currentUser.username);
+          if (!validCurrent) {
+            setCurrentUser(usersRes.data[0]);
+            try {
+              localStorage.setItem('rlb_active_user', JSON.stringify(usersRes.data[0]));
+            } catch {}
+          }
         }
-        if (pasienRes?.success && pasienRes.data?.length > 0) {
+        if (pasienRes?.success && Array.isArray(pasienRes.data)) {
           setPatients(pasienRes.data);
         }
-        if (cpptRes?.success && cpptRes.data?.length > 0) {
+        if (cpptRes?.success && Array.isArray(cpptRes.data)) {
           setCpptRecords(cpptRes.data);
         }
-        if (jadwalRes?.success && jadwalRes.data?.length > 0) {
+        if (jadwalRes?.success && Array.isArray(jadwalRes.data)) {
           setSchedules(jadwalRes.data);
         }
         if (hcRes?.success && hcRes.data) {
-          if (hcRes.data.jaga?.length > 0) setHomecareJaga(hcRes.data.jaga);
-          if (hcRes.data.meals?.length > 0) setHomecareMeals(hcRes.data.meals);
-          if (hcRes.data.meds?.length > 0) setHomecareMeds(hcRes.data.meds);
-          if (hcRes.data.photos?.length > 0) setWoundPhotos(hcRes.data.photos);
-          if (hcRes.data.paraf?.length > 0) setParafHomecare(hcRes.data.paraf);
+          setHomecareJaga(hcRes.data.jaga || []);
+          setHomecareMeals(hcRes.data.meals || []);
+          setHomecareMeds(hcRes.data.meds || []);
+          setWoundPhotos(hcRes.data.photos || []);
+          setParafHomecare(hcRes.data.paraf || []);
         }
       } else {
         setDbStatus('offline');
